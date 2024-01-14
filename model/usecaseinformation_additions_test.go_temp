@@ -1,0 +1,86 @@
+package model
+
+import (
+	"testing"
+
+	"github.com/enbility/spine-go/util"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+)
+
+func TestUsecaseInformationSuite(t *testing.T) {
+	suite.Run(t, new(UsecaseInformationSuite))
+}
+
+type UsecaseInformationSuite struct {
+	suite.Suite
+}
+
+func (s *UsecaseInformationSuite) SetupSuite()   {}
+func (s *UsecaseInformationSuite) TearDownTest() {}
+
+func (s *UsecaseInformationSuite) BeforeTest(suiteName, testName string) {}
+
+func (s *UsecaseInformationSuite) Test_UpdateList() {
+	sut := UseCaseInformationListDataType{
+		UseCaseInformationData: []UseCaseInformationDataType{
+			{
+				Actor: util.Ptr(UseCaseActorTypeEVSE),
+				UseCaseSupport: []UseCaseSupportType{
+					{
+						UseCaseName:      util.Ptr(UseCaseNameTypeEVSECommissioningAndConfiguration),
+						UseCaseVersion:   util.Ptr(SpecificationVersionType("1.0.0")),
+						UseCaseAvailable: util.Ptr(true),
+						ScenarioSupport: []UseCaseScenarioSupportType{
+							1, 2, 3, 4, 5,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	newData := UseCaseInformationListDataType{
+		UseCaseInformationData: []UseCaseInformationDataType{
+			{
+				Actor: util.Ptr(UseCaseActorTypeEVSE),
+				UseCaseSupport: []UseCaseSupportType{
+					{
+						UseCaseName:      util.Ptr(UseCaseNameTypeEVSECommissioningAndConfiguration),
+						UseCaseVersion:   util.Ptr(SpecificationVersionType("1.0.1")),
+						UseCaseAvailable: util.Ptr(true),
+						ScenarioSupport: []UseCaseScenarioSupportType{
+							1, 2, 3, 4, 5,
+						},
+					},
+				},
+			},
+			{
+				Actor: util.Ptr(UseCaseActorTypeEV),
+				UseCaseSupport: []UseCaseSupportType{
+					{
+						UseCaseName:      util.Ptr(UseCaseNameTypeEVCommissioningAndConfiguration),
+						UseCaseVersion:   util.Ptr(SpecificationVersionType("1.0.0")),
+						UseCaseAvailable: util.Ptr(true),
+						ScenarioSupport: []UseCaseScenarioSupportType{
+							1, 2, 3, 4, 5,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	data := sut.UseCaseInformationData
+	// check properties of updated item
+	item1 := data[0]
+	assert.NotNil(s.T(), item1)
+
+	// Act
+	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+
+	data = sut.UseCaseInformationData
+	// check properties of updated item
+	item1 = data[0]
+	assert.NotNil(s.T(), item1)
+}
