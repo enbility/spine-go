@@ -83,6 +83,9 @@ func (r *FeatureRemoteImpl) Entity() api.EntityRemote {
 func (r *FeatureRemoteImpl) SetOperations(functions []model.FunctionPropertyType) {
 	r.operations = make(map[model.FunctionType]api.Operations)
 	for _, sf := range functions {
+		if sf.PossibleOperations == nil {
+			continue
+		}
 		r.operations[*sf.Function] = NewOperations(sf.PossibleOperations.Read != nil, sf.PossibleOperations.Write != nil)
 	}
 }
