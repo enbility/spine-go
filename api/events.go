@@ -34,6 +34,8 @@ type EventPayload struct {
 	Device        DeviceRemote      // required for DetailedDiscovery Call
 	Entity        EntityRemote      // required for DetailedDiscovery Call and Notify
 	Feature       FeatureRemote
+	LocalFeature  FeatureLocal             // required for write commands
+	Function      model.FunctionType       // required for write commands
 	CmdClassifier *model.CmdClassifierType // optional, used together with EventType EventTypeDataChange
 	Data          any
 }

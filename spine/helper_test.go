@@ -168,24 +168,36 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 	}
 }
 
-func createLocalDeviceAndFeature(entityId uint, featureType model.FeatureTypeType) (api.FeatureLocal, api.FeatureLocal) {
+func createLocalDeviceAndEntity(entityId uint) (*DeviceLocalImpl, *EntityLocalImpl) {
 	localDevice := NewDeviceLocalImpl("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 	localDevice.address = util.Ptr(model.AddressDeviceType("Address"))
+
 	localEntity := NewEntityLocalImpl(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
 	localDevice.AddEntity(localEntity)
+
+	return localDevice, localEntity
+}
+
+func createLocalFeatures(localDevice *DeviceLocalImpl, localEntity *EntityLocalImpl, featureType model.FeatureTypeType, writeFunction model.FunctionType) (api.FeatureLocal, api.FeatureLocal) {
 	localFeature := NewFeatureLocalImpl(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeClient)
 	localEntity.AddFeature(localFeature)
 	localServerFeature := NewFeatureLocalImpl(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeServer)
+	if len(string(writeFunction)) > 0 {
+		localServerFeature.AddFunctionType(writeFunction, true, true)
+	}
 	localEntity.AddFeature(localServerFeature)
 
 	return localFeature, localServerFeature
 }
 
-func createRemoteDeviceAndFeature(entityId uint, featureType model.FeatureTypeType, sender api.Sender) (api.FeatureRemote, api.FeatureRemote) {
-	localDevice := NewDeviceLocalImpl("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-
+func createRemoteDevice(localDevice *DeviceLocalImpl, sender api.Sender) *DeviceRemoteImpl {
 	remoteDevice := NewDeviceRemoteImpl(localDevice, "ski", sender)
 	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
+
+	return remoteDevice
+}
+
+func createRemoteEntityAndFeature(localDevice *DeviceLocalImpl, remoteDevice *DeviceRemoteImpl, entityId uint, featureType model.FeatureTypeType) (api.FeatureRemote, api.FeatureRemote) {
 	remoteEntity := NewEntityRemoteImpl(remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
 	remoteDevice.AddEntity(remoteEntity)
 	remoteFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeClient)

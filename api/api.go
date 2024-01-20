@@ -265,6 +265,7 @@ type BindingManager interface {
 	RemoveBindingsForEntity(remoteEntity EntityRemote)
 	Bindings(remoteDevice DeviceRemote) []*BindingEntry
 	BindingsOnFeature(featureAddress model.FeatureAddressType) []*BindingEntry
+	HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool
 }
 
 /* Subscription Manager */

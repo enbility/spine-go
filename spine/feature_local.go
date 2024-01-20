@@ -24,8 +24,8 @@ type FeatureLocalImpl struct {
 	resultHandler   []api.FeatureResult
 	resultCallback  map[model.MsgCounterType]func(result api.ResultMessage)
 
-	bindings      []*model.FeatureAddressType
-	subscriptions []*model.FeatureAddressType
+	bindings      []*model.FeatureAddressType // bindings to remote features
+	subscriptions []*model.FeatureAddressType // subscriptions to remote features
 
 	mux sync.Mutex
 }
@@ -85,6 +85,13 @@ func (r *FeatureLocalImpl) SetData(function model.FunctionType, data any) {
 	r.mux.Unlock()
 
 	r.Device().NotifySubscribers(r.Address(), fd.NotifyCmdType(nil, nil, false, nil))
+}
+
+func (r *FeatureLocalImpl) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	r.functionData(function).UpdateDataAny(data, filterPartial, filterDelete)
 }
 
 func (r *FeatureLocalImpl) AddResultHandler(handler api.FeatureResult) {
@@ -350,6 +357,10 @@ func (r *FeatureLocalImpl) HandleMessage(message *api.Message) *model.ErrorType 
 		if err := r.processNotify(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete, message.FeatureRemote); err != nil {
 			return err
 		}
+	case model.CmdClassifierTypeWrite:
+		if err := r.processWrite(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete, message.FeatureRemote); err != nil {
+			return err
+		}
 	default:
 		return model.NewErrorTypeFromString(fmt.Sprintf("CmdClassifier not implemented: %s", message.CmdClassifier))
 	}
@@ -450,6 +461,37 @@ func (r *FeatureLocalImpl) processNotify(function model.FunctionType, data any, 
 		Device:        featureRemote.Device(),
 		Entity:        featureRemote.Entity(),
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeNotify),
+		Data:          data,
+	}
+	Events.Publish(payload)
+
+	return nil
+}
+
+func (r *FeatureLocalImpl) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemote) *model.ErrorType {
+	// does this function allow writes?
+	operations := r.operations[function]
+	if operations == nil || !operations.Write() {
+		return model.NewErrorTypeFromString("write is not allowed on this function")
+	}
+
+	// does the remote device have a binding?
+	if featureRemote == nil || !r.Device().BindingManager().HasLocalFeatureRemoteBinding(r.Address(), featureRemote.Address()) {
+		return model.NewErrorTypeFromString("write denied due to missing binding")
+	}
+
+	r.UpdateData(function, data, filterPartial, filterDelete)
+
+	payload := api.EventPayload{
+		Ski:           featureRemote.Device().Ski(),
+		EventType:     api.EventTypeDataChange,
+		ChangeType:    api.ElementChangeUpdate,
+		Feature:       featureRemote,
+		Device:        featureRemote.Device(),
+		Entity:        featureRemote.Entity(),
+		LocalFeature:  r,
+		Function:      function,
+		CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
 		Data:          data,
 	}
 	Events.Publish(payload)

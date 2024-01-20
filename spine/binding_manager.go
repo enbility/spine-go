@@ -39,6 +39,9 @@ func (c *BindingManagerImpl) AddBinding(remoteDevice api.DeviceRemote, data mode
 	if serverFeature == nil {
 		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
 	}
+	if data.ServerFeatureType == nil {
+		return errors.New("serverFeatureType is missing but required")
+	}
 	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, *data.ServerFeatureType); err != nil {
 		return err
 	}
@@ -188,6 +191,19 @@ func (c *BindingManagerImpl) Bindings(remoteDevice api.DeviceRemote) []*api.Bind
 	}).ToSlice(&result)
 
 	return result
+}
+
+// checks if a remote address has a binding on the local feature
+func (c *BindingManagerImpl) HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool {
+	bindings := c.BindingsOnFeature(*localAddress)
+
+	for _, item := range bindings {
+		if reflect.DeepEqual(item.ClientFeature.Address(), remoteAddress) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c *BindingManagerImpl) BindingsOnFeature(featureAddress model.FeatureAddressType) []*api.BindingEntry {

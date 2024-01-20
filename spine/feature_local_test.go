@@ -19,24 +19,32 @@ func TestDeviceClassificationSuite(t *testing.T) {
 type DeviceClassificationTestSuite struct {
 	suite.Suite
 	senderMock                      *mocks.Sender
-	function                        model.FunctionType
+	localDevice                     *DeviceLocalImpl
+	localEntity                     *EntityLocalImpl
+	function, serverWriteFunction   model.FunctionType
 	featureType, subFeatureType     model.FeatureTypeType
 	msgCounter                      model.MsgCounterType
 	remoteFeature, remoteSubFeature api.FeatureRemote
 	localFeature                    api.FeatureLocal
 	localServerFeature              api.FeatureLocal
+	localServerFeatureWrite         api.FeatureLocal
 }
 
 func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName string) {
 	suite.senderMock = mocks.NewSender(suite.T())
 	suite.function = model.FunctionTypeDeviceClassificationManufacturerData
 	suite.featureType = model.FeatureTypeTypeDeviceClassification
-	suite.subFeatureType = model.FeatureTypeTypeMeasurement
+	suite.subFeatureType = model.FeatureTypeTypeLoadControl
+	suite.serverWriteFunction = model.FunctionTypeLoadControlLimitListData
 	suite.msgCounter = model.MsgCounterType(1)
 
-	_, suite.remoteFeature = createRemoteDeviceAndFeature(1, suite.featureType, suite.senderMock)
-	_, suite.remoteSubFeature = createRemoteDeviceAndFeature(2, suite.subFeatureType, suite.senderMock)
-	suite.localFeature, suite.localServerFeature = createLocalDeviceAndFeature(1, suite.featureType)
+	suite.localDevice, suite.localEntity = createLocalDeviceAndEntity(1)
+	suite.localFeature, suite.localServerFeature = createLocalFeatures(suite.localDevice, suite.localEntity, suite.featureType, "")
+	_, suite.localServerFeatureWrite = createLocalFeatures(suite.localDevice, suite.localEntity, suite.subFeatureType, suite.serverWriteFunction)
+
+	remoteDevice := createRemoteDevice(suite.localDevice, suite.senderMock)
+	suite.remoteFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 1, suite.featureType)
+	suite.remoteSubFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 2, suite.subFeatureType)
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Reply() {
@@ -188,4 +196,46 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	suite.localFeature.RemoveBinding(suite.remoteFeature.Address())
 
 	suite.localFeature.RemoveAllBindings()
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write() {
+	msg := &api.Message{
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	// no write operations defined
+	err := suite.localServerFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	// no remote feature
+	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	msg.FeatureRemote = suite.remoteSubFeature
+
+	// no binding
+	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	suite.localServerFeatureWrite.Device().AddRemoteDeviceForSki(suite.remoteSubFeature.Device().Ski(), suite.remoteSubFeature.Device())
+
+	remoteBindingRequest := model.BindingManagementRequestCallType{
+		ClientAddress: suite.remoteSubFeature.Address(),
+		ServerAddress: suite.localServerFeatureWrite.Address(),
+	}
+
+	// serverFeatureType missing
+	err1 := suite.localServerFeature.Device().BindingManager().AddBinding(suite.remoteSubFeature.Device(), remoteBindingRequest)
+	assert.NotNil(suite.T(), err1)
+
+	// all is good now
+	remoteBindingRequest.ServerFeatureType = util.Ptr(suite.subFeatureType)
+	err1 = suite.localServerFeature.Device().BindingManager().AddBinding(suite.remoteSubFeature.Device(), remoteBindingRequest)
+	assert.Nil(suite.T(), err1)
+
+	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
 }
