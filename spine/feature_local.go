@@ -430,7 +430,11 @@ func (r *FeatureLocalImpl) processRead(function model.FunctionType, requestHeade
 
 func (r *FeatureLocalImpl) processReply(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, requestHeader *model.HeaderType, featureRemote api.FeatureRemote) *model.ErrorType {
 	featureRemote.UpdateData(function, data, filterPartial, filterDelete)
-	_ = r.pendingRequests.SetData(featureRemote.Device().Ski(), *requestHeader.MsgCounterReference, data)
+
+	if requestHeader != nil && requestHeader.MsgCounterReference != nil {
+		_ = r.pendingRequests.SetData(featureRemote.Device().Ski(), *requestHeader.MsgCounterReference, data)
+	}
+
 	// an error in SetData only means that there is no pendingRequest waiting for this dataset
 	// so this is nothing to consider as an error to return
 

@@ -18,16 +18,14 @@ func TestDeviceClassificationSuite(t *testing.T) {
 
 type DeviceClassificationTestSuite struct {
 	suite.Suite
-	senderMock                      *mocks.Sender
-	localDevice                     *DeviceLocalImpl
-	localEntity                     *EntityLocalImpl
-	function, serverWriteFunction   model.FunctionType
-	featureType, subFeatureType     model.FeatureTypeType
-	msgCounter                      model.MsgCounterType
-	remoteFeature, remoteSubFeature api.FeatureRemote
-	localFeature                    api.FeatureLocal
-	localServerFeature              api.FeatureLocal
-	localServerFeatureWrite         api.FeatureLocal
+	senderMock                                                *mocks.Sender
+	localDevice                                               *DeviceLocalImpl
+	localEntity                                               *EntityLocalImpl
+	function, serverWriteFunction                             model.FunctionType
+	featureType, subFeatureType                               model.FeatureTypeType
+	msgCounter                                                model.MsgCounterType
+	remoteFeature, remoteServerFeature, remoteSubFeature      api.FeatureRemote
+	localFeature, localServerFeature, localServerFeatureWrite api.FeatureLocal
 }
 
 func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName string) {
@@ -43,7 +41,7 @@ func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName strin
 	_, suite.localServerFeatureWrite = createLocalFeatures(suite.localDevice, suite.localEntity, suite.subFeatureType, suite.serverWriteFunction)
 
 	remoteDevice := createRemoteDevice(suite.localDevice, suite.senderMock)
-	suite.remoteFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 1, suite.featureType)
+	suite.remoteFeature, suite.remoteServerFeature = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 1, suite.featureType)
 	suite.remoteSubFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 2, suite.subFeatureType)
 }
 
@@ -196,6 +194,38 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	suite.localFeature.RemoveBinding(suite.remoteFeature.Address())
 
 	suite.localFeature.RemoveAllBindings()
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Reply() {
+	msg := &api.Message{
+		FeatureRemote: suite.remoteServerFeature,
+		CmdClassifier: model.CmdClassifierTypeReply,
+		Cmd: model.CmdType{
+			DeviceClassificationManufacturerData: &model.DeviceClassificationManufacturerDataType{},
+		},
+	}
+
+	err := suite.localFeature.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+
+	msg.RequestHeader = &model.HeaderType{
+		MsgCounterReference: util.Ptr(model.MsgCounterType(100)),
+	}
+	err = suite.localFeature.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Notify() {
+	msg := &api.Message{
+		FeatureRemote: suite.remoteServerFeature,
+		CmdClassifier: model.CmdClassifierTypeNotify,
+		Cmd: model.CmdType{
+			DeviceClassificationManufacturerData: &model.DeviceClassificationManufacturerDataType{},
+		},
+	}
+
+	err := suite.localFeature.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
 }
 
 func (suite *DeviceClassificationTestSuite) Test_Write() {
