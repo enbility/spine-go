@@ -302,6 +302,8 @@ func (r *DeviceLocalImpl) RemoveEntity(entity api.EntityLocal) {
 	}
 
 	r.entities = entities
+
+	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeRemoved)
 }
 
 func (r *DeviceLocalImpl) Entities() []api.EntityLocal {

@@ -17,11 +17,15 @@ func TestDeviceLocalSuite(t *testing.T) {
 
 type DeviceLocalTestSuite struct {
 	suite.Suite
+
+	lastMessage string
 }
 
 var _ shipapi.SpineDataConnection = (*DeviceLocalTestSuite)(nil)
 
-func (d *DeviceLocalTestSuite) WriteSpineMessage([]byte) {}
+func (d *DeviceLocalTestSuite) WriteSpineMessage(msg []byte) {
+	d.lastMessage = string(msg)
+}
 
 func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 	sut := NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
@@ -80,7 +84,46 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	feature2 := localEntity.FeatureOfTypeAndRole(model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	assert.NotNil(d.T(), feature2)
 
+	featureAddress = &model.FeatureAddressType{
+		Device:  remote.Address(),
+		Entity:  []model.AddressEntityType{0},
+		Feature: util.Ptr(model.AddressFeatureType(0)),
+	}
+
+	subscription := model.SubscriptionManagementRequestCallType{
+		ClientAddress:     featureAddress,
+		ServerAddress:     sut.NodeManagement().Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeNodeManagement),
+	}
+	err := sut.SubscriptionManager().AddSubscription(remote, subscription)
+	assert.Nil(d.T(), err)
+
+	newSubEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeEV, NewAddressEntityType([]uint{1, 1}))
+	f = NewFeatureLocalImpl(1, newSubEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+	f.AddFunctionType(model.FunctionTypeLoadControlLimitListData, true, true)
+	newSubEntity.AddFeature(f)
+
+	sut.AddEntity(newSubEntity)
+	// A notification should have been sent
+	expectedNotifyMsg := `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":2,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"added"}}],"featureInformation":[{"description":{"featureAddress":{"device":"address","entity":[1,1],"feature":1},"featureType":"LoadControl","role":"server","supportedFunction":[{"function":"loadControlLimitListData","possibleOperations":{"read":{},"write":{}}}]}}]}}]}}}`
+	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
+
+	entities = sut.Entities()
+	assert.Equal(d.T(), 3, len(entities))
+
+	sut.RemoveEntity(newSubEntity)
+	// A notification should have been sent
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":3,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"removed"}}]}}]}}}`
+	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
+
+	entities = sut.Entities()
+	assert.Equal(d.T(), 2, len(entities))
+
 	sut.RemoveEntity(entity1)
+	// A notification should have been sent
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":4,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1]},"entityType":"CEM","lastStateChange":"removed"}}]}}]}}}`
+	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
+
 	entities = sut.Entities()
 	assert.Equal(d.T(), 1, len(entities))
 
