@@ -73,13 +73,21 @@ func (r *FeatureLocalImpl) DataCopy(function model.FunctionType) any {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	return r.functionData(function).DataCopyAny()
+	fctData := r.functionData(function)
+	if fctData == nil {
+		return nil
+	}
+
+	return fctData.DataCopyAny()
 }
 
 func (r *FeatureLocalImpl) SetData(function model.FunctionType, data any) {
 	r.mux.Lock()
 
 	fd := r.functionData(function)
+	if fd == nil {
+		return
+	}
 	fd.UpdateDataAny(data, nil, nil)
 
 	r.mux.Unlock()
@@ -91,7 +99,12 @@ func (r *FeatureLocalImpl) UpdateData(function model.FunctionType, data any, fil
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	r.functionData(function).UpdateDataAny(data, filterPartial, filterDelete)
+	fctData := r.functionData(function)
+	if fctData == nil {
+		return
+	}
+
+	fctData.UpdateDataAny(data, filterPartial, filterDelete)
 }
 
 func (r *FeatureLocalImpl) AddResultHandler(handler api.FeatureResult) {
@@ -150,6 +163,10 @@ func (r *FeatureLocalImpl) RequestData(
 	elements any,
 	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
+	if fd == nil {
+		return nil, model.NewErrorTypeFromString("function data not found")
+	}
+
 	cmd := fd.ReadCmdType(selector, elements)
 
 	return r.RequestDataBySenderAddress(cmd, destination.Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
@@ -305,6 +322,10 @@ func (r *FeatureLocalImpl) NotifyData(
 	deleteElements any,
 	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
+	if fd == nil {
+		return nil, model.NewErrorTypeFromString("function data not found")
+	}
+
 	cmd := fd.NotifyCmdType(deleteSelector, partialSelector, partialWithoutSelector, deleteElements)
 
 	msgCounter, err := destination.Sender().Request(model.CmdClassifierTypeRead, r.Address(), destination.Address(), false, []model.CmdType{cmd})
@@ -321,6 +342,9 @@ func (r *FeatureLocalImpl) WriteData(
 	deleteElements any,
 	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
+	if fd == nil {
+		return nil, model.NewErrorTypeFromString("function data not found")
+	}
 	cmd := fd.WriteCmdType(deleteSelector, partialSelector, deleteElements)
 
 	msgCounter, err := destination.Sender().Write(r.Address(), destination.Address(), cmd)
@@ -420,7 +444,12 @@ func (r *FeatureLocalImpl) processRead(function model.FunctionType, requestHeade
 		return model.NewErrorTypeFromNumber(model.ErrorNumberTypeCommandRejected)
 	}
 
-	cmd := r.functionData(function).ReplyCmdType(false)
+	fd := r.functionData(function)
+	if fd == nil {
+		return model.NewErrorTypeFromString("function data not found")
+	}
+
+	cmd := fd.ReplyCmdType(false)
 	if err := featureRemote.Sender().Reply(requestHeader, r.Address(), cmd); err != nil {
 		return model.NewErrorTypeFromString(err.Error())
 	}
@@ -506,7 +535,8 @@ func (r *FeatureLocalImpl) processWrite(function model.FunctionType, data any, f
 func (r *FeatureLocalImpl) functionData(function model.FunctionType) api.FunctionDataCmd {
 	fd, found := r.functionDataMap[function]
 	if !found {
-		panic(fmt.Errorf("Data was not found for function '%s'", function))
+		logging.Log().Errorf("Data was not found for function '%s'", function)
+		return nil
 	}
 	return fd
 }

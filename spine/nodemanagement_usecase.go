@@ -24,13 +24,20 @@ func (r *NodeManagementImpl) NotifyUseCaseData(remoteDevice api.DeviceRemote) (*
 	featureRemote := remoteDevice.FeatureByEntityTypeAndRole(rEntity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
 
 	fd := r.functionData(model.FunctionTypeNodeManagementUseCaseData)
+	if fd == nil {
+		return nil, errors.New("function data not found")
+	}
 	cmd := fd.NotifyCmdType(nil, nil, false, nil)
 
 	return featureRemote.Sender().Notify(r.Address(), rfAdress, cmd)
 }
 
 func (r *NodeManagementImpl) processReadUseCaseData(featureRemote api.FeatureRemote, requestHeader *model.HeaderType) error {
-	cmd := r.functionData(model.FunctionTypeNodeManagementUseCaseData).ReplyCmdType(false)
+	fd := r.functionData(model.FunctionTypeNodeManagementUseCaseData)
+	if fd == nil {
+		return errors.New("function data not found")
+	}
+	cmd := fd.ReplyCmdType(false)
 
 	return featureRemote.Sender().Reply(requestHeader, r.Address(), cmd)
 }

@@ -48,6 +48,11 @@ func (r *FeatureRemoteImpl) DataCopy(function model.FunctionType) any {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
+	fd := r.functionData(function)
+	if fd == nil {
+		return nil
+	}
+
 	return r.functionData(function).DataCopyAny()
 }
 
@@ -55,7 +60,9 @@ func (r *FeatureRemoteImpl) SetData(function model.FunctionType, data any) {
 	r.mux.Lock()
 
 	fd := r.functionData(function)
-	fd.UpdateDataAny(data, nil, nil)
+	if fd != nil {
+		fd.UpdateDataAny(data, nil, nil)
+	}
 
 	r.mux.Unlock()
 }
@@ -64,7 +71,11 @@ func (r *FeatureRemoteImpl) UpdateData(function model.FunctionType, data any, fi
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	r.functionData(function).UpdateDataAny(data, filterPartial, filterDelete)
+	fd := r.functionData(function)
+	if fd == nil {
+		return
+	}
+	fd.UpdateDataAny(data, filterPartial, filterDelete)
 	// TODO: fire event
 }
 
