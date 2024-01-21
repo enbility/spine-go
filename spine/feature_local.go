@@ -502,17 +502,6 @@ func (r *FeatureLocalImpl) processNotify(function model.FunctionType, data any, 
 }
 
 func (r *FeatureLocalImpl) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemote) *model.ErrorType {
-	// does this function allow writes?
-	operations := r.operations[function]
-	if operations == nil || !operations.Write() {
-		return model.NewErrorTypeFromString("write is not allowed on this function")
-	}
-
-	// does the remote device have a binding?
-	if featureRemote == nil || !r.Device().BindingManager().HasLocalFeatureRemoteBinding(r.Address(), featureRemote.Address()) {
-		return model.NewErrorTypeFromString("write denied due to missing binding")
-	}
-
 	r.UpdateData(function, data, filterPartial, filterDelete)
 
 	payload := api.EventPayload{

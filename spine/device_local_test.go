@@ -188,12 +188,12 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	localEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
 	sut.AddEntity(localEntity)
 
-	f := NewFeatureLocalImpl(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
-	localEntity.AddFeature(f)
-	f = NewFeatureLocalImpl(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
-	localEntity.AddFeature(f)
-	f = NewFeatureLocalImpl(3, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
-	localEntity.AddFeature(f)
+	f1 := NewFeatureLocalImpl(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
+	localEntity.AddFeature(f1)
+	f2 := NewFeatureLocalImpl(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
+	localEntity.AddFeature(f2)
+	f3 := NewFeatureLocalImpl(3, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
+	localEntity.AddFeature(f3)
 
 	ski := "test"
 	remoteDeviceName := "remote"
@@ -277,4 +277,34 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 
 	err = sut.ProcessCmd(datagram, remote)
 	assert.Nil(d.T(), err)
+
+	datagram = model.DatagramType{
+		Header: model.HeaderType{
+			AddressSource: &model.FeatureAddressType{
+				Device:  util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+				Entity:  []model.AddressEntityType{1},
+				Feature: util.Ptr(model.AddressFeatureType(1)),
+			},
+			AddressDestination: &model.FeatureAddressType{
+				Device:  util.Ptr(model.AddressDeviceType("localdevice")),
+				Entity:  []model.AddressEntityType{1},
+				Feature: util.Ptr(model.AddressFeatureType(3)),
+			},
+			MsgCounter:    util.Ptr(model.MsgCounterType(1)),
+			CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
+		},
+		Payload: model.PayloadType{
+			Cmd: []model.CmdType{
+				{ElectricalConnectionParameterDescriptionListData: util.Ptr(model.ElectricalConnectionParameterDescriptionListDataType{})},
+			},
+		},
+	}
+
+	err = sut.ProcessCmd(datagram, remote)
+	assert.NotNil(d.T(), err)
+
+	f3.AddFunctionType(model.FunctionTypeElectricalConnectionParameterDescriptionListData, true, true)
+	err = sut.ProcessCmd(datagram, remote)
+	assert.NotNil(d.T(), err)
+
 }

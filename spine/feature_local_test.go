@@ -231,41 +231,12 @@ func (suite *DeviceClassificationTestSuite) Test_Notify() {
 func (suite *DeviceClassificationTestSuite) Test_Write() {
 	msg := &api.Message{
 		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
 	}
 
-	// no write operations defined
-	err := suite.localServerFeature.HandleMessage(msg)
-	assert.NotNil(suite.T(), err)
-
-	// no remote feature
-	err = suite.localServerFeatureWrite.HandleMessage(msg)
-	assert.NotNil(suite.T(), err)
-
-	msg.FeatureRemote = suite.remoteSubFeature
-
-	// no binding
-	err = suite.localServerFeatureWrite.HandleMessage(msg)
-	assert.NotNil(suite.T(), err)
-
-	suite.localServerFeatureWrite.Device().AddRemoteDeviceForSki(suite.remoteSubFeature.Device().Ski(), suite.remoteSubFeature.Device())
-
-	remoteBindingRequest := model.BindingManagementRequestCallType{
-		ClientAddress: suite.remoteSubFeature.Address(),
-		ServerAddress: suite.localServerFeatureWrite.Address(),
-	}
-
-	// serverFeatureType missing
-	err1 := suite.localServerFeature.Device().BindingManager().AddBinding(suite.remoteSubFeature.Device(), remoteBindingRequest)
-	assert.NotNil(suite.T(), err1)
-
-	// all is good now
-	remoteBindingRequest.ServerFeatureType = util.Ptr(suite.subFeatureType)
-	err1 = suite.localServerFeature.Device().BindingManager().AddBinding(suite.remoteSubFeature.Device(), remoteBindingRequest)
-	assert.Nil(suite.T(), err1)
-
-	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
 }

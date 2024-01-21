@@ -243,6 +243,30 @@ func (r *DeviceLocalImpl) ProcessCmd(datagram model.DatagramType, remoteDevice a
 
 	logging.Log().Debug(datagram.PrintMessageOverview(false, lfType, rfType))
 
+	// check if this is a write with an existing binding and if write is allowed on this feature
+	if message.CmdClassifier == model.CmdClassifierTypeWrite {
+		cmdData, err := cmd.Data()
+		if err != nil || cmdData.Function == nil {
+			err := model.NewErrorTypeFromString("no function found for cmd data")
+			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+		if operations, ok := localFeature.Operations()[*cmdData.Function]; !ok || !operations.Write() {
+			err := model.NewErrorTypeFromString("write is not allowed on this function")
+			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+		if remoteFeature == nil ||
+			!r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
+			err := model.NewErrorTypeFromString("write denied due to missing binding")
+			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+	}
+
 	err := localFeature.HandleMessage(message)
 	if err != nil {
 		// TODO: add error description in a useful format
