@@ -46,6 +46,12 @@ func (c *BindingManagerImpl) AddBinding(remoteDevice api.DeviceRemote, data mode
 		return err
 	}
 
+	// a local feature can only have one remote binding
+	bindings := c.BindingsOnFeature(*serverFeature.Address())
+	if len(bindings) > 0 {
+		return errors.New("the server feature already has a binding")
+	}
+
 	clientFeature := remoteDevice.FeatureByAddress(data.ClientAddress)
 	if clientFeature == nil {
 		return fmt.Errorf("client feature '%s' in remote device '%s' not found", data.ClientAddress, *remoteDevice.Address())
@@ -62,12 +68,6 @@ func (c *BindingManagerImpl) AddBinding(remoteDevice api.DeviceRemote, data mode
 
 	c.mux.Lock()
 	defer c.mux.Unlock()
-
-	for _, item := range c.bindingEntries {
-		if reflect.DeepEqual(item.ServerFeature, serverFeature) && reflect.DeepEqual(item.ClientFeature, clientFeature) {
-			return fmt.Errorf("requested binding is already present")
-		}
-	}
 
 	c.bindingEntries = append(c.bindingEntries, bindingEntry)
 

@@ -20,7 +20,7 @@ type BindingManagerSuite struct {
 
 	localDevice  api.DeviceLocal
 	writeHandler *WriteMessageHandler
-	remoteDevice api.DeviceRemote
+	remoteDevice *DeviceRemoteImpl
 
 	sut api.BindingManager
 }
@@ -34,6 +34,7 @@ func (s *BindingManagerSuite) BeforeTest(suiteName, testName string) {
 
 	sender := NewSender(s.writeHandler)
 	s.remoteDevice = NewDeviceRemoteImpl(s.localDevice, remoteSki, sender)
+	s.remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
 	s.sut = NewBindingManager(s.localDevice)
 }
@@ -43,22 +44,69 @@ func (suite *BindingManagerSuite) Test_Bindings() {
 	suite.localDevice.AddEntity(entity)
 
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localClientFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
 
 	remoteEntity := NewEntityRemoteImpl(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
-	suite.remoteDevice.AddEntity(remoteEntity)
 
 	remoteFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
 	remoteFeature.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice"))
 	remoteEntity.AddFeature(remoteFeature)
 
+	remoteServerFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	remoteServerFeature.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice"))
+	remoteEntity.AddFeature(remoteServerFeature)
+
+	suite.remoteDevice.AddEntity(remoteEntity)
+
+	bindingMgr := suite.localDevice.BindingManager()
+
 	bindingRequest := model.BindingManagementRequestCallType{
-		ClientAddress:     remoteFeature.Address(),
-		ServerAddress:     localFeature.Address(),
+		ClientAddress: util.Ptr(model.FeatureAddressType{
+			Device:  util.Ptr(model.AddressDeviceType("dummy")),
+			Entity:  []model.AddressEntityType{1000},
+			Feature: util.Ptr(model.AddressFeatureType(1000)),
+		}),
+		ServerAddress: util.Ptr(model.FeatureAddressType{
+			Device:  util.Ptr(model.AddressDeviceType("dummy")),
+			Entity:  []model.AddressEntityType{1000},
+			Feature: util.Ptr(model.AddressFeatureType(1000)),
+		}),
 		ServerFeatureType: util.Ptr(model.FeatureTypeTypeDeviceDiagnosis),
 	}
 
-	bindingMgr := suite.localDevice.BindingManager()
 	err := bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
+	assert.NotNil(suite.T(), err)
+
+	bindingRequest = model.BindingManagementRequestCallType{
+		ClientAddress: util.Ptr(model.FeatureAddressType{
+			Device:  util.Ptr(model.AddressDeviceType("dummy")),
+			Entity:  []model.AddressEntityType{1000},
+			Feature: util.Ptr(model.AddressFeatureType(1000)),
+		}),
+		ServerAddress: localClientFeature.Address(),
+	}
+
+	err = bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
+	assert.NotNil(suite.T(), err)
+
+	bindingRequest.ServerFeatureType = util.Ptr(model.FeatureTypeTypeDeviceDiagnosis)
+
+	err = bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
+	assert.NotNil(suite.T(), err)
+
+	bindingRequest.ServerAddress = localFeature.Address()
+
+	err = bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
+	assert.NotNil(suite.T(), err)
+
+	bindingRequest.ClientAddress = remoteServerFeature.Address()
+
+	err = bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
+	assert.NotNil(suite.T(), err)
+
+	bindingRequest.ClientAddress = remoteFeature.Address()
+
+	err = bindingMgr.AddBinding(suite.remoteDevice, bindingRequest)
 	assert.Nil(suite.T(), err)
 
 	subs := bindingMgr.Bindings(suite.remoteDevice)
