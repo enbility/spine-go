@@ -131,9 +131,40 @@ func (suite *BindingManagerSuite) Test_Bindings() {
 	assert.Equal(suite.T(), 1, len(entries))
 
 	bindingDelete := model.BindingManagementDeleteCallType{
-		ClientAddress: remoteFeature.Address(),
-		ServerAddress: localFeature.Address(),
+		ClientAddress: util.Ptr(model.FeatureAddressType{
+			Device:  util.Ptr(model.AddressDeviceType("dummy")),
+			Entity:  []model.AddressEntityType{1000},
+			Feature: util.Ptr(model.AddressFeatureType(1000)),
+		}),
+		ServerAddress: util.Ptr(model.FeatureAddressType{
+			Device:  util.Ptr(model.AddressDeviceType("dummy")),
+			Entity:  []model.AddressEntityType{1000},
+			Feature: util.Ptr(model.AddressFeatureType(1000)),
+		}),
 	}
+
+	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
+	assert.NotNil(suite.T(), err)
+
+	bindingDelete.ClientAddress = remoteServerFeature.Address()
+
+	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
+	assert.NotNil(suite.T(), err)
+
+	bindingDelete.ServerAddress = localClientFeature.Address()
+
+	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
+	assert.NotNil(suite.T(), err)
+
+	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
+	assert.NotNil(suite.T(), err)
+
+	bindingDelete.ServerAddress = localFeature.Address()
+
+	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
+	assert.NotNil(suite.T(), err)
+
+	bindingDelete.ClientAddress = remoteFeature.Address()
 
 	err = bindingMgr.RemoveBinding(bindingDelete, suite.remoteDevice)
 	assert.Nil(suite.T(), err)

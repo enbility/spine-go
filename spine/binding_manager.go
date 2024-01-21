@@ -108,6 +108,14 @@ func (c *BindingManagerImpl) RemoveBinding(data model.BindingManagementDeleteCal
 		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
 	}
 
+	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, serverFeature.Type()); err != nil {
+		return err
+	}
+
+	if !c.HasLocalFeatureRemoteBinding(serverFeature.Address(), clientFeature.Address()) {
+		return fmt.Errorf("the feature '%s' address has no binding", data.ClientAddress)
+	}
+
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -121,7 +129,7 @@ func (c *BindingManagerImpl) RemoveBinding(data model.BindingManagementDeleteCal
 	}
 
 	if len(newBindingEntries) == len(c.bindingEntries) {
-		return errors.New("could not find requested BindingId to be removed")
+		return errors.New("could not find requested binding to be removed")
 	}
 
 	c.bindingEntries = newBindingEntries
