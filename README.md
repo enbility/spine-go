@@ -4,6 +4,7 @@
 [![GoDoc](https://img.shields.io/badge/godoc-reference-5272B4)](https://godoc.org/github.com/enbility/spine-go)
 [![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=dev)](https://coveralls.io/github/enbility/eebus-go?branch=dev)
 [![Go report](https://goreportcard.com/badge/github.com/enbility/spine-go)](https://goreportcard.com/report/github.com/enbility/spine-go)
+[![CodeFactor](https://www.codefactor.io/repository/github/enbility/spine-go/badge)](https://www.codefactor.io/repository/github/enbility/spine-go)
 
 ## Introduction
 

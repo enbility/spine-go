@@ -128,6 +128,8 @@ func (r *DeviceLocalImpl) HandleEvent(payload api.EventPayload) {
 		return
 	}
 
+	// the codefactor warning is invalid, as .(type) check can not be replaced with if then
+	//revive:disable-next-line
 	switch payload.Data.(type) {
 	case *model.NodeManagementDetailedDiscoveryDataType:
 		_, _ = r.nodeManagement.Subscribe(payload.Feature.Address())

@@ -431,7 +431,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Modify(
 		return
 	}
 
-	delete := &FilterType{
+	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{
 			Delete: &ElementTagType{},
 		},
@@ -442,7 +442,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Modify(
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), delete)
+	sut.UpdateList(&newData, NewFilterTypePartial(), deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is gone
@@ -527,7 +527,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete(t *test
 		return
 	}
 
-	delete := &FilterType{
+	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{
 			Delete: &ElementTagType{},
 		},
@@ -538,7 +538,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete(t *test
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, delete)
+	sut.UpdateList(nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is added again
@@ -623,7 +623,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Element
 		return
 	}
 
-	delete := &FilterType{
+	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{
 			Delete: &ElementTagType{},
 		},
@@ -637,7 +637,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Element
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, delete)
+	sut.UpdateList(nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check no items are deleted
@@ -729,7 +729,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_OnlyEle
 		return
 	}
 
-	delete := &FilterType{
+	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{
 			Delete: &ElementTagType{},
 		},
@@ -739,7 +739,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_OnlyEle
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, delete)
+	sut.UpdateList(nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check no items are deleted
@@ -902,7 +902,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Add(t *
 		return
 	}
 
-	delete := &FilterType{
+	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{
 			Delete: &ElementTagType{},
 		},
@@ -913,7 +913,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Add(t *
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), delete)
+	sut.UpdateList(&newData, NewFilterTypePartial(), deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is added again
