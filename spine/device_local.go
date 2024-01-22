@@ -240,7 +240,7 @@ func (r *DeviceLocalImpl) ProcessCmd(datagram model.DatagramType, remoteDevice a
 	lfType := string(localFeature.Type())
 	rfType := ""
 	if remoteFeature != nil {
-		remoteFeature.Type()
+		rfType = string(remoteFeature.Type())
 	}
 
 	logging.Log().Debug(datagram.PrintMessageOverview(false, lfType, rfType))
