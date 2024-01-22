@@ -66,7 +66,9 @@ func (d *DeviceRemoteImpl) HandleSpineMesssage(message []byte) (*model.MsgCounte
 
 // processing incoming SPINE message from the associated SHIP connection
 func (d *DeviceRemoteImpl) HandleIncomingSpineMesssage(message []byte) {
-	_, _ = d.HandleSpineMesssage(message)
+	if _, err := d.HandleSpineMesssage(message); err != nil {
+		logging.Log().Errorf("error handling spine message", err)
+	}
 }
 
 func (d *DeviceRemoteImpl) addNodeManagement() {
