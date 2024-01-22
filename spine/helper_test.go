@@ -101,7 +101,7 @@ func (t *WriteMessageHandler) ResultWithReference(msgCounterReference *model.Msg
 }
 
 func loadFileData(t *testing.T, fileName string) []byte {
-	fileData, err := os.ReadFile(fileName)
+	fileData, err := os.ReadFile(fileName) // #nosec G304
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func loadFileData(t *testing.T, fileName string) []byte {
 }
 
 func checkSentData(t *testing.T, sendBytes []byte, msgSendFilePrefix string) {
-	msgSendExpectedBytes, err := os.ReadFile(msgSendFilePrefix + "_expected.json")
+	msgSendExpectedBytes, err := os.ReadFile(msgSendFilePrefix + "_expected.json") // #nosec G304
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -127,7 +127,7 @@ func initialCommunication(t *testing.T, remoteDevice api.DeviceRemote, writeHand
 }
 
 func loadFileData(t *testing.T, fileName string) []byte {
-	fileData, err := os.ReadFile(fileName)
+	fileData, err := os.ReadFile(fileName) // #nosec G304
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,6 +3,8 @@ package model
 import (
 	"testing"
 	"time"
+
+	"github.com/enbility/spine-go/util"
 )
 
 func TestTimeType(t *testing.T) {
@@ -269,9 +271,9 @@ func TestFeatureAddressTypeString(t *testing.T) {
 
 	for _, tc := range tc {
 		f := FeatureAddressType{
-			Device:  &tc.device,
+			Device:  util.Ptr(tc.device),
 			Entity:  tc.entity,
-			Feature: &tc.feature,
+			Feature: util.Ptr(tc.feature),
 		}
 
 		got := f.String()
