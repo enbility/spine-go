@@ -3,8 +3,8 @@ github.com/ahmetb/go-linq/v3 v3.2.0/go.mod h1:haQ3JfOeWK8HpVxMtHHEMPVgBKiYyQ+f1/
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/enbility/ship-go v0.0.0-20240122103724-e4de8c1a1f29 h1:zAyFAxT6sB8m/AoD95215v4Vr5Rp1vbrbYI7pdrAJnc=
-github.com/enbility/ship-go v0.0.0-20240122103724-e4de8c1a1f29/go.mod h1:JdBm7s7ICvg+vTwqytgsJzYDckavZP8QKKxPOV4DElU=
+github.com/enbility/ship-go v0.0.0-20240122130150-644592f032c6 h1:Xgzy+Jv5HxwJtnDRk1IVStxYvGd/hWFzKU8Z6qgH8FA=
+github.com/enbility/ship-go v0.0.0-20240122130150-644592f032c6/go.mod h1:JdBm7s7ICvg+vTwqytgsJzYDckavZP8QKKxPOV4DElU=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
