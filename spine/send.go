@@ -13,27 +13,27 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
-type SenderImpl struct {
+type Sender struct {
 	msgNum uint64 // 64bit values need to be defined on top of the struct to make atomic commands work on 32bit systems
 
 	// we cache the last 100 notify messages, so we can find the matching item for result errors being returned
 	datagramNotifyCache *lru.Cache[model.MsgCounterType, model.DatagramType]
 
-	writeHandler shipapi.SpineDataConnection
+	writeHandler shipapi.ShipConnectionDataWriterInterface
 }
 
-var _ api.Sender = (*SenderImpl)(nil)
+var _ api.SenderInterface = (*Sender)(nil)
 
-func NewSender(writeI shipapi.SpineDataConnection) api.Sender {
+func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInterface {
 	cache, _ := lru.New[model.MsgCounterType, model.DatagramType](100)
-	return &SenderImpl{
+	return &Sender{
 		datagramNotifyCache: cache,
 		writeHandler:        writeI,
 	}
 }
 
 // return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
-func (c *SenderImpl) DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error) {
+func (c *Sender) DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error) {
 	if datagram, ok := c.datagramNotifyCache.Get(msgCounter); ok {
 		return datagram, nil
 	}
@@ -41,7 +41,7 @@ func (c *SenderImpl) DatagramForMsgCounter(msgCounter model.MsgCounterType) (mod
 	return model.DatagramType{}, errors.New("msgCounter not found")
 }
 
-func (c *SenderImpl) sendSpineMessage(datagram model.DatagramType) error {
+func (c *Sender) sendSpineMessage(datagram model.DatagramType) error {
 	// pack into datagram
 	data := model.Datagram{
 		Datagram: datagram,
@@ -64,13 +64,13 @@ func (c *SenderImpl) sendSpineMessage(datagram model.DatagramType) error {
 	logging.Log().Debug(datagram.PrintMessageOverview(true, "", ""))
 
 	// write to channel
-	c.writeHandler.WriteSpineMessage(msg)
+	c.writeHandler.WriteShipMessageWithPayload(msg)
 
 	return nil
 }
 
 // Sends request
-func (c *SenderImpl) Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error) {
+func (c *Sender) Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error) {
 	msgCounter := c.getMsgCounter()
 
 	datagram := model.DatagramType{
@@ -93,16 +93,16 @@ func (c *SenderImpl) Request(cmdClassifier model.CmdClassifierType, senderAddres
 	return msgCounter, c.sendSpineMessage(datagram)
 }
 
-func (c *SenderImpl) ResultSuccess(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType) error {
+func (c *Sender) ResultSuccess(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType) error {
 	return c.result(requestHeader, senderAddress, nil)
 }
 
-func (c *SenderImpl) ResultError(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, err *model.ErrorType) error {
+func (c *Sender) ResultError(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, err *model.ErrorType) error {
 	return c.result(requestHeader, senderAddress, err)
 }
 
 // sends a result for a request
-func (c *SenderImpl) result(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, err *model.ErrorType) error {
+func (c *Sender) result(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, err *model.ErrorType) error {
 	cmdClassifier := model.CmdClassifierTypeResult
 
 	addressSource := *requestHeader.AddressDestination
@@ -142,7 +142,7 @@ func (c *SenderImpl) result(requestHeader *model.HeaderType, senderAddress *mode
 }
 
 // Reply sends reply to original sender
-func (c *SenderImpl) Reply(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, cmd model.CmdType) error {
+func (c *Sender) Reply(requestHeader *model.HeaderType, senderAddress *model.FeatureAddressType, cmd model.CmdType) error {
 	cmdClassifier := model.CmdClassifierTypeReply
 
 	addressSource := *requestHeader.AddressDestination
@@ -166,7 +166,7 @@ func (c *SenderImpl) Reply(requestHeader *model.HeaderType, senderAddress *model
 }
 
 // Notify sends notification to destination
-func (c *SenderImpl) Notify(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error) {
+func (c *Sender) Notify(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error) {
 	msgCounter := c.getMsgCounter()
 
 	cmdClassifier := model.CmdClassifierTypeNotify
@@ -190,7 +190,7 @@ func (c *SenderImpl) Notify(senderAddress, destinationAddress *model.FeatureAddr
 }
 
 // Write sends notification to destination
-func (c *SenderImpl) Write(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error) {
+func (c *Sender) Write(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error) {
 	msgCounter := c.getMsgCounter()
 
 	cmdClassifier := model.CmdClassifierTypeWrite
@@ -214,7 +214,7 @@ func (c *SenderImpl) Write(senderAddress, destinationAddress *model.FeatureAddre
 }
 
 // Send a subscription request to a remote server feature
-func (c *SenderImpl) Subscribe(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
+func (c *Sender) Subscribe(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
 
 	cmd := model.CmdType{
 		NodeManagementSubscriptionRequestCall: NewNodeManagementSubscriptionRequestCallType(senderAddress, destinationAddress, serverFeatureType),
@@ -228,7 +228,7 @@ func (c *SenderImpl) Subscribe(senderAddress, destinationAddress *model.FeatureA
 }
 
 // Send a subscription deletion request to a remote server feature
-func (c *SenderImpl) Unsubscribe(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
+func (c *Sender) Unsubscribe(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
 
 	cmd := model.CmdType{
 		NodeManagementSubscriptionDeleteCall: NewNodeManagementSubscriptionDeleteCallType(senderAddress, destinationAddress),
@@ -242,7 +242,7 @@ func (c *SenderImpl) Unsubscribe(senderAddress, destinationAddress *model.Featur
 }
 
 // Send a binding request to a remote server feature
-func (c *SenderImpl) Bind(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
+func (c *Sender) Bind(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
 	cmd := model.CmdType{
 		NodeManagementBindingRequestCall: NewNodeManagementBindingRequestCallType(senderAddress, destinationAddress, serverFeatureType),
 	}
@@ -255,7 +255,7 @@ func (c *SenderImpl) Bind(senderAddress, destinationAddress *model.FeatureAddres
 }
 
 // Send a binding request to a remote server feature
-func (c *SenderImpl) Unbind(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
+func (c *Sender) Unbind(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
 	cmd := model.CmdType{
 		NodeManagementBindingDeleteCall: NewNodeManagementBindingDeleteCallType(senderAddress, destinationAddress),
 	}
@@ -267,7 +267,7 @@ func (c *SenderImpl) Unbind(senderAddress, destinationAddress *model.FeatureAddr
 	return c.Request(model.CmdClassifierTypeCall, localAddress, remoteAddress, true, []model.CmdType{cmd})
 }
 
-func (c *SenderImpl) getMsgCounter() *model.MsgCounterType {
+func (c *Sender) getMsgCounter() *model.MsgCounterType {
 	// TODO:  persistence
 	i := model.MsgCounterType(atomic.AddUint64(&c.msgNum, 1))
 	return &i

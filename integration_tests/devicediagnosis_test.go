@@ -21,11 +21,11 @@ func TestDeviceDiagnosisSuite(t *testing.T) {
 
 type DeviceDiagnosisSuite struct {
 	suite.Suite
-	sut api.DeviceLocal
+	sut api.DeviceLocalInterface
 
 	remoteSki string
 
-	remoteDevice api.DeviceRemote
+	remoteDevice api.DeviceRemoteInterface
 	writeHandler *WriteMessageHandler
 }
 

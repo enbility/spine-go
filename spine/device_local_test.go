@@ -21,14 +21,14 @@ type DeviceLocalTestSuite struct {
 	lastMessage string
 }
 
-var _ shipapi.SpineDataConnection = (*DeviceLocalTestSuite)(nil)
+var _ shipapi.ShipConnectionDataWriterInterface = (*DeviceLocalTestSuite)(nil)
 
-func (d *DeviceLocalTestSuite) WriteSpineMessage(msg []byte) {
+func (d *DeviceLocalTestSuite) WriteShipMessageWithPayload(msg []byte) {
 	d.lastMessage = string(msg)
 }
 
 func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
-	sut := NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 
 	ski := "test"
 	_ = sut.SetupRemoteDevice(ski, d)
@@ -42,13 +42,13 @@ func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 }
 
 func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
-	sut := NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
 	sut.AddEntity(localEntity)
 
-	f := NewFeatureLocalImpl(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
+	f := NewFeatureLocal(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
 	localEntity.AddFeature(f)
-	f = NewFeatureLocalImpl(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
+	f = NewFeatureLocal(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	localEntity.AddFeature(f)
 
 	ski := "test"
@@ -98,8 +98,8 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	err := sut.SubscriptionManager().AddSubscription(remote, subscription)
 	assert.Nil(d.T(), err)
 
-	newSubEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeEV, NewAddressEntityType([]uint{1, 1}))
-	f = NewFeatureLocalImpl(1, newSubEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+	newSubEntity := NewEntityLocal(sut, model.EntityTypeTypeEV, NewAddressEntityType([]uint{1, 1}))
+	f = NewFeatureLocal(1, newSubEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
 	f.AddFunctionType(model.FunctionTypeLoadControlLimitListData, true, true)
 	newSubEntity.AddFeature(f)
 
@@ -133,8 +133,8 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_Errors() {
-	sut := NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
 	sut.AddEntity(localEntity)
 
 	ski := "test"
@@ -184,15 +184,15 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd_Errors() {
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
-	sut := NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := NewEntityLocalImpl(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
 	sut.AddEntity(localEntity)
 
-	f1 := NewFeatureLocalImpl(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
+	f1 := NewFeatureLocal(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
 	localEntity.AddFeature(f1)
-	f2 := NewFeatureLocalImpl(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
+	f2 := NewFeatureLocal(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	localEntity.AddFeature(f2)
-	f3 := NewFeatureLocalImpl(3, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
+	f3 := NewFeatureLocal(3, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
 	localEntity.AddFeature(f3)
 
 	ski := "test"

@@ -8,18 +8,18 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-type FeatureImpl struct {
+type Feature struct {
 	address     *model.FeatureAddressType
 	ftype       model.FeatureTypeType
 	description *model.DescriptionType
 	role        model.RoleType
-	operations  map[model.FunctionType]api.Operations
+	operations  map[model.FunctionType]api.OperationsInterface
 }
 
-var _ api.Feature = (*FeatureImpl)(nil)
+var _ api.FeatureInterface = (*Feature)(nil)
 
-func NewFeatureImpl(address *model.FeatureAddressType, ftype model.FeatureTypeType, role model.RoleType) *FeatureImpl {
-	res := &FeatureImpl{
+func NewFeature(address *model.FeatureAddressType, ftype model.FeatureTypeType, role model.RoleType) *Feature {
+	res := &Feature{
 		address: address,
 		ftype:   ftype,
 		role:    role,
@@ -28,35 +28,35 @@ func NewFeatureImpl(address *model.FeatureAddressType, ftype model.FeatureTypeTy
 	return res
 }
 
-func (r *FeatureImpl) Address() *model.FeatureAddressType {
+func (r *Feature) Address() *model.FeatureAddressType {
 	return r.address
 }
 
-func (r *FeatureImpl) Type() model.FeatureTypeType {
+func (r *Feature) Type() model.FeatureTypeType {
 	return r.ftype
 }
 
-func (r *FeatureImpl) Role() model.RoleType {
+func (r *Feature) Role() model.RoleType {
 	return r.role
 }
 
-func (r *FeatureImpl) Operations() map[model.FunctionType]api.Operations {
+func (r *Feature) Operations() map[model.FunctionType]api.OperationsInterface {
 	return r.operations
 }
 
-func (r *FeatureImpl) Description() *model.DescriptionType {
+func (r *Feature) Description() *model.DescriptionType {
 	return r.description
 }
 
-func (r *FeatureImpl) SetDescription(d *model.DescriptionType) {
+func (r *Feature) SetDescription(d *model.DescriptionType) {
 	r.description = d
 }
 
-func (r *FeatureImpl) SetDescriptionString(s string) {
+func (r *Feature) SetDescriptionString(s string) {
 	r.description = util.Ptr(model.DescriptionType(s))
 }
 
-func (r *FeatureImpl) String() string {
+func (r *Feature) String() string {
 	if r == nil {
 		return ""
 	}

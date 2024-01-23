@@ -18,16 +18,16 @@ func NodeManagementAddress(deviceAdress *model.AddressDeviceType) *model.Feature
 	}
 }
 
-var _ api.NodeManagement = (*NodeManagementImpl)(nil)
+var _ api.NodeManagementInterface = (*NodeManagement)(nil)
 
-type NodeManagementImpl struct {
-	*FeatureLocalImpl
-	entity api.EntityLocal
+type NodeManagement struct {
+	*FeatureLocal
+	entity api.EntityLocalInterface
 }
 
-func NewNodeManagementImpl(id uint, entity api.EntityLocal) *NodeManagementImpl {
-	f := &NodeManagementImpl{
-		FeatureLocalImpl: NewFeatureLocalImpl(
+func NewNodeManagement(id uint, entity api.EntityLocalInterface) *NodeManagement {
+	f := &NodeManagement{
+		FeatureLocal: NewFeatureLocal(
 			id, entity,
 			model.FeatureTypeTypeNodeManagement,
 			model.RoleTypeSpecial),
@@ -49,11 +49,11 @@ func NewNodeManagementImpl(id uint, entity api.EntityLocal) *NodeManagementImpl 
 	return f
 }
 
-func (r *NodeManagementImpl) Device() api.DeviceLocal {
+func (r *NodeManagement) Device() api.DeviceLocalInterface {
 	return r.entity.Device()
 }
 
-func (r *NodeManagementImpl) HandleMessage(message *api.Message) *model.ErrorType {
+func (r *NodeManagement) HandleMessage(message *api.Message) *model.ErrorType {
 	switch {
 	case message.Cmd.ResultData != nil:
 		if err := r.processResult(message); err != nil {

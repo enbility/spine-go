@@ -10,22 +10,22 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
-type HeartbeatManagerImpl struct {
-	localDevice  api.DeviceLocal
-	localEntity  api.EntityLocal
-	localFeature api.FeatureLocal
+type HeartbeatManager struct {
+	localDevice  api.DeviceLocalInterface
+	localEntity  api.EntityLocalInterface
+	localFeature api.FeatureLocalInterface
 
 	heartBeatNum   uint64 // see https://github.com/golang/go/issues/11891
 	stopHeartbeatC chan struct{}
 	stopMux        sync.Mutex
 
-	subscriptionManager api.SubscriptionManager
+	subscriptionManager api.SubscriptionManagerInterface
 	heartBeatTimeout    *model.DurationType
 }
 
 // Create a new Heartbeat Manager which handles sending of heartbeats
-func NewHeartbeatManager(localDevice api.DeviceLocal, subscriptionManager api.SubscriptionManager, timeout time.Duration) *HeartbeatManagerImpl {
-	h := &HeartbeatManagerImpl{
+func NewHeartbeatManager(localDevice api.DeviceLocalInterface, subscriptionManager api.SubscriptionManagerInterface, timeout time.Duration) *HeartbeatManager {
+	h := &HeartbeatManager{
 		localDevice:         localDevice,
 		subscriptionManager: subscriptionManager,
 		heartBeatTimeout:    model.NewDurationType(timeout),
@@ -34,7 +34,7 @@ func NewHeartbeatManager(localDevice api.DeviceLocal, subscriptionManager api.Su
 	return h
 }
 
-func (c *HeartbeatManagerImpl) IsHeartbeatRunning() bool {
+func (c *HeartbeatManager) IsHeartbeatRunning() bool {
 	c.stopMux.Lock()
 	defer c.stopMux.Unlock()
 
@@ -47,7 +47,7 @@ func (c *HeartbeatManagerImpl) IsHeartbeatRunning() bool {
 
 // check if there are any heartbeat subscriptions left, otherwise stop creating new ones
 // or start creating heartbeats again if needed
-func (c *HeartbeatManagerImpl) UpdateHeartbeatOnSubscriptions() {
+func (c *HeartbeatManager) UpdateHeartbeatOnSubscriptions() {
 	if c.localEntity == nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (c *HeartbeatManagerImpl) UpdateHeartbeatOnSubscriptions() {
 	}
 }
 
-func (c *HeartbeatManagerImpl) SetLocalFeature(entity api.EntityLocal, feature api.FeatureLocal) {
+func (c *HeartbeatManager) SetLocalFeature(entity api.EntityLocalInterface, feature api.FeatureLocalInterface) {
 	c.localEntity = entity
 	c.localFeature = feature
 }
@@ -76,7 +76,7 @@ func (c *HeartbeatManagerImpl) SetLocalFeature(entity api.EntityLocal, feature a
 // Make sure the a required FeatureTypeTypeDeviceDiagnosis with the role server is present
 // otherwise this will end with an error
 // Note: Remote features need to have a subscription to get notifications
-func (c *HeartbeatManagerImpl) StartHeartbeat() error {
+func (c *HeartbeatManager) StartHeartbeat() error {
 	if c.localEntity == nil {
 		return errors.New("unknown entity")
 	}
@@ -98,13 +98,13 @@ func (c *HeartbeatManagerImpl) StartHeartbeat() error {
 
 // Stop updating heartbeat data
 // Note: No active subscribers will get any further notifications!
-func (c *HeartbeatManagerImpl) StopHeartbeat() {
+func (c *HeartbeatManager) StopHeartbeat() {
 	if c.IsHeartbeatRunning() {
 		close(c.stopHeartbeatC)
 	}
 }
 
-func (c *HeartbeatManagerImpl) heartbeatData(t time.Time, counter *uint64) *model.DeviceDiagnosisHeartbeatDataType {
+func (c *HeartbeatManager) heartbeatData(t time.Time, counter *uint64) *model.DeviceDiagnosisHeartbeatDataType {
 	timestamp := t.UTC().Format(time.RFC3339)
 
 	return &model.DeviceDiagnosisHeartbeatDataType{
@@ -114,7 +114,7 @@ func (c *HeartbeatManagerImpl) heartbeatData(t time.Time, counter *uint64) *mode
 	}
 }
 
-func (c *HeartbeatManagerImpl) updateHearbeatData(stopC chan struct{}, d time.Duration) {
+func (c *HeartbeatManager) updateHearbeatData(stopC chan struct{}, d time.Duration) {
 	ticker := time.NewTicker(d)
 	for {
 		select {
@@ -131,7 +131,7 @@ func (c *HeartbeatManagerImpl) updateHearbeatData(stopC chan struct{}, d time.Du
 	}
 }
 
-func (c *HeartbeatManagerImpl) isHeartbeatClosed() bool {
+func (c *HeartbeatManager) isHeartbeatClosed() bool {
 	select {
 	case <-c.stopHeartbeatC:
 		return true
@@ -142,7 +142,7 @@ func (c *HeartbeatManagerImpl) isHeartbeatClosed() bool {
 }
 
 // TODO heartBeatCounter should be global on CEM level, not on connection level
-func (c *HeartbeatManagerImpl) heartBeatCounter() *uint64 {
+func (c *HeartbeatManager) heartBeatCounter() *uint64 {
 	i := atomic.AddUint64(&c.heartBeatNum, 1)
 	return &i
 }

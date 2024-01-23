@@ -22,27 +22,27 @@ func TestDeviceRemoteSuite(t *testing.T) {
 type DeviceRemoteSuite struct {
 	suite.Suite
 
-	localDevice  api.DeviceLocal
-	remoteDevice api.DeviceRemote
-	remoteEntity api.EntityRemote
+	localDevice  api.DeviceLocalInterface
+	remoteDevice api.DeviceRemoteInterface
+	remoteEntity api.EntityRemoteInterface
 }
 
-func (s *DeviceRemoteSuite) WriteSpineMessage([]byte) {}
+func (s *DeviceRemoteSuite) WriteShipMessageWithPayload([]byte) {}
 
 func (s *DeviceRemoteSuite) SetupSuite() {}
 
 func (s *DeviceRemoteSuite) BeforeTest(suiteName, testName string) {
-	s.localDevice = NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 
 	ski := "test"
 	sender := NewSender(s)
-	s.remoteDevice = NewDeviceRemoteImpl(s.localDevice, ski, sender)
+	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
 	s.remoteDevice.SetAddress(util.Ptr(model.AddressDeviceType("test")))
 	_ = s.localDevice.SetupRemoteDevice(ski, s)
 
-	s.remoteEntity = NewEntityRemoteImpl(s.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
+	s.remoteEntity = NewEntityRemote(s.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
 
-	feature := NewFeatureRemoteImpl(0, s.remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	feature := NewFeatureRemote(0, s.remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
 	s.remoteEntity.AddFeature(feature)
 
 	s.remoteDevice.AddEntity(s.remoteEntity)
@@ -242,7 +242,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 	entity := s.remoteDevice.Entity([]model.AddressEntityType{1})
 	assert.NotNil(s.T(), entity)
 
-	feature := NewFeatureRemoteImpl(0, entity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
+	feature := NewFeatureRemote(0, entity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
 	entity.AddFeature(feature)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
@@ -253,7 +253,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 	)
 	assert.Equal(s.T(), false, result)
 
-	feature = NewFeatureRemoteImpl(0, entity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
+	feature = NewFeatureRemote(0, entity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)
 	entity.AddFeature(feature)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(

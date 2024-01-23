@@ -18,18 +18,18 @@ func TestDeviceClassificationSuite(t *testing.T) {
 
 type DeviceClassificationTestSuite struct {
 	suite.Suite
-	senderMock                                                *mocks.Sender
-	localDevice                                               *DeviceLocalImpl
-	localEntity                                               *EntityLocalImpl
+	senderMock                                                *mocks.SenderInterface
+	localDevice                                               *DeviceLocal
+	localEntity                                               *EntityLocal
 	function, serverWriteFunction                             model.FunctionType
 	featureType, subFeatureType                               model.FeatureTypeType
 	msgCounter                                                model.MsgCounterType
-	remoteFeature, remoteServerFeature, remoteSubFeature      api.FeatureRemote
-	localFeature, localServerFeature, localServerFeatureWrite api.FeatureLocal
+	remoteFeature, remoteServerFeature, remoteSubFeature      api.FeatureRemoteInterface
+	localFeature, localServerFeature, localServerFeatureWrite api.FeatureLocalInterface
 }
 
 func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName string) {
-	suite.senderMock = mocks.NewSender(suite.T())
+	suite.senderMock = mocks.NewSenderInterface(suite.T())
 	suite.function = model.FunctionTypeDeviceClassificationManufacturerData
 	suite.featureType = model.FeatureTypeTypeDeviceClassification
 	suite.subFeatureType = model.FeatureTypeTypeLoadControl

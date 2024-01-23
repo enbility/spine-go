@@ -11,17 +11,17 @@ const DeviceInformationEntityId uint = 0
 
 var DeviceInformationAddressEntity = []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)}
 
-type EntityImpl struct {
+type Entity struct {
 	eType        model.EntityTypeType
 	address      *model.EntityAddressType
 	description  *model.DescriptionType
 	fIdGenerator func() uint
 }
 
-var _ api.Entity = (*EntityImpl)(nil)
+var _ api.EntityInterface = (*Entity)(nil)
 
-func NewEntity(eType model.EntityTypeType, deviceAdress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *EntityImpl {
-	entity := &EntityImpl{
+func NewEntity(eType model.EntityTypeType, deviceAdress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *Entity {
+	entity := &Entity{
 		eType: eType,
 		address: &model.EntityAddressType{
 			Device: deviceAdress,
@@ -39,23 +39,23 @@ func NewEntity(eType model.EntityTypeType, deviceAdress *model.AddressDeviceType
 	return entity
 }
 
-func (r *EntityImpl) EntityType() model.EntityTypeType {
+func (r *Entity) EntityType() model.EntityTypeType {
 	return r.eType
 }
 
-func (r *EntityImpl) Address() *model.EntityAddressType {
+func (r *Entity) Address() *model.EntityAddressType {
 	return r.address
 }
 
-func (r *EntityImpl) Description() *model.DescriptionType {
+func (r *Entity) Description() *model.DescriptionType {
 	return r.description
 }
 
-func (r *EntityImpl) SetDescription(d *model.DescriptionType) {
+func (r *Entity) SetDescription(d *model.DescriptionType) {
 	r.description = d
 }
 
-func (r *EntityImpl) NextFeatureId() uint {
+func (r *Entity) NextFeatureId() uint {
 	return r.fIdGenerator()
 }
 

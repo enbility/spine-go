@@ -28,13 +28,13 @@ const (
 )
 
 type EventPayload struct {
-	Ski           string            // required
-	EventType     EventType         // required
-	ChangeType    ElementChangeType // required
-	Device        DeviceRemote      // required for DetailedDiscovery Call
-	Entity        EntityRemote      // required for DetailedDiscovery Call and Notify
-	Feature       FeatureRemote
-	LocalFeature  FeatureLocal             // required for write commands
+	Ski           string                // required
+	EventType     EventType             // required
+	ChangeType    ElementChangeType     // required
+	Device        DeviceRemoteInterface // required for DetailedDiscovery Call
+	Entity        EntityRemoteInterface // required for DetailedDiscovery Call and Notify
+	Feature       FeatureRemoteInterface
+	LocalFeature  FeatureLocalInterface    // required for write commands
 	Function      model.FunctionType       // required for write commands
 	CmdClassifier *model.CmdClassifierType // optional, used together with EventType EventTypeDataChange
 	Data          any

@@ -2,6 +2,6 @@ package api
 
 type BindingEntry struct {
 	Id            uint64
-	ServerFeature FeatureLocal
-	ClientFeature FeatureRemote
+	ServerFeature FeatureLocalInterface
+	ClientFeature FeatureRemoteInterface
 }

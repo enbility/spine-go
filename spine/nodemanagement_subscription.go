@@ -29,7 +29,7 @@ func NewNodeManagementSubscriptionDeleteCallType(clientAddress *model.FeatureAdd
 }
 
 // route subscription request calls to the appropriate feature implementation and add the subscription to the current list
-func (r *NodeManagementImpl) processReadSubscriptionData(message *api.Message) error {
+func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error {
 
 	var remoteDeviceSubscriptions []model.SubscriptionManagementEntryDataType
 	remoteDeviceSubscriptionEntries := r.Device().SubscriptionManager().Subscriptions(message.FeatureRemote.Device())
@@ -50,7 +50,7 @@ func (r *NodeManagementImpl) processReadSubscriptionData(message *api.Message) e
 	return message.FeatureRemote.Sender().Reply(message.RequestHeader, r.Address(), cmd)
 }
 
-func (r *NodeManagementImpl) handleMsgSubscriptionData(message *api.Message) error {
+func (r *NodeManagement) handleMsgSubscriptionData(message *api.Message) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		return r.processReadSubscriptionData(message)
@@ -60,7 +60,7 @@ func (r *NodeManagementImpl) handleMsgSubscriptionData(message *api.Message) err
 	}
 }
 
-func (r *NodeManagementImpl) handleMsgSubscriptionRequestCall(message *api.Message, data *model.NodeManagementSubscriptionRequestCallType) error {
+func (r *NodeManagement) handleMsgSubscriptionRequestCall(message *api.Message, data *model.NodeManagementSubscriptionRequestCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		subscriptionMgr := r.Device().SubscriptionManager()
@@ -77,7 +77,7 @@ func (r *NodeManagementImpl) handleMsgSubscriptionRequestCall(message *api.Messa
 	}
 }
 
-func (r *NodeManagementImpl) handleMsgSubscriptionDeleteCall(message *api.Message, data *model.NodeManagementSubscriptionDeleteCallType) error {
+func (r *NodeManagement) handleMsgSubscriptionDeleteCall(message *api.Message, data *model.NodeManagementSubscriptionDeleteCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		subscriptionMgr := r.Device().SubscriptionManager()

@@ -9,7 +9,7 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-func (r *NodeManagementImpl) RequestUseCaseData(remoteDeviceSki string, remoteDeviceAddress *model.AddressDeviceType, sender api.Sender) (*model.MsgCounterType, *model.ErrorType) {
+func (r *NodeManagement) RequestUseCaseData(remoteDeviceSki string, remoteDeviceAddress *model.AddressDeviceType, sender api.SenderInterface) (*model.MsgCounterType, *model.ErrorType) {
 	rfAdress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDeviceAddress, DeviceInformationAddressEntity))
 	cmd := model.CmdType{
 		NodeManagementUseCaseData: &model.NodeManagementUseCaseDataType{},
@@ -17,7 +17,7 @@ func (r *NodeManagementImpl) RequestUseCaseData(remoteDeviceSki string, remoteDe
 	return r.RequestDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
 }
 
-func (r *NodeManagementImpl) NotifyUseCaseData(remoteDevice api.DeviceRemote) (*model.MsgCounterType, error) {
+func (r *NodeManagement) NotifyUseCaseData(remoteDevice api.DeviceRemoteInterface) (*model.MsgCounterType, error) {
 	rfAdress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDevice.Address(), DeviceInformationAddressEntity))
 	rEntity := remoteDevice.Entity([]model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
 
@@ -32,7 +32,7 @@ func (r *NodeManagementImpl) NotifyUseCaseData(remoteDevice api.DeviceRemote) (*
 	return featureRemote.Sender().Notify(r.Address(), rfAdress, cmd)
 }
 
-func (r *NodeManagementImpl) processReadUseCaseData(featureRemote api.FeatureRemote, requestHeader *model.HeaderType) error {
+func (r *NodeManagement) processReadUseCaseData(featureRemote api.FeatureRemoteInterface, requestHeader *model.HeaderType) error {
 	fd := r.functionData(model.FunctionTypeNodeManagementUseCaseData)
 	if fd == nil {
 		return errors.New("function data not found")
@@ -42,7 +42,7 @@ func (r *NodeManagementImpl) processReadUseCaseData(featureRemote api.FeatureRem
 	return featureRemote.Sender().Reply(requestHeader, r.Address(), cmd)
 }
 
-func (r *NodeManagementImpl) processReplyUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {
+func (r *NodeManagement) processReplyUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {
 	message.FeatureRemote.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 
 	// the data was updated, so send an event, other event handlers may watch out for this as well
@@ -61,7 +61,7 @@ func (r *NodeManagementImpl) processReplyUseCaseData(message *api.Message, data 
 	return nil
 }
 
-func (r *NodeManagementImpl) handleMsgUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {
+func (r *NodeManagement) handleMsgUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeRead:
 		return r.processReadUseCaseData(message.FeatureRemote, message.RequestHeader)

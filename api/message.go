@@ -8,16 +8,16 @@ type Message struct {
 	Cmd           model.CmdType
 	FilterPartial *model.FilterType
 	FilterDelete  *model.FilterType
-	FeatureRemote FeatureRemote
-	EntityRemote  EntityRemote
-	DeviceRemote  DeviceRemote
+	FeatureRemote FeatureRemoteInterface
+	EntityRemote  EntityRemoteInterface
+	DeviceRemote  DeviceRemoteInterface
 }
 
 type ResultMessage struct {
-	MsgCounterReference model.MsgCounterType  // required
-	Result              *model.ResultDataType // required, may not be nil
-	FeatureLocal        FeatureLocal          // required, may not be nil
-	FeatureRemote       FeatureRemote         // required, may not be nil
-	EntityRemote        EntityRemote          // required, may not be nil
-	DeviceRemote        DeviceRemote          // required, may not be nil
+	MsgCounterReference model.MsgCounterType   // required
+	Result              *model.ResultDataType  // required, may not be nil
+	FeatureLocal        FeatureLocalInterface  // required, may not be nil
+	FeatureRemote       FeatureRemoteInterface // required, may not be nil
+	EntityRemote        EntityRemoteInterface  // required, may not be nil
+	DeviceRemote        DeviceRemoteInterface  // required, may not be nil
 }

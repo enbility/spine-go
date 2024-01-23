@@ -9,57 +9,57 @@ import (
 
 //go:generate mockery
 
-type EventHandler interface {
+type EventHandlerInterface interface {
 	HandleEvent(EventPayload)
 }
 
 /* Device */
 
-type Device interface {
+type DeviceInterface interface {
 	Address() *model.AddressDeviceType
 	DeviceType() *model.DeviceTypeType
 	FeatureSet() *model.NetworkManagementFeatureSetType
 	DestinationData() model.NodeManagementDestinationDataType
 }
 
-type DeviceLocal interface {
-	Device
+type DeviceLocalInterface interface {
+	DeviceInterface
 	RemoveRemoteDeviceConnection(ski string)
-	AddRemoteDeviceForSki(ski string, rDevice DeviceRemote)
-	SetupRemoteDevice(ski string, writeI shipapi.SpineDataConnection) shipapi.SpineDataProcessing
+	AddRemoteDeviceForSki(ski string, rDevice DeviceRemoteInterface)
+	SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface
 	RemoveRemoteDevice(ski string)
-	RemoteDevices() []DeviceRemote
-	RemoteDeviceForAddress(address model.AddressDeviceType) DeviceRemote
-	RemoteDeviceForSki(ski string) DeviceRemote
-	ProcessCmd(datagram model.DatagramType, remoteDevice DeviceRemote) error
-	NodeManagement() NodeManagement
-	SubscriptionManager() SubscriptionManager
-	BindingManager() BindingManager
-	HeartbeatManager() HeartbeatManager
-	AddEntity(entity EntityLocal)
-	RemoveEntity(entity EntityLocal)
-	Entities() []EntityLocal
-	Entity(id []model.AddressEntityType) EntityLocal
-	EntityForType(entityType model.EntityTypeType) EntityLocal
-	FeatureByAddress(address *model.FeatureAddressType) FeatureLocal
+	RemoteDevices() []DeviceRemoteInterface
+	RemoteDeviceForAddress(address model.AddressDeviceType) DeviceRemoteInterface
+	RemoteDeviceForSki(ski string) DeviceRemoteInterface
+	ProcessCmd(datagram model.DatagramType, remoteDevice DeviceRemoteInterface) error
+	NodeManagement() NodeManagementInterface
+	SubscriptionManager() SubscriptionManagerInterface
+	BindingManager() BindingManagerInterface
+	HeartbeatManager() HeartbeatManagerInterface
+	AddEntity(entity EntityLocalInterface)
+	RemoveEntity(entity EntityLocalInterface)
+	Entities() []EntityLocalInterface
+	Entity(id []model.AddressEntityType) EntityLocalInterface
+	EntityForType(entityType model.EntityTypeType) EntityLocalInterface
+	FeatureByAddress(address *model.FeatureAddressType) FeatureLocalInterface
 	NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType)
 	Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType
 }
 
-type DeviceRemote interface {
-	Device
+type DeviceRemoteInterface interface {
+	DeviceInterface
 	Ski() string
 	SetAddress(address *model.AddressDeviceType)
 	HandleSpineMesssage(message []byte) (*model.MsgCounterType, error)
-	Sender() Sender
-	Entity(id []model.AddressEntityType) EntityRemote
-	Entities() []EntityRemote
-	FeatureByAddress(address *model.FeatureAddressType) FeatureRemote
-	RemoveByAddress(addr []model.AddressEntityType) EntityRemote
-	FeatureByEntityTypeAndRole(entity EntityRemote, featureType model.FeatureTypeType, role model.RoleType) FeatureRemote
+	Sender() SenderInterface
+	Entity(id []model.AddressEntityType) EntityRemoteInterface
+	Entities() []EntityRemoteInterface
+	FeatureByAddress(address *model.FeatureAddressType) FeatureRemoteInterface
+	RemoveByAddress(addr []model.AddressEntityType) EntityRemoteInterface
+	FeatureByEntityTypeAndRole(entity EntityRemoteInterface, featureType model.FeatureTypeType, role model.RoleType) FeatureRemoteInterface
 	UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType)
-	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]EntityRemote, error)
-	AddEntity(entity EntityRemote) EntityRemote
+	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]EntityRemoteInterface, error)
+	AddEntity(entity EntityRemoteInterface) EntityRemoteInterface
 	UseCases() []model.UseCaseInformationDataType
 	VerifyUseCaseScenariosAndFeaturesSupport(
 		usecaseActor model.UseCaseActorType,
@@ -72,7 +72,7 @@ type DeviceRemote interface {
 
 /* Entity */
 
-type Entity interface {
+type EntityInterface interface {
 	EntityType() model.EntityTypeType
 	Address() *model.EntityAddressType
 	Description() *model.DescriptionType
@@ -80,14 +80,14 @@ type Entity interface {
 	NextFeatureId() uint
 }
 
-type EntityLocal interface {
-	Entity
-	Device() DeviceLocal
-	AddFeature(f FeatureLocal)
-	GetOrAddFeature(featureType model.FeatureTypeType, role model.RoleType) FeatureLocal
-	FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) FeatureLocal
-	Features() []FeatureLocal
-	Feature(addressFeature *model.AddressFeatureType) FeatureLocal
+type EntityLocalInterface interface {
+	EntityInterface
+	Device() DeviceLocalInterface
+	AddFeature(f FeatureLocalInterface)
+	GetOrAddFeature(featureType model.FeatureTypeType, role model.RoleType) FeatureLocalInterface
+	FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) FeatureLocalInterface
+	Features() []FeatureLocalInterface
+	Feature(addressFeature *model.AddressFeatureType) FeatureLocalInterface
 	Information() *model.NodeManagementDetailedDiscoveryEntityInformationType
 	AddUseCaseSupport(
 		actor model.UseCaseActorType,
@@ -106,48 +106,48 @@ type EntityLocal interface {
 	RemoveAllBindings()
 }
 
-type EntityRemote interface {
-	Entity
-	Device() DeviceRemote
-	AddFeature(f FeatureRemote)
-	Features() []FeatureRemote
-	Feature(addressFeature *model.AddressFeatureType) FeatureRemote
+type EntityRemoteInterface interface {
+	EntityInterface
+	Device() DeviceRemoteInterface
+	AddFeature(f FeatureRemoteInterface)
+	Features() []FeatureRemoteInterface
+	Feature(addressFeature *model.AddressFeatureType) FeatureRemoteInterface
 	RemoveAllFeatures()
 }
 
 /* Feature */
 
-type Feature interface {
+type FeatureInterface interface {
 	Address() *model.FeatureAddressType
 	Type() model.FeatureTypeType
 	Role() model.RoleType
-	Operations() map[model.FunctionType]Operations
+	Operations() map[model.FunctionType]OperationsInterface
 	Description() *model.DescriptionType
 	SetDescription(desc *model.DescriptionType)
 	SetDescriptionString(s string)
 	String() string
 }
 
-type FeatureRemote interface {
-	Feature
+type FeatureRemoteInterface interface {
+	FeatureInterface
 	DataCopy(function model.FunctionType) any
 	SetData(function model.FunctionType, data any)
 	UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType)
-	Sender() Sender
-	Device() DeviceRemote
-	Entity() EntityRemote
+	Sender() SenderInterface
+	Device() DeviceRemoteInterface
+	Entity() EntityRemoteInterface
 	SetOperations(functions []model.FunctionPropertyType)
 	SetMaxResponseDelay(delay *model.MaxResponseDelayType)
 	MaxResponseDelayDuration() time.Duration
 }
 
-type FeatureLocal interface {
-	Feature
-	Device() DeviceLocal
-	Entity() EntityLocal
+type FeatureLocalInterface interface {
+	FeatureInterface
+	Device() DeviceLocalInterface
+	Entity() EntityLocalInterface
 	DataCopy(function model.FunctionType) any
 	SetData(function model.FunctionType, data any)
-	AddResultHandler(handler FeatureResult)
+	AddResultHandler(handler FeatureResultInterface)
 	AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg ResultMessage))
 	Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType
 	AddFunctionType(function model.FunctionType, read, write bool)
@@ -155,16 +155,16 @@ type FeatureLocal interface {
 		function model.FunctionType,
 		selector any,
 		elements any,
-		destination FeatureRemote) (*model.MsgCounterType, *model.ErrorType)
+		destination FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)
 	RequestDataBySenderAddress(
 		cmd model.CmdType,
-		sender Sender,
+		sender SenderInterface,
 		destinationSki string,
 		destinationAddress *model.FeatureAddressType,
 		maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType)
 	FetchRequestData(
 		msgCounter model.MsgCounterType,
-		destination FeatureRemote) (any, *model.ErrorType)
+		destination FeatureRemoteInterface) (any, *model.ErrorType)
 	Subscribe(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// SubscribeAndWait(remoteDevice DeviceRemote, remoteAdress *model.FeatureAddressType) *ErrorType // Subscribes the local feature to the given destination feature; the go routine will block until the response is processed
 	RemoveSubscription(remoteAddress *model.FeatureAddressType)
@@ -178,34 +178,34 @@ type FeatureLocal interface {
 		deleteSelector, partialSelector any,
 		partialWithoutSelector bool,
 		deleteElements any,
-		destination FeatureRemote) (*model.MsgCounterType, *model.ErrorType)
+		destination FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)
 	WriteData(
 		function model.FunctionType,
 		deleteSelector, partialSelector any,
 		deleteElements any,
-		destination FeatureRemote) (*model.MsgCounterType, *model.ErrorType)
+		destination FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)
 	HandleMessage(message *Message) *model.ErrorType
 }
 
-type NodeManagement interface {
-	FeatureLocal
+type NodeManagementInterface interface {
+	FeatureLocalInterface
 }
 
-type FeatureResult interface {
+type FeatureResultInterface interface {
 	HandleResult(ResultMessage)
 }
 
 /* Functions */
 
-type FunctionDataCmd interface {
-	FunctionData
+type FunctionDataCmdInterface interface {
+	FunctionDataInterface
 	ReadCmdType(partialSelector any, elements any) model.CmdType
 	ReplyCmdType(partial bool) model.CmdType
 	NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType
 	WriteCmdType(deleteSelector, partialSelector any, deleteElements any) model.CmdType
 }
 
-type FunctionData interface {
+type FunctionDataInterface interface {
 	Function() model.FunctionType
 	DataCopyAny() any
 	UpdateDataAny(data any, filterPartial *model.FilterType, filterDelete *model.FilterType)
@@ -213,14 +213,12 @@ type FunctionData interface {
 
 /* Sender */
 
-type ComControl interface {
+type ComControlInterface interface {
 	// This must be connected to the correct remote device !!
 	SendSpineMessage(datagram model.DatagramType) error
 }
 
-//go:generate mockery --name=Sender
-
-type Sender interface {
+type SenderInterface interface {
 	// Sends a read cmd to request some data
 	Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error)
 	// Sends a result cmd with no error to indicate that a message was processed successfully
@@ -247,7 +245,7 @@ type Sender interface {
 
 /* PendingRequests */
 
-type PendingRequests interface {
+type PendingRequestsInterface interface {
 	Add(ski string, counter model.MsgCounterType, maxDelay time.Duration)
 	SetData(ski string, counter model.MsgCounterType, data any) *model.ErrorType
 	SetResult(ski string, counter model.MsgCounterType, errorResult *model.ErrorType) *model.ErrorType
@@ -258,38 +256,38 @@ type PendingRequests interface {
 /* Bindings */
 
 // implemented by BindingManagerImpl
-type BindingManager interface {
-	AddBinding(remoteDevice DeviceRemote, data model.BindingManagementRequestCallType) error
-	RemoveBinding(data model.BindingManagementDeleteCallType, remoteDevice DeviceRemote) error
-	RemoveBindingsForDevice(remoteDevice DeviceRemote)
-	RemoveBindingsForEntity(remoteEntity EntityRemote)
-	Bindings(remoteDevice DeviceRemote) []*BindingEntry
+type BindingManagerInterface interface {
+	AddBinding(remoteDevice DeviceRemoteInterface, data model.BindingManagementRequestCallType) error
+	RemoveBinding(data model.BindingManagementDeleteCallType, remoteDevice DeviceRemoteInterface) error
+	RemoveBindingsForDevice(remoteDevice DeviceRemoteInterface)
+	RemoveBindingsForEntity(remoteEntity EntityRemoteInterface)
+	Bindings(remoteDevice DeviceRemoteInterface) []*BindingEntry
 	BindingsOnFeature(featureAddress model.FeatureAddressType) []*BindingEntry
 	HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool
 }
 
 /* Subscription Manager */
 
-type SubscriptionManager interface {
-	AddSubscription(remoteDevice DeviceRemote, data model.SubscriptionManagementRequestCallType) error
-	RemoveSubscription(data model.SubscriptionManagementDeleteCallType, remoteDevice DeviceRemote) error
-	RemoveSubscriptionsForDevice(remoteDevice DeviceRemote)
-	RemoveSubscriptionsForEntity(remoteEntity EntityRemote)
-	Subscriptions(remoteDevice DeviceRemote) []*SubscriptionEntry
+type SubscriptionManagerInterface interface {
+	AddSubscription(remoteDevice DeviceRemoteInterface, data model.SubscriptionManagementRequestCallType) error
+	RemoveSubscription(data model.SubscriptionManagementDeleteCallType, remoteDevice DeviceRemoteInterface) error
+	RemoveSubscriptionsForDevice(remoteDevice DeviceRemoteInterface)
+	RemoveSubscriptionsForEntity(remoteEntity EntityRemoteInterface)
+	Subscriptions(remoteDevice DeviceRemoteInterface) []*SubscriptionEntry
 	SubscriptionsOnFeature(featureAddress model.FeatureAddressType) []*SubscriptionEntry
 }
 
 /* Heartbeats */
 
-type HeartbeatManager interface {
+type HeartbeatManagerInterface interface {
 	IsHeartbeatRunning() bool
 	UpdateHeartbeatOnSubscriptions()
-	SetLocalFeature(entity EntityLocal, feature FeatureLocal)
+	SetLocalFeature(entity EntityLocalInterface, feature FeatureLocalInterface)
 	StartHeartbeat() error
 	StopHeartbeat()
 }
 
-type Operations interface {
+type OperationsInterface interface {
 	Write() bool
 	Read() bool
 	String() string

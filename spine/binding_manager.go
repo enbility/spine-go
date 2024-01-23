@@ -13,8 +13,8 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-type BindingManagerImpl struct {
-	localDevice api.DeviceLocal
+type BindingManager struct {
+	localDevice api.DeviceLocalInterface
 
 	bindingNum     uint64
 	bindingEntries []*api.BindingEntry
@@ -23,8 +23,8 @@ type BindingManagerImpl struct {
 	// TODO: add persistence
 }
 
-func NewBindingManager(localDevice api.DeviceLocal) *BindingManagerImpl {
-	c := &BindingManagerImpl{
+func NewBindingManager(localDevice api.DeviceLocalInterface) *BindingManager {
+	c := &BindingManager{
 		bindingNum:  0,
 		localDevice: localDevice,
 	}
@@ -33,7 +33,7 @@ func NewBindingManager(localDevice api.DeviceLocal) *BindingManagerImpl {
 }
 
 // is sent from the client (remote device) to the server (local device)
-func (c *BindingManagerImpl) AddBinding(remoteDevice api.DeviceRemote, data model.BindingManagementRequestCallType) error {
+func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementRequestCallType) error {
 
 	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
 	if serverFeature == nil {
@@ -83,7 +83,7 @@ func (c *BindingManagerImpl) AddBinding(remoteDevice api.DeviceRemote, data mode
 	return nil
 }
 
-func (c *BindingManagerImpl) RemoveBinding(data model.BindingManagementDeleteCallType, remoteDevice api.DeviceRemote) error {
+func (c *BindingManager) RemoveBinding(data model.BindingManagementDeleteCallType, remoteDevice api.DeviceRemoteInterface) error {
 	var newBindingEntries []*api.BindingEntry
 
 	// according to the spec 7.4.4
@@ -148,7 +148,7 @@ func (c *BindingManagerImpl) RemoveBinding(data model.BindingManagementDeleteCal
 }
 
 // Remove all existing bindings for a given remote device
-func (c *BindingManagerImpl) RemoveBindingsForDevice(remoteDevice api.DeviceRemote) {
+func (c *BindingManager) RemoveBindingsForDevice(remoteDevice api.DeviceRemoteInterface) {
 	if remoteDevice == nil {
 		return
 	}
@@ -159,7 +159,7 @@ func (c *BindingManagerImpl) RemoveBindingsForDevice(remoteDevice api.DeviceRemo
 }
 
 // Remove all existing bindings for a given remote device entity
-func (c *BindingManagerImpl) RemoveBindingsForEntity(remoteEntity api.EntityRemote) {
+func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteInterface) {
 	if remoteEntity == nil {
 		return
 	}
@@ -188,7 +188,7 @@ func (c *BindingManagerImpl) RemoveBindingsForEntity(remoteEntity api.EntityRemo
 	c.bindingEntries = newBindingEntries
 }
 
-func (c *BindingManagerImpl) Bindings(remoteDevice api.DeviceRemote) []*api.BindingEntry {
+func (c *BindingManager) Bindings(remoteDevice api.DeviceRemoteInterface) []*api.BindingEntry {
 	var result []*api.BindingEntry
 
 	c.mux.Lock()
@@ -202,7 +202,7 @@ func (c *BindingManagerImpl) Bindings(remoteDevice api.DeviceRemote) []*api.Bind
 }
 
 // checks if a remote address has a binding on the local feature
-func (c *BindingManagerImpl) HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool {
+func (c *BindingManager) HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool {
 	bindings := c.BindingsOnFeature(*localAddress)
 
 	for _, item := range bindings {
@@ -214,7 +214,7 @@ func (c *BindingManagerImpl) HasLocalFeatureRemoteBinding(localAddress, remoteAd
 	return false
 }
 
-func (c *BindingManagerImpl) BindingsOnFeature(featureAddress model.FeatureAddressType) []*api.BindingEntry {
+func (c *BindingManager) BindingsOnFeature(featureAddress model.FeatureAddressType) []*api.BindingEntry {
 	var result []*api.BindingEntry
 
 	c.mux.Lock()
@@ -227,12 +227,12 @@ func (c *BindingManagerImpl) BindingsOnFeature(featureAddress model.FeatureAddre
 	return result
 }
 
-func (c *BindingManagerImpl) bindingId() uint64 {
+func (c *BindingManager) bindingId() uint64 {
 	i := atomic.AddUint64(&c.bindingNum, 1)
 	return i
 }
 
-func (c *BindingManagerImpl) checkRoleAndType(feature api.Feature, role model.RoleType, featureType model.FeatureTypeType) error {
+func (c *BindingManager) checkRoleAndType(feature api.FeatureInterface, role model.RoleType, featureType model.FeatureTypeType) error {
 	if feature.Role() != model.RoleTypeSpecial && feature.Role() != role {
 		return fmt.Errorf("found feature %s is not matching required role %s", feature.Type(), role)
 	}

@@ -13,26 +13,26 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
-var _ api.DeviceRemote = (*DeviceRemoteImpl)(nil)
+var _ api.DeviceRemoteInterface = (*DeviceRemote)(nil)
 
-type DeviceRemoteImpl struct {
-	*DeviceImpl
+type DeviceRemote struct {
+	*Device
 
 	ski string
 
-	entities      []api.EntityRemote
+	entities      []api.EntityRemoteInterface
 	entitiesMutex sync.Mutex
 
-	sender api.Sender
+	sender api.SenderInterface
 
-	localDevice api.DeviceLocal
+	localDevice api.DeviceLocalInterface
 }
 
-var _ shipapi.SpineDataProcessing = (*DeviceRemoteImpl)(nil)
+var _ shipapi.ShipConnectionDataReaderInterface = (*DeviceRemote)(nil)
 
-func NewDeviceRemoteImpl(localDevice api.DeviceLocal, ski string, sender api.Sender) *DeviceRemoteImpl {
-	res := DeviceRemoteImpl{
-		DeviceImpl:  NewDeviceImpl(nil, nil, nil),
+func NewDeviceRemote(localDevice api.DeviceLocalInterface, ski string, sender api.SenderInterface) *DeviceRemote {
+	res := DeviceRemote{
+		Device:      NewDevice(nil, nil, nil),
 		ski:         ski,
 		localDevice: localDevice,
 		sender:      sender,
@@ -43,15 +43,15 @@ func NewDeviceRemoteImpl(localDevice api.DeviceLocal, ski string, sender api.Sen
 }
 
 // return the device SKI
-func (d *DeviceRemoteImpl) Ski() string {
+func (d *DeviceRemote) Ski() string {
 	return d.ski
 }
 
-func (d *DeviceRemoteImpl) SetAddress(address *model.AddressDeviceType) {
+func (d *DeviceRemote) SetAddress(address *model.AddressDeviceType) {
 	d.address = address
 }
 
-func (d *DeviceRemoteImpl) HandleSpineMesssage(message []byte) (*model.MsgCounterType, error) {
+func (d *DeviceRemote) HandleSpineMesssage(message []byte) (*model.MsgCounterType, error) {
 	datagram := model.Datagram{}
 	if err := json.Unmarshal([]byte(message), &datagram); err != nil {
 		return nil, err
@@ -65,24 +65,24 @@ func (d *DeviceRemoteImpl) HandleSpineMesssage(message []byte) (*model.MsgCounte
 }
 
 // processing incoming SPINE message from the associated SHIP connection
-func (d *DeviceRemoteImpl) HandleIncomingSpineMesssage(message []byte) {
+func (d *DeviceRemote) HandleShipPayloadMessage(message []byte) {
 	if _, err := d.HandleSpineMesssage(message); err != nil {
 		logging.Log().Errorf("error handling spine message", err)
 	}
 }
 
-func (d *DeviceRemoteImpl) addNodeManagement() {
+func (d *DeviceRemote) addNodeManagement() {
 	deviceInformation := d.addNewEntity(model.EntityTypeTypeDeviceInformation, NewAddressEntityType([]uint{DeviceInformationEntityId}))
-	nodeManagement := NewFeatureRemoteImpl(deviceInformation.NextFeatureId(), deviceInformation, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
+	nodeManagement := NewFeatureRemote(deviceInformation.NextFeatureId(), deviceInformation, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
 	deviceInformation.AddFeature(nodeManagement)
 }
 
-func (d *DeviceRemoteImpl) Sender() api.Sender {
+func (d *DeviceRemote) Sender() api.SenderInterface {
 	return d.sender
 }
 
 // Return an entity with a given address
-func (d *DeviceRemoteImpl) Entity(id []model.AddressEntityType) api.EntityRemote {
+func (d *DeviceRemote) Entity(id []model.AddressEntityType) api.EntityRemoteInterface {
 	d.entitiesMutex.Lock()
 	defer d.entitiesMutex.Unlock()
 
@@ -95,12 +95,12 @@ func (d *DeviceRemoteImpl) Entity(id []model.AddressEntityType) api.EntityRemote
 }
 
 // Return all entities of this device
-func (d *DeviceRemoteImpl) Entities() []api.EntityRemote {
+func (d *DeviceRemote) Entities() []api.EntityRemoteInterface {
 	return d.entities
 }
 
 // Return the feature for a given address
-func (d *DeviceRemoteImpl) FeatureByAddress(address *model.FeatureAddressType) api.FeatureRemote {
+func (d *DeviceRemote) FeatureByAddress(address *model.FeatureAddressType) api.FeatureRemoteInterface {
 	entity := d.Entity(address.Entity)
 	if entity != nil {
 		return entity.Feature(address.Feature)
@@ -109,7 +109,7 @@ func (d *DeviceRemoteImpl) FeatureByAddress(address *model.FeatureAddressType) a
 }
 
 // Remove an entity with a given address from this device
-func (d *DeviceRemoteImpl) RemoveByAddress(addr []model.AddressEntityType) api.EntityRemote {
+func (d *DeviceRemote) RemoveByAddress(addr []model.AddressEntityType) api.EntityRemoteInterface {
 	entityForRemoval := d.Entity(addr)
 	if entityForRemoval == nil {
 		return nil
@@ -118,7 +118,7 @@ func (d *DeviceRemoteImpl) RemoveByAddress(addr []model.AddressEntityType) api.E
 	d.entitiesMutex.Lock()
 	defer d.entitiesMutex.Unlock()
 
-	var newEntities []api.EntityRemote
+	var newEntities []api.EntityRemoteInterface
 	for _, item := range d.entities {
 		if !reflect.DeepEqual(item, entityForRemoval) {
 			newEntities = append(newEntities, item)
@@ -130,7 +130,7 @@ func (d *DeviceRemoteImpl) RemoveByAddress(addr []model.AddressEntityType) api.E
 }
 
 // Get the feature for a given entity, feature type and feature role
-func (r *DeviceRemoteImpl) FeatureByEntityTypeAndRole(entity api.EntityRemote, featureType model.FeatureTypeType, role model.RoleType) api.FeatureRemote {
+func (r *DeviceRemote) FeatureByEntityTypeAndRole(entity api.EntityRemoteInterface, featureType model.FeatureTypeType, role model.RoleType) api.FeatureRemoteInterface {
 	if len(r.entities) < 1 {
 		return nil
 	}
@@ -152,7 +152,7 @@ func (r *DeviceRemoteImpl) FeatureByEntityTypeAndRole(entity api.EntityRemote, f
 	return nil
 }
 
-func (d *DeviceRemoteImpl) UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType) {
+func (d *DeviceRemote) UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType) {
 	if description != nil {
 		if description.DeviceAddress != nil && description.DeviceAddress.Device != nil {
 			d.address = description.DeviceAddress.Device
@@ -166,8 +166,8 @@ func (d *DeviceRemoteImpl) UpdateDevice(description *model.NetworkManagementDevi
 	}
 }
 
-func (d *DeviceRemoteImpl) AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]api.EntityRemote, error) {
-	rEntites := make([]api.EntityRemote, 0)
+func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]api.EntityRemoteInterface, error) {
+	rEntites := make([]api.EntityRemoteInterface, 0)
 
 	for _, ei := range data.EntityInformation {
 		if err := d.CheckEntityInformation(initialData, ei); err != nil {
@@ -204,7 +204,7 @@ func (d *DeviceRemoteImpl) AddEntityAndFeatures(initialData bool, data *model.No
 
 // check if the provided entity information is correct
 // provide initialData to check if the entity is new and not an update
-func (d *DeviceRemoteImpl) CheckEntityInformation(initialData bool, entity model.NodeManagementDetailedDiscoveryEntityInformationType) error {
+func (d *DeviceRemote) CheckEntityInformation(initialData bool, entity model.NodeManagementDetailedDiscoveryEntityInformationType) error {
 	description := entity.Description
 	if description == nil {
 		return errors.New("nodemanagement.replyDetailedDiscoveryData: invalid EntityInformation.Description")
@@ -231,12 +231,12 @@ func (d *DeviceRemoteImpl) CheckEntityInformation(initialData bool, entity model
 	return nil
 }
 
-func (d *DeviceRemoteImpl) addNewEntity(eType model.EntityTypeType, address []model.AddressEntityType) api.EntityRemote {
-	newEntity := NewEntityRemoteImpl(d, eType, address)
+func (d *DeviceRemote) addNewEntity(eType model.EntityTypeType, address []model.AddressEntityType) api.EntityRemoteInterface {
+	newEntity := NewEntityRemote(d, eType, address)
 	return d.AddEntity(newEntity)
 }
 
-func (d *DeviceRemoteImpl) AddEntity(entity api.EntityRemote) api.EntityRemote {
+func (d *DeviceRemote) AddEntity(entity api.EntityRemoteInterface) api.EntityRemoteInterface {
 	d.entitiesMutex.Lock()
 	defer d.entitiesMutex.Unlock()
 
@@ -245,7 +245,7 @@ func (d *DeviceRemoteImpl) AddEntity(entity api.EntityRemote) api.EntityRemote {
 	return entity
 }
 
-func (d *DeviceRemoteImpl) UseCases() []model.UseCaseInformationDataType {
+func (d *DeviceRemote) UseCases() []model.UseCaseInformationDataType {
 	entity := d.Entity(DeviceInformationAddressEntity)
 
 	nodemgmt := d.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
@@ -260,7 +260,7 @@ func (d *DeviceRemoteImpl) UseCases() []model.UseCaseInformationDataType {
 
 // Checks if the given actor, usecasename and provided server features are available
 // Note: the server features are expected to be in a single entity and entity 0 is not checked!
-func (d *DeviceRemoteImpl) VerifyUseCaseScenariosAndFeaturesSupport(
+func (d *DeviceRemote) VerifyUseCaseScenariosAndFeaturesSupport(
 	usecaseActor model.UseCaseActorType,
 	usecaseName model.UseCaseNameType,
 	scenarios []model.UseCaseScenarioSupportType,
@@ -342,10 +342,10 @@ func (d *DeviceRemoteImpl) VerifyUseCaseScenariosAndFeaturesSupport(
 	return entityWithServerFeaturesFound
 }
 
-func unmarshalFeature(entity api.EntityRemote,
+func unmarshalFeature(entity api.EntityRemoteInterface,
 	featureData model.NodeManagementDetailedDiscoveryFeatureInformationType,
-) (api.FeatureRemote, bool) {
-	var result api.FeatureRemote
+) (api.FeatureRemoteInterface, bool) {
+	var result api.FeatureRemoteInterface
 
 	fid := featureData.Description
 
@@ -353,7 +353,7 @@ func unmarshalFeature(entity api.EntityRemote,
 		return nil, false
 	}
 
-	result = NewFeatureRemoteImpl(uint(*fid.FeatureAddress.Feature), entity, *fid.FeatureType, *fid.Role)
+	result = NewFeatureRemote(uint(*fid.FeatureAddress.Feature), entity, *fid.FeatureType, *fid.Role)
 
 	result.SetDescription(fid.Description)
 	result.SetMaxResponseDelay(fid.MaxResponseDelay)

@@ -28,16 +28,16 @@ func TestNodeManagementSuite(t *testing.T) {
 
 type NodeManagementSuite struct {
 	suite.Suite
-	sut api.DeviceLocal
+	sut api.DeviceLocalInterface
 
 	remoteSki string
 
 	writeHandler *WriteMessageHandler
-	remoteDevice api.DeviceRemote
+	remoteDevice api.DeviceRemoteInterface
 }
 
 func (s *NodeManagementSuite) BeforeTest(suiteName, testName string) {
-	s.sut = NewDeviceLocalImpl("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
+	s.sut = NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
 		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 	s.remoteSki = "TestRemoteSki"
 

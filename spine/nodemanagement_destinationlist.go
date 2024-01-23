@@ -8,11 +8,11 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
-func (r *NodeManagementImpl) RequestDestinationListData(remoteDeviceAddress *model.AddressDeviceType, sender api.Sender) (*model.MsgCounterType, *model.ErrorType) {
+func (r *NodeManagement) RequestDestinationListData(remoteDeviceAddress *model.AddressDeviceType, sender api.SenderInterface) (*model.MsgCounterType, *model.ErrorType) {
 	return nil, model.NewErrorTypeFromString("Not implemented")
 }
 
-func (r *NodeManagementImpl) processReadDestinationListData(featureRemote api.FeatureRemote, requestHeader *model.HeaderType) error {
+func (r *NodeManagement) processReadDestinationListData(featureRemote api.FeatureRemoteInterface, requestHeader *model.HeaderType) error {
 	data := []model.NodeManagementDestinationDataType{
 		r.Device().DestinationData(),
 	}
@@ -27,11 +27,11 @@ func (r *NodeManagementImpl) processReadDestinationListData(featureRemote api.Fe
 	return featureRemote.Sender().Reply(requestHeader, r.Address(), cmd)
 }
 
-func (r *NodeManagementImpl) processReplyDestinationListData(message *api.Message, data model.NodeManagementDestinationListDataType) error {
+func (r *NodeManagement) processReplyDestinationListData(message *api.Message, data model.NodeManagementDestinationListDataType) error {
 	return errors.New("Not implemented")
 }
 
-func (r *NodeManagementImpl) handleMsgDestinationListData(message *api.Message, data *model.NodeManagementDestinationListDataType) error {
+func (r *NodeManagement) handleMsgDestinationListData(message *api.Message, data *model.NodeManagementDestinationListDataType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeRead:
 		return r.processReadDestinationListData(message.FeatureRemote, message.RequestHeader)

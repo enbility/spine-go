@@ -9,7 +9,7 @@ import (
 )
 
 // request detailed discovery data from a remote device
-func (r *NodeManagementImpl) RequestDetailedDiscovery(remoteDeviceSki string, remoteDeviceAddress *model.AddressDeviceType, sender api.Sender) (*model.MsgCounterType, *model.ErrorType) {
+func (r *NodeManagement) RequestDetailedDiscovery(remoteDeviceSki string, remoteDeviceAddress *model.AddressDeviceType, sender api.SenderInterface) (*model.MsgCounterType, *model.ErrorType) {
 	rfAdress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDeviceAddress, DeviceInformationAddressEntity))
 	cmd := model.CmdType{
 		NodeManagementDetailedDiscoveryData: &model.NodeManagementDetailedDiscoveryDataType{},
@@ -18,7 +18,7 @@ func (r *NodeManagementImpl) RequestDetailedDiscovery(remoteDeviceSki string, re
 }
 
 // handle incoming detailed discovery read call
-func (r *NodeManagementImpl) processReadDetailedDiscoveryData(deviceRemote api.DeviceRemote, requestHeader *model.HeaderType) error {
+func (r *NodeManagement) processReadDetailedDiscoveryData(deviceRemote api.DeviceRemoteInterface, requestHeader *model.HeaderType) error {
 	if deviceRemote == nil {
 		return errors.New("nodemanagement.readDetailedDiscoveryData: invalid deviceRemote")
 	}
@@ -49,7 +49,7 @@ func (r *NodeManagementImpl) processReadDetailedDiscoveryData(deviceRemote api.D
 }
 
 // handle incoming detailed discovery reply data
-func (r *NodeManagementImpl) processReplyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
+func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	remoteDevice := message.DeviceRemote
 
 	deviceDescription := data.DeviceInformation.Description
@@ -91,7 +91,7 @@ func (r *NodeManagementImpl) processReplyDetailedDiscoveryData(message *api.Mess
 }
 
 // handle incoming detailed discovery notify data
-func (r *NodeManagementImpl) processNotifyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
+func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	// is this a partial request?
 	if message.FilterPartial == nil {
 		return errors.New("the received NodeManagementDetailedDiscovery.notify dataset should be partial")
@@ -246,7 +246,7 @@ func (r *NodeManagementImpl) processNotifyDetailedDiscoveryData(message *api.Mes
 // 	return nil
 // }
 
-func (r *NodeManagementImpl) handleMsgDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
+func (r *NodeManagement) handleMsgDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeRead:
 		return r.processReadDetailedDiscoveryData(message.DeviceRemote, message.RequestHeader)

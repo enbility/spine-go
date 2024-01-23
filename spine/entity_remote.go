@@ -5,34 +5,34 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
-var _ api.EntityRemote = (*EntityRemoteImpl)(nil)
+var _ api.EntityRemoteInterface = (*EntityRemote)(nil)
 
-type EntityRemoteImpl struct {
-	*EntityImpl
-	device   api.DeviceRemote
-	features []api.FeatureRemote
+type EntityRemote struct {
+	*Entity
+	device   api.DeviceRemoteInterface
+	features []api.FeatureRemoteInterface
 }
 
-func NewEntityRemoteImpl(device api.DeviceRemote, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityRemoteImpl {
-	return &EntityRemoteImpl{
-		EntityImpl: NewEntity(eType, device.Address(), entityAddress),
-		device:     device,
+func NewEntityRemote(device api.DeviceRemoteInterface, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityRemote {
+	return &EntityRemote{
+		Entity: NewEntity(eType, device.Address(), entityAddress),
+		device: device,
 	}
 }
 
-func (r *EntityRemoteImpl) Device() api.DeviceRemote {
+func (r *EntityRemote) Device() api.DeviceRemoteInterface {
 	return r.device
 }
 
-func (r *EntityRemoteImpl) AddFeature(f api.FeatureRemote) {
+func (r *EntityRemote) AddFeature(f api.FeatureRemoteInterface) {
 	r.features = append(r.features, f)
 }
 
-func (r *EntityRemoteImpl) Features() []api.FeatureRemote {
+func (r *EntityRemote) Features() []api.FeatureRemoteInterface {
 	return r.features
 }
 
-func (r *EntityRemoteImpl) Feature(addressFeature *model.AddressFeatureType) api.FeatureRemote {
+func (r *EntityRemote) Feature(addressFeature *model.AddressFeatureType) api.FeatureRemoteInterface {
 	for _, f := range r.features {
 		if *f.Address().Feature == *addressFeature {
 			return f
@@ -41,6 +41,6 @@ func (r *EntityRemoteImpl) Feature(addressFeature *model.AddressFeatureType) api
 	return nil
 }
 
-func (r *EntityRemoteImpl) RemoveAllFeatures() {
+func (r *EntityRemote) RemoveAllFeatures() {
 	r.features = nil
 }

@@ -14,17 +14,17 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.DeviceLocal = (*DeviceLocalImpl)(nil)
+var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
 
-type DeviceLocalImpl struct {
-	*DeviceImpl
-	entities            []api.EntityLocal
-	subscriptionManager api.SubscriptionManager
-	bindingManager      api.BindingManager
-	heartbeatManager    api.HeartbeatManager
-	nodeManagement      *NodeManagementImpl
+type DeviceLocal struct {
+	*Device
+	entities            []api.EntityLocalInterface
+	subscriptionManager api.SubscriptionManagerInterface
+	bindingManager      api.BindingManagerInterface
+	heartbeatManager    api.HeartbeatManagerInterface
+	nodeManagement      *NodeManagement
 
-	remoteDevices map[string]api.DeviceRemote
+	remoteDevices map[string]api.DeviceRemoteInterface
 
 	brandName    string
 	deviceModel  string
@@ -39,11 +39,11 @@ type DeviceLocalImpl struct {
 // SerialNumber is the serial number
 // DeviceCode is the SHIP id (accessMethods.id)
 // DeviceAddress is the SPINE device address
-func NewDeviceLocalImpl(
+func NewDeviceLocal(
 	brandName, deviceModel, serialNumber, deviceCode, deviceAddress string,
 	deviceType model.DeviceTypeType,
 	featureSet model.NetworkManagementFeatureSetType,
-	heartbeatTimeout time.Duration) *DeviceLocalImpl {
+	heartbeatTimeout time.Duration) *DeviceLocal {
 	address := model.AddressDeviceType(deviceAddress)
 
 	var fSet *model.NetworkManagementFeatureSetType
@@ -51,9 +51,9 @@ func NewDeviceLocalImpl(
 		fSet = &featureSet
 	}
 
-	res := &DeviceLocalImpl{
-		DeviceImpl:    NewDeviceImpl(&address, &deviceType, fSet),
-		remoteDevices: make(map[string]api.DeviceRemote),
+	res := &DeviceLocal{
+		Device:        NewDevice(&address, &deviceType, fSet),
+		remoteDevices: make(map[string]api.DeviceRemoteInterface),
 		brandName:     brandName,
 		deviceModel:   deviceModel,
 		serialNumber:  serialNumber,
@@ -68,7 +68,7 @@ func NewDeviceLocalImpl(
 	return res
 }
 
-func (r *DeviceLocalImpl) RemoveRemoteDeviceConnection(ski string) {
+func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 	remoteDevice := r.RemoteDeviceForSki(ski)
 
 	r.RemoveRemoteDevice(ski)
@@ -84,16 +84,16 @@ func (r *DeviceLocalImpl) RemoveRemoteDeviceConnection(ski string) {
 }
 
 // Helper method used by tests and AddRemoteDevice
-func (r *DeviceLocalImpl) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemote) {
+func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemoteInterface) {
 	r.mux.Lock()
 	r.remoteDevices[ski] = rDevice
 	r.mux.Unlock()
 }
 
 // Setup a new remote device with a given SKI and triggers SPINE requesting device details
-func (r *DeviceLocalImpl) SetupRemoteDevice(ski string, writeI shipapi.SpineDataConnection) shipapi.SpineDataProcessing {
+func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface {
 	sender := NewSender(writeI)
-	rDevice := NewDeviceRemoteImpl(r, ski, sender)
+	rDevice := NewDeviceRemote(r, ski, sender)
 
 	r.AddRemoteDeviceForSki(ski, rDevice)
 
@@ -110,7 +110,7 @@ func (r *DeviceLocalImpl) SetupRemoteDevice(ski string, writeI shipapi.SpineData
 }
 
 // React to some specific events
-func (r *DeviceLocalImpl) HandleEvent(payload api.EventPayload) {
+func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 	// Subscribe to NodeManagment after DetailedDiscovery is received
 	if payload.EventType != api.EventTypeDeviceChange || payload.ChangeType != api.ElementChangeAdd {
 		return
@@ -139,7 +139,7 @@ func (r *DeviceLocalImpl) HandleEvent(payload api.EventPayload) {
 	}
 }
 
-func (r *DeviceLocalImpl) RemoveRemoteDevice(ski string) {
+func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -166,11 +166,11 @@ func (r *DeviceLocalImpl) RemoveRemoteDevice(ski string) {
 	}
 }
 
-func (r *DeviceLocalImpl) RemoteDevices() []api.DeviceRemote {
+func (r *DeviceLocal) RemoteDevices() []api.DeviceRemoteInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	res := make([]api.DeviceRemote, 0)
+	res := make([]api.DeviceRemoteInterface, 0)
 	for _, rDevice := range r.remoteDevices {
 		res = append(res, rDevice)
 	}
@@ -178,7 +178,7 @@ func (r *DeviceLocalImpl) RemoteDevices() []api.DeviceRemote {
 	return res
 }
 
-func (r *DeviceLocalImpl) RemoteDeviceForAddress(address model.AddressDeviceType) api.DeviceRemote {
+func (r *DeviceLocal) RemoteDeviceForAddress(address model.AddressDeviceType) api.DeviceRemoteInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -191,14 +191,14 @@ func (r *DeviceLocalImpl) RemoteDeviceForAddress(address model.AddressDeviceType
 	return nil
 }
 
-func (r *DeviceLocalImpl) RemoteDeviceForSki(ski string) api.DeviceRemote {
+func (r *DeviceLocal) RemoteDeviceForSki(ski string) api.DeviceRemoteInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	return r.remoteDevices[ski]
 }
 
-func (r *DeviceLocalImpl) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemote) error {
+func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemoteInterface) error {
 	destAddr := datagram.Header.AddressDestination
 	localFeature := r.FeatureByAddress(destAddr)
 
@@ -287,23 +287,23 @@ func (r *DeviceLocalImpl) ProcessCmd(datagram model.DatagramType, remoteDevice a
 	return nil
 }
 
-func (r *DeviceLocalImpl) NodeManagement() api.NodeManagement {
+func (r *DeviceLocal) NodeManagement() api.NodeManagementInterface {
 	return r.nodeManagement
 }
 
-func (r *DeviceLocalImpl) SubscriptionManager() api.SubscriptionManager {
+func (r *DeviceLocal) SubscriptionManager() api.SubscriptionManagerInterface {
 	return r.subscriptionManager
 }
 
-func (r *DeviceLocalImpl) BindingManager() api.BindingManager {
+func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
 	return r.bindingManager
 }
 
-func (r *DeviceLocalImpl) HeartbeatManager() api.HeartbeatManager {
+func (r *DeviceLocal) HeartbeatManager() api.HeartbeatManagerInterface {
 	return r.heartbeatManager
 }
 
-func (r *DeviceLocalImpl) AddEntity(entity api.EntityLocal) {
+func (r *DeviceLocal) AddEntity(entity api.EntityLocalInterface) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -312,7 +312,7 @@ func (r *DeviceLocalImpl) AddEntity(entity api.EntityLocal) {
 	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeAdded)
 }
 
-func (r *DeviceLocalImpl) RemoveEntity(entity api.EntityLocal) {
+func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllUseCaseSupports()
 	entity.RemoveAllSubscriptions()
 	entity.RemoveAllBindings()
@@ -320,7 +320,7 @@ func (r *DeviceLocalImpl) RemoveEntity(entity api.EntityLocal) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	var entities []api.EntityLocal
+	var entities []api.EntityLocalInterface
 	for _, e := range r.entities {
 		if e != entity {
 			entities = append(entities, e)
@@ -332,14 +332,14 @@ func (r *DeviceLocalImpl) RemoveEntity(entity api.EntityLocal) {
 	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeRemoved)
 }
 
-func (r *DeviceLocalImpl) Entities() []api.EntityLocal {
+func (r *DeviceLocal) Entities() []api.EntityLocalInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	return r.entities
 }
 
-func (r *DeviceLocalImpl) Entity(id []model.AddressEntityType) api.EntityLocal {
+func (r *DeviceLocal) Entity(id []model.AddressEntityType) api.EntityLocalInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -351,7 +351,7 @@ func (r *DeviceLocalImpl) Entity(id []model.AddressEntityType) api.EntityLocal {
 	return nil
 }
 
-func (r *DeviceLocalImpl) EntityForType(entityType model.EntityTypeType) api.EntityLocal {
+func (r *DeviceLocal) EntityForType(entityType model.EntityTypeType) api.EntityLocalInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -363,7 +363,7 @@ func (r *DeviceLocalImpl) EntityForType(entityType model.EntityTypeType) api.Ent
 	return nil
 }
 
-func (r *DeviceLocalImpl) FeatureByAddress(address *model.FeatureAddressType) api.FeatureLocal {
+func (r *DeviceLocal) FeatureByAddress(address *model.FeatureAddressType) api.FeatureLocalInterface {
 	entity := r.Entity(address.Entity)
 	if entity != nil {
 		return entity.Feature(address.Feature)
@@ -371,7 +371,7 @@ func (r *DeviceLocalImpl) FeatureByAddress(address *model.FeatureAddressType) ap
 	return nil
 }
 
-func (r *DeviceLocalImpl) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
+func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
 	res := model.NodeManagementDetailedDiscoveryDeviceInformationType{
 		Description: &model.NetworkManagementDeviceDescriptionDataType{
 			DeviceAddress: &model.DeviceAddressType{
@@ -385,7 +385,7 @@ func (r *DeviceLocalImpl) Information() *model.NodeManagementDetailedDiscoveryDe
 }
 
 // send a notify message to all remote devices
-func (r *DeviceLocalImpl) NotifyUseCaseData() {
+func (r *DeviceLocal) NotifyUseCaseData() {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -395,7 +395,7 @@ func (r *DeviceLocalImpl) NotifyUseCaseData() {
 	}
 }
 
-func (r *DeviceLocalImpl) NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType) {
+func (r *DeviceLocal) NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType) {
 	subscriptions := r.SubscriptionManager().SubscriptionsOnFeature(*featureAddress)
 	for _, subscription := range subscriptions {
 		// TODO: error handling
@@ -403,7 +403,7 @@ func (r *DeviceLocalImpl) NotifySubscribers(featureAddress *model.FeatureAddress
 	}
 }
 
-func (r *DeviceLocalImpl) notifySubscribersOfEntity(entity api.EntityLocal, state model.NetworkManagementStateChangeType) {
+func (r *DeviceLocal) notifySubscribersOfEntity(entity api.EntityLocalInterface, state model.NetworkManagementStateChangeType) {
 	deviceInformation := r.Information()
 	entityInformation := *entity.Information()
 	entityInformation.Description.LastStateChange = &state
@@ -431,16 +431,16 @@ func (r *DeviceLocalImpl) notifySubscribersOfEntity(entity api.EntityLocal, stat
 	r.NotifySubscribers(r.nodeManagement.Address(), cmd)
 }
 
-func (r *DeviceLocalImpl) addDeviceInformation() {
+func (r *DeviceLocal) addDeviceInformation() {
 	entityType := model.EntityTypeTypeDeviceInformation
-	entity := NewEntityLocalImpl(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
+	entity := NewEntityLocal(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
 
 	{
-		r.nodeManagement = NewNodeManagementImpl(entity.NextFeatureId(), entity)
+		r.nodeManagement = NewNodeManagement(entity.NextFeatureId(), entity)
 		entity.AddFeature(r.nodeManagement)
 	}
 	{
-		f := NewFeatureLocalImpl(entity.NextFeatureId(), entity, model.FeatureTypeTypeDeviceClassification, model.RoleTypeServer)
+		f := NewFeatureLocal(entity.NextFeatureId(), entity, model.FeatureTypeTypeDeviceClassification, model.RoleTypeServer)
 
 		f.AddFunctionType(model.FunctionTypeDeviceClassificationManufacturerData, true, false)
 

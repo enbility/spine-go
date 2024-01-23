@@ -15,7 +15,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 	const bindingEntityId uint = 1
 	const featureType = model.FeatureTypeTypeLoadControl
 
-	senderMock := mocks.NewSender(t)
+	senderMock := mocks.NewSenderInterface(t)
 
 	localDevice, localEntity := createLocalDeviceAndEntity(bindingEntityId)
 	_, serverFeature := createLocalFeatures(localDevice, localEntity, featureType, "")
@@ -39,7 +39,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 		FeatureRemote: clientFeature,
 	}
 
-	sut := NewNodeManagementImpl(0, serverFeature.Entity())
+	sut := NewNodeManagement(0, serverFeature.Entity())
 
 	// Act
 	err := sut.HandleMessage(&requestMsg)
@@ -90,7 +90,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 	const subscriptionEntityId uint = 1
 	const featureType = model.FeatureTypeTypeDeviceClassification
 
-	senderMock := mocks.NewSender(t)
+	senderMock := mocks.NewSenderInterface(t)
 
 	localDevice, localEntity := createLocalDeviceAndEntity(subscriptionEntityId)
 	_, serverFeature := createLocalFeatures(localDevice, localEntity, featureType, "")
@@ -114,7 +114,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 		FeatureRemote: clientFeature,
 	}
 
-	sut := NewNodeManagementImpl(0, serverFeature.Entity())
+	sut := NewNodeManagement(0, serverFeature.Entity())
 
 	// Act
 	err := sut.HandleMessage(&requestMsg)

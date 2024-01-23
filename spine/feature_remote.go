@@ -14,37 +14,37 @@ import (
 
 const defaultMaxResponseDelay = time.Duration(time.Second * 10)
 
-var _ api.FeatureRemote = (*FeatureRemoteImpl)(nil)
+var _ api.FeatureRemoteInterface = (*FeatureRemote)(nil)
 
-type FeatureRemoteImpl struct {
-	*FeatureImpl
+type FeatureRemote struct {
+	*Feature
 
-	entity           api.EntityRemote
-	functionDataMap  map[model.FunctionType]api.FunctionData
+	entity           api.EntityRemoteInterface
+	functionDataMap  map[model.FunctionType]api.FunctionDataInterface
 	maxResponseDelay *time.Duration
 
 	mux sync.Mutex
 }
 
-func NewFeatureRemoteImpl(id uint, entity api.EntityRemote, ftype model.FeatureTypeType, role model.RoleType) *FeatureRemoteImpl {
-	res := &FeatureRemoteImpl{
-		FeatureImpl: NewFeatureImpl(
+func NewFeatureRemote(id uint, entity api.EntityRemoteInterface, ftype model.FeatureTypeType, role model.RoleType) *FeatureRemote {
+	res := &FeatureRemote{
+		Feature: NewFeature(
 			featureAddressType(id, entity.Address()),
 			ftype,
 			role),
 		entity:          entity,
-		functionDataMap: make(map[model.FunctionType]api.FunctionData),
+		functionDataMap: make(map[model.FunctionType]api.FunctionDataInterface),
 	}
-	for _, fd := range CreateFunctionData[api.FunctionData](ftype) {
+	for _, fd := range CreateFunctionData[api.FunctionDataInterface](ftype) {
 		res.functionDataMap[fd.Function()] = fd
 	}
 
-	res.operations = make(map[model.FunctionType]api.Operations)
+	res.operations = make(map[model.FunctionType]api.OperationsInterface)
 
 	return res
 }
 
-func (r *FeatureRemoteImpl) DataCopy(function model.FunctionType) any {
+func (r *FeatureRemote) DataCopy(function model.FunctionType) any {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -56,7 +56,7 @@ func (r *FeatureRemoteImpl) DataCopy(function model.FunctionType) any {
 	return r.functionData(function).DataCopyAny()
 }
 
-func (r *FeatureRemoteImpl) SetData(function model.FunctionType, data any) {
+func (r *FeatureRemote) SetData(function model.FunctionType, data any) {
 	r.mux.Lock()
 
 	fd := r.functionData(function)
@@ -67,7 +67,7 @@ func (r *FeatureRemoteImpl) SetData(function model.FunctionType, data any) {
 	r.mux.Unlock()
 }
 
-func (r *FeatureRemoteImpl) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
+func (r *FeatureRemote) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -79,20 +79,20 @@ func (r *FeatureRemoteImpl) UpdateData(function model.FunctionType, data any, fi
 	// TODO: fire event
 }
 
-func (r *FeatureRemoteImpl) Sender() api.Sender {
+func (r *FeatureRemote) Sender() api.SenderInterface {
 	return r.Device().Sender()
 }
 
-func (r *FeatureRemoteImpl) Device() api.DeviceRemote {
+func (r *FeatureRemote) Device() api.DeviceRemoteInterface {
 	return r.entity.Device()
 }
 
-func (r *FeatureRemoteImpl) Entity() api.EntityRemote {
+func (r *FeatureRemote) Entity() api.EntityRemoteInterface {
 	return r.entity
 }
 
-func (r *FeatureRemoteImpl) SetOperations(functions []model.FunctionPropertyType) {
-	r.operations = make(map[model.FunctionType]api.Operations)
+func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {
+	r.operations = make(map[model.FunctionType]api.OperationsInterface)
 	for _, sf := range functions {
 		if sf.PossibleOperations == nil {
 			continue
@@ -101,7 +101,7 @@ func (r *FeatureRemoteImpl) SetOperations(functions []model.FunctionPropertyType
 	}
 }
 
-func (r *FeatureRemoteImpl) SetMaxResponseDelay(delay *model.MaxResponseDelayType) {
+func (r *FeatureRemote) SetMaxResponseDelay(delay *model.MaxResponseDelayType) {
 	if delay == nil {
 		return
 	}
@@ -113,14 +113,14 @@ func (r *FeatureRemoteImpl) SetMaxResponseDelay(delay *model.MaxResponseDelayTyp
 	}
 }
 
-func (r *FeatureRemoteImpl) MaxResponseDelayDuration() time.Duration {
+func (r *FeatureRemote) MaxResponseDelayDuration() time.Duration {
 	if r.maxResponseDelay != nil {
 		return *r.maxResponseDelay
 	}
 	return defaultMaxResponseDelay
 }
 
-func (r *FeatureRemoteImpl) functionData(function model.FunctionType) api.FunctionData {
+func (r *FeatureRemote) functionData(function model.FunctionType) api.FunctionDataInterface {
 	fd, found := r.functionDataMap[function]
 	if !found {
 		panic(fmt.Errorf("Data was not found for function '%s'", function))

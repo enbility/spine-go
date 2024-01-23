@@ -28,9 +28,9 @@ type WriteMessageHandler struct {
 	mux sync.Mutex
 }
 
-var _ shipapi.SpineDataConnection = (*WriteMessageHandler)(nil)
+var _ shipapi.ShipConnectionDataWriterInterface = (*WriteMessageHandler)(nil)
 
-func (t *WriteMessageHandler) WriteSpineMessage(message []byte) {
+func (t *WriteMessageHandler) WriteShipMessageWithPayload(message []byte) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 
@@ -168,20 +168,20 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 	}
 }
 
-func createLocalDeviceAndEntity(entityId uint) (*DeviceLocalImpl, *EntityLocalImpl) {
-	localDevice := NewDeviceLocalImpl("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+func createLocalDeviceAndEntity(entityId uint) (*DeviceLocal, *EntityLocal) {
+	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 	localDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
-	localEntity := NewEntityLocalImpl(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
+	localEntity := NewEntityLocal(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
 	localDevice.AddEntity(localEntity)
 
 	return localDevice, localEntity
 }
 
-func createLocalFeatures(localDevice *DeviceLocalImpl, localEntity *EntityLocalImpl, featureType model.FeatureTypeType, writeFunction model.FunctionType) (api.FeatureLocal, api.FeatureLocal) {
-	localFeature := NewFeatureLocalImpl(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeClient)
+func createLocalFeatures(localDevice *DeviceLocal, localEntity *EntityLocal, featureType model.FeatureTypeType, writeFunction model.FunctionType) (api.FeatureLocalInterface, api.FeatureLocalInterface) {
+	localFeature := NewFeatureLocal(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeClient)
 	localEntity.AddFeature(localFeature)
-	localServerFeature := NewFeatureLocalImpl(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeServer)
+	localServerFeature := NewFeatureLocal(localEntity.NextFeatureId(), localEntity, featureType, model.RoleTypeServer)
 	if len(string(writeFunction)) > 0 {
 		localServerFeature.AddFunctionType(writeFunction, true, true)
 	}
@@ -190,19 +190,19 @@ func createLocalFeatures(localDevice *DeviceLocalImpl, localEntity *EntityLocalI
 	return localFeature, localServerFeature
 }
 
-func createRemoteDevice(localDevice *DeviceLocalImpl, sender api.Sender) *DeviceRemoteImpl {
-	remoteDevice := NewDeviceRemoteImpl(localDevice, "ski", sender)
+func createRemoteDevice(localDevice *DeviceLocal, sender api.SenderInterface) *DeviceRemote {
+	remoteDevice := NewDeviceRemote(localDevice, "ski", sender)
 	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
 	return remoteDevice
 }
 
-func createRemoteEntityAndFeature(localDevice *DeviceLocalImpl, remoteDevice *DeviceRemoteImpl, entityId uint, featureType model.FeatureTypeType) (api.FeatureRemote, api.FeatureRemote) {
-	remoteEntity := NewEntityRemoteImpl(remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
+func createRemoteEntityAndFeature(localDevice *DeviceLocal, remoteDevice *DeviceRemote, entityId uint, featureType model.FeatureTypeType) (api.FeatureRemoteInterface, api.FeatureRemoteInterface) {
+	remoteEntity := NewEntityRemote(remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
 	remoteDevice.AddEntity(remoteEntity)
-	remoteFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeClient)
+	remoteFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeClient)
 	remoteEntity.AddFeature(remoteFeature)
-	remoteServerFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeServer)
+	remoteServerFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeServer)
 	remoteEntity.AddFeature(remoteServerFeature)
 
 	return remoteFeature, remoteServerFeature

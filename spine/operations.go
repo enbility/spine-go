@@ -9,7 +9,7 @@ type Operations struct {
 	read, write bool
 }
 
-var _ api.Operations = (*Operations)(nil)
+var _ api.OperationsInterface = (*Operations)(nil)
 
 func NewOperations(read, write bool) *Operations {
 	return &Operations{

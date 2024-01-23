@@ -12,16 +12,16 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FeatureLocal = (*FeatureLocalImpl)(nil)
+var _ api.FeatureLocalInterface = (*FeatureLocal)(nil)
 
-type FeatureLocalImpl struct {
-	*FeatureImpl
+type FeatureLocal struct {
+	*Feature
 
 	muxResultCB     sync.Mutex
-	entity          api.EntityLocal
-	functionDataMap map[model.FunctionType]api.FunctionDataCmd
-	pendingRequests api.PendingRequests
-	resultHandler   []api.FeatureResult
+	entity          api.EntityLocalInterface
+	functionDataMap map[model.FunctionType]api.FunctionDataCmdInterface
+	pendingRequests api.PendingRequestsInterface
+	resultHandler   []api.FeatureResultInterface
 	resultCallback  map[model.MsgCounterType]func(result api.ResultMessage)
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
@@ -30,36 +30,36 @@ type FeatureLocalImpl struct {
 	mux sync.Mutex
 }
 
-func NewFeatureLocalImpl(id uint, entity api.EntityLocal, ftype model.FeatureTypeType, role model.RoleType) *FeatureLocalImpl {
-	res := &FeatureLocalImpl{
-		FeatureImpl: NewFeatureImpl(
+func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.FeatureTypeType, role model.RoleType) *FeatureLocal {
+	res := &FeatureLocal{
+		Feature: NewFeature(
 			featureAddressType(id, entity.Address()),
 			ftype,
 			role),
 		entity:          entity,
-		functionDataMap: make(map[model.FunctionType]api.FunctionDataCmd),
+		functionDataMap: make(map[model.FunctionType]api.FunctionDataCmdInterface),
 		pendingRequests: NewPendingRequest(),
 		resultCallback:  make(map[model.MsgCounterType]func(result api.ResultMessage)),
 	}
 
-	for _, fd := range CreateFunctionData[api.FunctionDataCmd](ftype) {
+	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
 		res.functionDataMap[fd.Function()] = fd
 	}
-	res.operations = make(map[model.FunctionType]api.Operations)
+	res.operations = make(map[model.FunctionType]api.OperationsInterface)
 
 	return res
 }
 
-func (r *FeatureLocalImpl) Device() api.DeviceLocal {
+func (r *FeatureLocal) Device() api.DeviceLocalInterface {
 	return r.entity.Device()
 }
 
-func (r *FeatureLocalImpl) Entity() api.EntityLocal {
+func (r *FeatureLocal) Entity() api.EntityLocalInterface {
 	return r.entity
 }
 
 // Add supported function to the feature if its role is Server or Special
-func (r *FeatureLocalImpl) AddFunctionType(function model.FunctionType, read, write bool) {
+func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write bool) {
 	if r.role != model.RoleTypeServer && r.role != model.RoleTypeSpecial {
 		return
 	}
@@ -69,7 +69,7 @@ func (r *FeatureLocalImpl) AddFunctionType(function model.FunctionType, read, wr
 	r.operations[function] = NewOperations(read, write)
 }
 
-func (r *FeatureLocalImpl) DataCopy(function model.FunctionType) any {
+func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -81,7 +81,7 @@ func (r *FeatureLocalImpl) DataCopy(function model.FunctionType) any {
 	return fctData.DataCopyAny()
 }
 
-func (r *FeatureLocalImpl) SetData(function model.FunctionType, data any) {
+func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	r.mux.Lock()
 
 	fd := r.functionData(function)
@@ -95,7 +95,7 @@ func (r *FeatureLocalImpl) SetData(function model.FunctionType, data any) {
 	r.Device().NotifySubscribers(r.Address(), fd.NotifyCmdType(nil, nil, false, nil))
 }
 
-func (r *FeatureLocalImpl) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
+func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -107,18 +107,18 @@ func (r *FeatureLocalImpl) UpdateData(function model.FunctionType, data any, fil
 	fctData.UpdateDataAny(data, filterPartial, filterDelete)
 }
 
-func (r *FeatureLocalImpl) AddResultHandler(handler api.FeatureResult) {
+func (r *FeatureLocal) AddResultHandler(handler api.FeatureResultInterface) {
 	r.resultHandler = append(r.resultHandler, handler)
 }
 
-func (r *FeatureLocalImpl) AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResultMessage)) {
+func (r *FeatureLocal) AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResultMessage)) {
 	r.muxResultCB.Lock()
 	defer r.muxResultCB.Unlock()
 
 	r.resultCallback[msgCounterReference] = function
 }
 
-func (r *FeatureLocalImpl) processResultCallbacks(msgCounterReference model.MsgCounterType, msg api.ResultMessage) {
+func (r *FeatureLocal) processResultCallbacks(msgCounterReference model.MsgCounterType, msg api.ResultMessage) {
 	r.muxResultCB.Lock()
 	defer r.muxResultCB.Unlock()
 
@@ -132,7 +132,7 @@ func (r *FeatureLocalImpl) processResultCallbacks(msgCounterReference model.MsgC
 	delete(r.resultCallback, msgCounterReference)
 }
 
-func (r *FeatureLocalImpl) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
+func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
 	var funs []model.FunctionPropertyType
 	for fun, operations := range r.operations {
 		var functionType model.FunctionType = model.FunctionType(fun)
@@ -157,11 +157,11 @@ func (r *FeatureLocalImpl) Information() *model.NodeManagementDetailedDiscoveryF
 	return &res
 }
 
-func (r *FeatureLocalImpl) RequestData(
+func (r *FeatureLocal) RequestData(
 	function model.FunctionType,
 	selector any,
 	elements any,
-	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
+	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
 	if fd == nil {
 		return nil, model.NewErrorTypeFromString("function data not found")
@@ -172,9 +172,9 @@ func (r *FeatureLocalImpl) RequestData(
 	return r.RequestDataBySenderAddress(cmd, destination.Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
 }
 
-func (r *FeatureLocalImpl) RequestDataBySenderAddress(
+func (r *FeatureLocal) RequestDataBySenderAddress(
 	cmd model.CmdType,
-	sender api.Sender,
+	sender api.SenderInterface,
 	deviceSki string,
 	destinationAddress *model.FeatureAddressType,
 	maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
@@ -190,15 +190,15 @@ func (r *FeatureLocalImpl) RequestDataBySenderAddress(
 
 // Wait and return the response from destination for a message with the msgCounter ID
 // this will block until the response is received
-func (r *FeatureLocalImpl) FetchRequestData(
+func (r *FeatureLocal) FetchRequestData(
 	msgCounter model.MsgCounterType,
-	destination api.FeatureRemote) (any, *model.ErrorType) {
+	destination api.FeatureRemoteInterface) (any, *model.ErrorType) {
 
 	return r.pendingRequests.GetData(destination.Device().Ski(), msgCounter)
 }
 
 // Subscribe to a remote feature
-func (r *FeatureLocalImpl) Subscribe(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+func (r *FeatureLocal) Subscribe(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
 	}
@@ -224,7 +224,7 @@ func (r *FeatureLocalImpl) Subscribe(remoteAddress *model.FeatureAddressType) (*
 }
 
 // Remove a subscriptions to a remote feature
-func (r *FeatureLocalImpl) RemoveSubscription(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveSubscription(remoteAddress *model.FeatureAddressType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return
@@ -251,14 +251,14 @@ func (r *FeatureLocalImpl) RemoveSubscription(remoteAddress *model.FeatureAddres
 }
 
 // Remove all subscriptions to remote features
-func (r *FeatureLocalImpl) RemoveAllSubscriptions() {
+func (r *FeatureLocal) RemoveAllSubscriptions() {
 	for _, item := range r.subscriptions {
 		r.RemoveSubscription(item)
 	}
 }
 
 // Bind to a remote feature
-func (r *FeatureLocalImpl) Bind(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+func (r *FeatureLocal) Bind(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -281,7 +281,7 @@ func (r *FeatureLocalImpl) Bind(remoteAddress *model.FeatureAddressType) (*model
 }
 
 // Remove a binding to a remote feature
-func (r *FeatureLocalImpl) RemoveBinding(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveBinding(remoteAddress *model.FeatureAddressType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return
@@ -308,19 +308,19 @@ func (r *FeatureLocalImpl) RemoveBinding(remoteAddress *model.FeatureAddressType
 }
 
 // Remove all subscriptions to remote features
-func (r *FeatureLocalImpl) RemoveAllBindings() {
+func (r *FeatureLocal) RemoveAllBindings() {
 	for _, item := range r.bindings {
 		r.RemoveBinding(item)
 	}
 }
 
 // Send a notification message with the current data of function to the destination
-func (r *FeatureLocalImpl) NotifyData(
+func (r *FeatureLocal) NotifyData(
 	function model.FunctionType,
 	deleteSelector, partialSelector any,
 	partialWithoutSelector bool,
 	deleteElements any,
-	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
+	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
 	if fd == nil {
 		return nil, model.NewErrorTypeFromString("function data not found")
@@ -336,11 +336,11 @@ func (r *FeatureLocalImpl) NotifyData(
 }
 
 // Send a write message with provided data of function to the destination
-func (r *FeatureLocalImpl) WriteData(
+func (r *FeatureLocal) WriteData(
 	function model.FunctionType,
 	deleteSelector, partialSelector any,
 	deleteElements any,
-	destination api.FeatureRemote) (*model.MsgCounterType, *model.ErrorType) {
+	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
 	if fd == nil {
 		return nil, model.NewErrorTypeFromString("function data not found")
@@ -355,7 +355,7 @@ func (r *FeatureLocalImpl) WriteData(
 	return msgCounter, nil
 }
 
-func (r *FeatureLocalImpl) HandleMessage(message *api.Message) *model.ErrorType {
+func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 	if message.Cmd.ResultData != nil {
 		return r.processResult(message)
 	}
@@ -392,7 +392,7 @@ func (r *FeatureLocalImpl) HandleMessage(message *api.Message) *model.ErrorType 
 	return nil
 }
 
-func (r *FeatureLocalImpl) processResult(message *api.Message) *model.ErrorType {
+func (r *FeatureLocal) processResult(message *api.Message) *model.ErrorType {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeResult:
 		if *message.Cmd.ResultData.ErrorNumber != model.ErrorNumberTypeNoError {
@@ -437,7 +437,7 @@ func (r *FeatureLocalImpl) processResult(message *api.Message) *model.ErrorType 
 	}
 }
 
-func (r *FeatureLocalImpl) processRead(function model.FunctionType, requestHeader *model.HeaderType, featureRemote api.FeatureRemote) *model.ErrorType {
+func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
 	// is this a read request to a local server/special feature?
 	if r.role == model.RoleTypeClient {
 		// Read requests to a client feature are not allowed
@@ -457,7 +457,7 @@ func (r *FeatureLocalImpl) processRead(function model.FunctionType, requestHeade
 	return nil
 }
 
-func (r *FeatureLocalImpl) processReply(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, requestHeader *model.HeaderType, featureRemote api.FeatureRemote) *model.ErrorType {
+func (r *FeatureLocal) processReply(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
 	featureRemote.UpdateData(function, data, filterPartial, filterDelete)
 
 	if requestHeader != nil && requestHeader.MsgCounterReference != nil {
@@ -483,7 +483,7 @@ func (r *FeatureLocalImpl) processReply(function model.FunctionType, data any, f
 	return nil
 }
 
-func (r *FeatureLocalImpl) processNotify(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemote) *model.ErrorType {
+func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
 	featureRemote.UpdateData(function, data, filterPartial, filterDelete)
 
 	payload := api.EventPayload{
@@ -501,7 +501,7 @@ func (r *FeatureLocalImpl) processNotify(function model.FunctionType, data any, 
 	return nil
 }
 
-func (r *FeatureLocalImpl) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemote) *model.ErrorType {
+func (r *FeatureLocal) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
 	r.UpdateData(function, data, filterPartial, filterDelete)
 
 	payload := api.EventPayload{
@@ -521,7 +521,7 @@ func (r *FeatureLocalImpl) processWrite(function model.FunctionType, data any, f
 	return nil
 }
 
-func (r *FeatureLocalImpl) functionData(function model.FunctionType) api.FunctionDataCmd {
+func (r *FeatureLocal) functionData(function model.FunctionType) api.FunctionDataCmdInterface {
 	fd, found := r.functionDataMap[function]
 	if !found {
 		logging.Log().Errorf("Data was not found for function '%s'", function)

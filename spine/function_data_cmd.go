@@ -6,7 +6,7 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionDataCmd = (*FunctionDataCmdImpl[int])(nil)
+var _ api.FunctionDataCmdInterface = (*FunctionDataCmdImpl[int])(nil)
 
 type FunctionDataCmdImpl[T any] struct {
 	*FunctionDataImpl[T]

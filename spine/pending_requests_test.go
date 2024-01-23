@@ -12,7 +12,7 @@ import (
 
 type PendingRequestsTestSuite struct {
 	suite.Suite
-	sut     api.PendingRequests
+	sut     api.PendingRequestsInterface
 	ski     string
 	counter model.MsgCounterType
 }

@@ -28,17 +28,17 @@ func (r *request) setTimeoutResult() {
 	}
 }
 
-type PendingRequestsImpl struct {
+type PendingRequests struct {
 	requestMap sync.Map
 }
 
-func NewPendingRequest() api.PendingRequests {
-	return &PendingRequestsImpl{
+func NewPendingRequest() api.PendingRequestsInterface {
+	return &PendingRequests{
 		requestMap: sync.Map{},
 	}
 }
 
-func (r *PendingRequestsImpl) Add(ski string, counter model.MsgCounterType, maxDelay time.Duration) {
+func (r *PendingRequests) Add(ski string, counter model.MsgCounterType, maxDelay time.Duration) {
 	newRequest := &request{
 		ski:     ski,
 		counter: counter,
@@ -50,15 +50,15 @@ func (r *PendingRequestsImpl) Add(ski string, counter model.MsgCounterType, maxD
 	r.requestMap.Store(r.mapKey(ski, counter), newRequest)
 }
 
-func (r *PendingRequestsImpl) SetData(ski string, counter model.MsgCounterType, data any) *model.ErrorType {
+func (r *PendingRequests) SetData(ski string, counter model.MsgCounterType, data any) *model.ErrorType {
 	return r.setResponse(ski, counter, data, nil)
 }
 
-func (r *PendingRequestsImpl) SetResult(ski string, counter model.MsgCounterType, errorResult *model.ErrorType) *model.ErrorType {
+func (r *PendingRequests) SetResult(ski string, counter model.MsgCounterType, errorResult *model.ErrorType) *model.ErrorType {
 	return r.setResponse(ski, counter, nil, errorResult)
 }
 
-func (r *PendingRequestsImpl) GetData(ski string, counter model.MsgCounterType) (any, *model.ErrorType) {
+func (r *PendingRequests) GetData(ski string, counter model.MsgCounterType) (any, *model.ErrorType) {
 	request, err := r.getRequest(ski, counter)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (r *PendingRequestsImpl) GetData(ski string, counter model.MsgCounterType) 
 	return data.data, data.errorResult
 }
 
-func (r *PendingRequestsImpl) Remove(ski string, counter model.MsgCounterType) *model.ErrorType {
+func (r *PendingRequests) Remove(ski string, counter model.MsgCounterType) *model.ErrorType {
 	request, err := r.getRequest(ski, counter)
 	if err != nil {
 		return err
@@ -79,16 +79,16 @@ func (r *PendingRequestsImpl) Remove(ski string, counter model.MsgCounterType) *
 	return nil
 }
 
-func (r *PendingRequestsImpl) mapKey(ski string, counter model.MsgCounterType) string {
+func (r *PendingRequests) mapKey(ski string, counter model.MsgCounterType) string {
 	return fmt.Sprintf("%s:%d", ski, counter)
 }
 
-func (r *PendingRequestsImpl) removeRequest(request *request) {
+func (r *PendingRequests) removeRequest(request *request) {
 	request.countdown.Stop()
 	r.requestMap.Delete(r.mapKey(request.ski, request.counter))
 }
 
-func (r *PendingRequestsImpl) getRequest(ski string, counter model.MsgCounterType) (*request, *model.ErrorType) {
+func (r *PendingRequests) getRequest(ski string, counter model.MsgCounterType) (*request, *model.ErrorType) {
 	rq, exists := r.requestMap.Load(r.mapKey(ski, counter))
 	if !exists {
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("No pending request with message counter '%s' found", counter.String()))
@@ -97,7 +97,7 @@ func (r *PendingRequestsImpl) getRequest(ski string, counter model.MsgCounterTyp
 	return rq.(*request), nil
 }
 
-func (r *PendingRequestsImpl) setResponse(ski string, counter model.MsgCounterType, data any, errorResult *model.ErrorType) *model.ErrorType {
+func (r *PendingRequests) setResponse(ski string, counter model.MsgCounterType, data any, errorResult *model.ErrorType) *model.ErrorType {
 
 	request, err := r.getRequest(ski, counter)
 	if err != nil {

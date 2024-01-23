@@ -10,7 +10,7 @@ var Events events
 
 type eventHandlerItem struct {
 	Level   api.EventHandlerLevel
-	Handler api.EventHandler
+	Handler api.EventHandlerInterface
 }
 
 type events struct {
@@ -21,7 +21,7 @@ type events struct {
 }
 
 // will be used in EEBUS core directly to access the level EventHandlerLevelCore
-func (r *events) subscribe(level api.EventHandlerLevel, handler api.EventHandler) error {
+func (r *events) subscribe(level api.EventHandlerLevel, handler api.EventHandlerInterface) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -49,12 +49,12 @@ func (r *events) subscribe(level api.EventHandlerLevel, handler api.EventHandler
 //
 // returns an error if EventHandlerLevelCore is used as
 // that is only allowed for internal use
-func (r *events) Subscribe(handler api.EventHandler) error {
+func (r *events) Subscribe(handler api.EventHandlerInterface) error {
 	return r.subscribe(api.EventHandlerLevelApplication, handler)
 }
 
 // will be used in EEBUS core directly to access the level EventHandlerLevelCore
-func (r *events) unsubscribe(level api.EventHandlerLevel, handler api.EventHandler) error {
+func (r *events) unsubscribe(level api.EventHandlerLevel, handler api.EventHandlerInterface) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -71,7 +71,7 @@ func (r *events) unsubscribe(level api.EventHandlerLevel, handler api.EventHandl
 }
 
 // Unsubscribe from getting events
-func (r *events) Unsubscribe(handler api.EventHandler) error {
+func (r *events) Unsubscribe(handler api.EventHandlerInterface) error {
 	return r.unsubscribe(api.EventHandlerLevelApplication, handler)
 }
 

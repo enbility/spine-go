@@ -18,19 +18,19 @@ func TestSubscriptionManagerSuite(t *testing.T) {
 type SubscriptionManagerSuite struct {
 	suite.Suite
 
-	localDevice  api.DeviceLocal
-	remoteDevice api.DeviceRemote
-	sut          api.SubscriptionManager
+	localDevice  api.DeviceLocalInterface
+	remoteDevice api.DeviceRemoteInterface
+	sut          api.SubscriptionManagerInterface
 }
 
-func (suite *SubscriptionManagerSuite) WriteSpineMessage([]byte) {}
+func (suite *SubscriptionManagerSuite) WriteShipMessageWithPayload([]byte) {}
 
 func (suite *SubscriptionManagerSuite) SetupSuite() {
-	suite.localDevice = NewDeviceLocalImpl("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	suite.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 
 	ski := "test"
 	sender := NewSender(suite)
-	suite.remoteDevice = NewDeviceRemoteImpl(suite.localDevice, ski, sender)
+	suite.remoteDevice = NewDeviceRemote(suite.localDevice, ski, sender)
 
 	_ = suite.localDevice.SetupRemoteDevice(ski, suite)
 
@@ -38,15 +38,15 @@ func (suite *SubscriptionManagerSuite) SetupSuite() {
 }
 
 func (suite *SubscriptionManagerSuite) Test_Subscriptions() {
-	entity := NewEntityLocalImpl(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
 	suite.localDevice.AddEntity(entity)
 
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
 
-	remoteEntity := NewEntityRemoteImpl(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
+	remoteEntity := NewEntityRemote(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
 	suite.remoteDevice.AddEntity(remoteEntity)
 
-	remoteFeature := NewFeatureRemoteImpl(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
+	remoteFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
 	remoteFeature.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice"))
 	remoteEntity.AddFeature(remoteFeature)
 

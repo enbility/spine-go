@@ -10,7 +10,7 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionData = (*FunctionDataImpl[int])(nil)
+var _ api.FunctionDataInterface = (*FunctionDataImpl[int])(nil)
 
 type FunctionDataImpl[T any] struct {
 	functionType model.FunctionType

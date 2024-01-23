@@ -13,8 +13,8 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-type SubscriptionManagerImpl struct {
-	localDevice api.DeviceLocal
+type SubscriptionManager struct {
+	localDevice api.DeviceLocalInterface
 
 	subscriptionNum     uint64
 	subscriptionEntries []*api.SubscriptionEntry
@@ -23,8 +23,8 @@ type SubscriptionManagerImpl struct {
 	// TODO: add persistence
 }
 
-func NewSubscriptionManager(localDevice api.DeviceLocal) *SubscriptionManagerImpl {
-	c := &SubscriptionManagerImpl{
+func NewSubscriptionManager(localDevice api.DeviceLocalInterface) *SubscriptionManager {
+	c := &SubscriptionManager{
 		subscriptionNum: 0,
 		localDevice:     localDevice,
 	}
@@ -33,7 +33,7 @@ func NewSubscriptionManager(localDevice api.DeviceLocal) *SubscriptionManagerImp
 }
 
 // is sent from the client (remote device) to the server (local device)
-func (c *SubscriptionManagerImpl) AddSubscription(remoteDevice api.DeviceRemote, data model.SubscriptionManagementRequestCallType) error {
+func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementRequestCallType) error {
 
 	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
 	if serverFeature == nil {
@@ -81,7 +81,7 @@ func (c *SubscriptionManagerImpl) AddSubscription(remoteDevice api.DeviceRemote,
 }
 
 // Remove a specific subscription that is provided by a delete message from a remote device
-func (c *SubscriptionManagerImpl) RemoveSubscription(data model.SubscriptionManagementDeleteCallType, remoteDevice api.DeviceRemote) error {
+func (c *SubscriptionManager) RemoveSubscription(data model.SubscriptionManagementDeleteCallType, remoteDevice api.DeviceRemoteInterface) error {
 	var newSubscriptionEntries []*api.SubscriptionEntry
 
 	// according to the spec 7.4.4
@@ -138,7 +138,7 @@ func (c *SubscriptionManagerImpl) RemoveSubscription(data model.SubscriptionMana
 }
 
 // Remove all existing subscriptions for a given remote device
-func (c *SubscriptionManagerImpl) RemoveSubscriptionsForDevice(remoteDevice api.DeviceRemote) {
+func (c *SubscriptionManager) RemoveSubscriptionsForDevice(remoteDevice api.DeviceRemoteInterface) {
 	if remoteDevice == nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (c *SubscriptionManagerImpl) RemoveSubscriptionsForDevice(remoteDevice api.
 }
 
 // Remove all existing subscriptions for a given remote device entity
-func (c *SubscriptionManagerImpl) RemoveSubscriptionsForEntity(remoteEntity api.EntityRemote) {
+func (c *SubscriptionManager) RemoveSubscriptionsForEntity(remoteEntity api.EntityRemoteInterface) {
 	if remoteEntity == nil {
 		return
 	}
@@ -178,7 +178,7 @@ func (c *SubscriptionManagerImpl) RemoveSubscriptionsForEntity(remoteEntity api.
 	c.subscriptionEntries = newSubscriptionEntries
 }
 
-func (c *SubscriptionManagerImpl) Subscriptions(remoteDevice api.DeviceRemote) []*api.SubscriptionEntry {
+func (c *SubscriptionManager) Subscriptions(remoteDevice api.DeviceRemoteInterface) []*api.SubscriptionEntry {
 	var result []*api.SubscriptionEntry
 
 	c.mux.Lock()
@@ -191,7 +191,7 @@ func (c *SubscriptionManagerImpl) Subscriptions(remoteDevice api.DeviceRemote) [
 	return result
 }
 
-func (c *SubscriptionManagerImpl) SubscriptionsOnFeature(featureAddress model.FeatureAddressType) []*api.SubscriptionEntry {
+func (c *SubscriptionManager) SubscriptionsOnFeature(featureAddress model.FeatureAddressType) []*api.SubscriptionEntry {
 	var result []*api.SubscriptionEntry
 
 	c.mux.Lock()
@@ -204,12 +204,12 @@ func (c *SubscriptionManagerImpl) SubscriptionsOnFeature(featureAddress model.Fe
 	return result
 }
 
-func (c *SubscriptionManagerImpl) subscriptionId() uint64 {
+func (c *SubscriptionManager) subscriptionId() uint64 {
 	i := atomic.AddUint64(&c.subscriptionNum, 1)
 	return i
 }
 
-func (c *SubscriptionManagerImpl) checkRoleAndType(feature api.Feature, role model.RoleType, featureType model.FeatureTypeType) error {
+func (c *SubscriptionManager) checkRoleAndType(feature api.FeatureInterface, role model.RoleType, featureType model.FeatureTypeType) error {
 	if feature.Role() != model.RoleTypeSpecial && feature.Role() != role {
 		return fmt.Errorf("found feature %s is not matching required role %s", feature.Type(), role)
 	}

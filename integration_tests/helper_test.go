@@ -25,9 +25,9 @@ type WriteMessageHandler struct {
 	mux sync.Mutex
 }
 
-var _ shipapi.SpineDataConnection = (*WriteMessageHandler)(nil)
+var _ shipapi.ShipConnectionDataWriterInterface = (*WriteMessageHandler)(nil)
 
-func (t *WriteMessageHandler) WriteSpineMessage(message []byte) {
+func (t *WriteMessageHandler) WriteShipMessageWithPayload(message []byte) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 
@@ -99,12 +99,12 @@ func (t *WriteMessageHandler) ResultWithReference(msgCounterReference *model.Msg
 
 func beforeTest(
 	suiteName, testName string, fId uint, ftype model.FeatureTypeType,
-	frole model.RoleType) (api.DeviceLocal, string, api.DeviceRemote, *WriteMessageHandler) {
-	sut := spine.NewDeviceLocalImpl("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
+	frole model.RoleType) (api.DeviceLocalInterface, string, api.DeviceRemoteInterface, *WriteMessageHandler) {
+	sut := spine.NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
 		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := spine.NewEntityLocalImpl(sut, model.EntityTypeTypeCEM, spine.NewAddressEntityType([]uint{1}))
+	localEntity := spine.NewEntityLocal(sut, model.EntityTypeTypeCEM, spine.NewAddressEntityType([]uint{1}))
 	sut.AddEntity(localEntity)
-	f := spine.NewFeatureLocalImpl(fId, localEntity, ftype, frole)
+	f := spine.NewFeatureLocal(fId, localEntity, ftype, frole)
 	localEntity.AddFeature(f)
 
 	remoteSki := "TestRemoteSki"
@@ -116,7 +116,7 @@ func beforeTest(
 	return sut, remoteSki, remoteDevice, writeHandler
 }
 
-func initialCommunication(t *testing.T, remoteDevice api.DeviceRemote, writeHandler *WriteMessageHandler) {
+func initialCommunication(t *testing.T, remoteDevice api.DeviceRemoteInterface, writeHandler *WriteMessageHandler) {
 	// Initial generic communication
 
 	_, _ = remoteDevice.HandleSpineMesssage(loadFileData(t, wallbox_detaileddiscoverydata_recv_reply_file_path))

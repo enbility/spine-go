@@ -5,27 +5,27 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
-var _ api.EntityLocal = (*EntityLocalImpl)(nil)
+var _ api.EntityLocalInterface = (*EntityLocal)(nil)
 
-type EntityLocalImpl struct {
-	*EntityImpl
-	device   api.DeviceLocal
-	features []api.FeatureLocal
+type EntityLocal struct {
+	*Entity
+	device   api.DeviceLocalInterface
+	features []api.FeatureLocalInterface
 }
 
-func NewEntityLocalImpl(device api.DeviceLocal, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityLocalImpl {
-	return &EntityLocalImpl{
-		EntityImpl: NewEntity(eType, device.Address(), entityAddress),
-		device:     device,
+func NewEntityLocal(device api.DeviceLocalInterface, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityLocal {
+	return &EntityLocal{
+		Entity: NewEntity(eType, device.Address(), entityAddress),
+		device: device,
 	}
 }
 
-func (r *EntityLocalImpl) Device() api.DeviceLocal {
+func (r *EntityLocal) Device() api.DeviceLocalInterface {
 	return r.device
 }
 
 // Add a feature to the entity if it is not already added
-func (r *EntityLocalImpl) AddFeature(f api.FeatureLocal) {
+func (r *EntityLocal) AddFeature(f api.FeatureLocalInterface) {
 	// check if this feature is already added
 	for _, f2 := range r.features {
 		if f2.Type() == f.Type() && f2.Role() == f.Role() {
@@ -37,11 +37,11 @@ func (r *EntityLocalImpl) AddFeature(f api.FeatureLocal) {
 
 // either returns an existing feature or creates a new one
 // for a given entity, featuretype and role
-func (r *EntityLocalImpl) GetOrAddFeature(featureType model.FeatureTypeType, role model.RoleType) api.FeatureLocal {
+func (r *EntityLocal) GetOrAddFeature(featureType model.FeatureTypeType, role model.RoleType) api.FeatureLocalInterface {
 	if f := r.FeatureOfTypeAndRole(featureType, role); f != nil {
 		return f
 	}
-	f := NewFeatureLocalImpl(r.NextFeatureId(), r, featureType, role)
+	f := NewFeatureLocal(r.NextFeatureId(), r, featureType, role)
 
 	description := string(featureType)
 	switch role {
@@ -61,7 +61,7 @@ func (r *EntityLocalImpl) GetOrAddFeature(featureType model.FeatureTypeType, rol
 	return f
 }
 
-func (r *EntityLocalImpl) FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) api.FeatureLocal {
+func (r *EntityLocal) FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) api.FeatureLocalInterface {
 	for _, f := range r.features {
 		if f.Type() == featureType && f.Role() == role {
 			return f
@@ -70,11 +70,11 @@ func (r *EntityLocalImpl) FeatureOfTypeAndRole(featureType model.FeatureTypeType
 	return nil
 }
 
-func (r *EntityLocalImpl) Features() []api.FeatureLocal {
+func (r *EntityLocal) Features() []api.FeatureLocalInterface {
 	return r.features
 }
 
-func (r *EntityLocalImpl) Feature(addressFeature *model.AddressFeatureType) api.FeatureLocal {
+func (r *EntityLocal) Feature(addressFeature *model.AddressFeatureType) api.FeatureLocalInterface {
 	if addressFeature == nil {
 		return nil
 	}
@@ -86,7 +86,7 @@ func (r *EntityLocalImpl) Feature(addressFeature *model.AddressFeatureType) api.
 	return nil
 }
 
-func (r *EntityLocalImpl) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
+func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
 	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
 		Description: &model.NetworkManagementEntityDescriptionDataType{
 			EntityAddress: r.Address(),
@@ -98,7 +98,7 @@ func (r *EntityLocalImpl) Information() *model.NodeManagementDetailedDiscoveryEn
 }
 
 // add a new usecase
-func (r *EntityLocalImpl) AddUseCaseSupport(
+func (r *EntityLocal) AddUseCaseSupport(
 	actor model.UseCaseActorType,
 	useCaseName model.UseCaseNameType,
 	useCaseVersion model.SpecificationVersionType,
@@ -124,7 +124,7 @@ func (r *EntityLocalImpl) AddUseCaseSupport(
 }
 
 // Remove a usecase with a given actor ans usecase name
-func (r *EntityLocalImpl) RemoveUseCaseSupport(
+func (r *EntityLocal) RemoveUseCaseSupport(
 	actor model.UseCaseActorType,
 	useCaseName model.UseCaseNameType,
 ) {
@@ -146,19 +146,19 @@ func (r *EntityLocalImpl) RemoveUseCaseSupport(
 }
 
 // Remove all usecases
-func (r *EntityLocalImpl) RemoveAllUseCaseSupports() {
+func (r *EntityLocal) RemoveAllUseCaseSupports() {
 	r.RemoveUseCaseSupport("", "")
 }
 
 // Remove all subscriptions
-func (r *EntityLocalImpl) RemoveAllSubscriptions() {
+func (r *EntityLocal) RemoveAllSubscriptions() {
 	for _, item := range r.features {
 		item.RemoveAllSubscriptions()
 	}
 }
 
 // Remove all bindings
-func (r *EntityLocalImpl) RemoveAllBindings() {
+func (r *EntityLocal) RemoveAllBindings() {
 	for _, item := range r.features {
 		item.RemoveAllBindings()
 	}

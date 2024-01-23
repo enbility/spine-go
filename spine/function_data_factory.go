@@ -309,9 +309,9 @@ func CreateFunctionData[F any](featureType model.FeatureTypeType) []F {
 func createFunctionData[T any, F any](functionType model.FunctionType) F {
 	x := any(new(F))
 	switch x.(type) {
-	case *api.FunctionDataCmd:
+	case *api.FunctionDataCmdInterface:
 		return any(NewFunctionDataCmd[T](functionType)).(F)
-	case *api.FunctionData:
+	case *api.FunctionDataInterface:
 		return any(NewFunctionData[T](functionType)).(F)
 	default:
 		panic(fmt.Errorf("only FunctionData and FunctionDataCmd are supported"))

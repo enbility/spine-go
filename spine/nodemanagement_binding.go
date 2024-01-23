@@ -29,7 +29,7 @@ func NewNodeManagementBindingDeleteCallType(clientAddress *model.FeatureAddressT
 }
 
 // route bindings request calls to the appropriate feature implementation and add the bindings to the current list
-func (r *NodeManagementImpl) processReadBindingData(message *api.Message) error {
+func (r *NodeManagement) processReadBindingData(message *api.Message) error {
 
 	var remoteDeviceBindings []model.BindingManagementEntryDataType
 	remoteDeviceBindingEntries := r.Device().BindingManager().Bindings(message.FeatureRemote.Device())
@@ -50,7 +50,7 @@ func (r *NodeManagementImpl) processReadBindingData(message *api.Message) error 
 	return message.FeatureRemote.Sender().Reply(message.RequestHeader, r.Address(), cmd)
 }
 
-func (r *NodeManagementImpl) handleMsgBindingData(message *api.Message) error {
+func (r *NodeManagement) handleMsgBindingData(message *api.Message) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		return r.processReadBindingData(message)
@@ -60,7 +60,7 @@ func (r *NodeManagementImpl) handleMsgBindingData(message *api.Message) error {
 	}
 }
 
-func (r *NodeManagementImpl) handleMsgBindingRequestCall(message *api.Message, data *model.NodeManagementBindingRequestCallType) error {
+func (r *NodeManagement) handleMsgBindingRequestCall(message *api.Message, data *model.NodeManagementBindingRequestCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		return r.Device().BindingManager().AddBinding(message.FeatureRemote.Device(), *data.BindingRequest)
@@ -70,7 +70,7 @@ func (r *NodeManagementImpl) handleMsgBindingRequestCall(message *api.Message, d
 	}
 }
 
-func (r *NodeManagementImpl) handleMsgBindingDeleteCall(message *api.Message, data *model.NodeManagementBindingDeleteCallType) error {
+func (r *NodeManagement) handleMsgBindingDeleteCall(message *api.Message, data *model.NodeManagementBindingDeleteCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
 		return r.Device().BindingManager().RemoveBinding(*data.BindingDelete, message.FeatureRemote.Device())
