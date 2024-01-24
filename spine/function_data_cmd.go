@@ -30,16 +30,18 @@ func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) mode
 	return cmd
 }
 
-	cmd := createCmd(r.functionType, r.data)
 func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
+	data := r.DataCopy()
+	cmd := createCmd(r.functionType, data)
 	if partial {
 		cmd.Filter = filterEmptyPartial()
 	}
 	return cmd
 }
 
-	cmd := createCmd(r.functionType, r.data)
 func (r *FunctionDataCmd[T]) NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
+	data := r.DataCopy()
+	cmd := createCmd(r.functionType, data)
 	cmd.Function = util.Ptr(model.FunctionType(r.functionType))
 
 	if partialWithoutSelector {
@@ -54,8 +56,9 @@ func (r *FunctionDataCmd[T]) NotifyCmdType(deleteSelector, partialSelector any, 
 	return cmd
 }
 
-	cmd := createCmd(r.functionType, r.data)
 func (r *FunctionDataCmd[T]) WriteCmdType(deleteSelector, partialSelector any, deleteElements any) model.CmdType {
+	data := r.DataCopy()
+	cmd := createCmd(r.functionType, data)
 
 	var filters []model.FilterType
 	if filters := filtersForSelectorsElements(r.functionType, filters, deleteSelector, partialSelector, deleteElements, nil); len(filters) > 0 {
