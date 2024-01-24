@@ -6,19 +6,19 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionDataCmdInterface = (*FunctionDataCmdImpl[int])(nil)
+var _ api.FunctionDataCmdInterface = (*FunctionDataCmd[int])(nil)
 
-type FunctionDataCmdImpl[T any] struct {
-	*FunctionDataImpl[T]
+type FunctionDataCmd[T any] struct {
+	*FunctionData[T]
 }
 
-func NewFunctionDataCmd[T any](function model.FunctionType) *FunctionDataCmdImpl[T] {
-	return &FunctionDataCmdImpl[T]{
-		FunctionDataImpl: NewFunctionData[T](function),
+func NewFunctionDataCmd[T any](function model.FunctionType) *FunctionDataCmd[T] {
+	return &FunctionDataCmd[T]{
+		FunctionData: NewFunctionData[T](function),
 	}
 }
 
-func (r *FunctionDataCmdImpl[T]) ReadCmdType(partialSelector any, elements any) model.CmdType {
+func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) model.CmdType {
 	cmd := createCmd[T](r.functionType, nil)
 
 	var filters []model.FilterType
@@ -30,16 +30,16 @@ func (r *FunctionDataCmdImpl[T]) ReadCmdType(partialSelector any, elements any) 
 	return cmd
 }
 
-func (r *FunctionDataCmdImpl[T]) ReplyCmdType(partial bool) model.CmdType {
 	cmd := createCmd(r.functionType, r.data)
+func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
 	if partial {
 		cmd.Filter = filterEmptyPartial()
 	}
 	return cmd
 }
 
-func (r *FunctionDataCmdImpl[T]) NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
 	cmd := createCmd(r.functionType, r.data)
+func (r *FunctionDataCmd[T]) NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
 	cmd.Function = util.Ptr(model.FunctionType(r.functionType))
 
 	if partialWithoutSelector {
@@ -54,8 +54,8 @@ func (r *FunctionDataCmdImpl[T]) NotifyCmdType(deleteSelector, partialSelector a
 	return cmd
 }
 
-func (r *FunctionDataCmdImpl[T]) WriteCmdType(deleteSelector, partialSelector any, deleteElements any) model.CmdType {
 	cmd := createCmd(r.functionType, r.data)
+func (r *FunctionDataCmd[T]) WriteCmdType(deleteSelector, partialSelector any, deleteElements any) model.CmdType {
 
 	var filters []model.FilterType
 	if filters := filtersForSelectorsElements(r.functionType, filters, deleteSelector, partialSelector, deleteElements, nil); len(filters) > 0 {

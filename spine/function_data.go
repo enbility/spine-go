@@ -10,26 +10,26 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionDataInterface = (*FunctionDataImpl[int])(nil)
+var _ api.FunctionDataInterface = (*FunctionData[int])(nil)
 
-type FunctionDataImpl[T any] struct {
+type FunctionData[T any] struct {
 	functionType model.FunctionType
 	data         *T
 
 	mux sync.Mutex
 }
 
-func NewFunctionData[T any](function model.FunctionType) *FunctionDataImpl[T] {
-	return &FunctionDataImpl[T]{
+func NewFunctionData[T any](function model.FunctionType) *FunctionData[T] {
+	return &FunctionData[T]{
 		functionType: function,
 	}
 }
 
-func (r *FunctionDataImpl[T]) Function() model.FunctionType {
+func (r *FunctionData[T]) Function() model.FunctionType {
 	return r.functionType
 }
 
-func (r *FunctionDataImpl[T]) DataCopy() *T {
+func (r *FunctionData[T]) DataCopy() *T {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -46,7 +46,7 @@ func (r *FunctionDataImpl[T]) DataCopy() *T {
 	return &copiedData
 }
 
-func (r *FunctionDataImpl[T]) UpdateData(newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+func (r *FunctionData[T]) UpdateData(newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -71,11 +71,11 @@ func (r *FunctionDataImpl[T]) UpdateData(newData *T, filterPartial *model.Filter
 	return nil
 }
 
-func (r *FunctionDataImpl[T]) DataCopyAny() any {
+func (r *FunctionData[T]) DataCopyAny() any {
 	return r.DataCopy()
 }
 
-func (r *FunctionDataImpl[T]) UpdateDataAny(newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
+func (r *FunctionData[T]) UpdateDataAny(newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
 	err := r.UpdateData(newData.(*T), filterPartial, filterDelete)
 	if err != nil {
 		logging.Log().Debug(err.String())

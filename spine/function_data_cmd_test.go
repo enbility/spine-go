@@ -17,7 +17,7 @@ type FctDataCmdSuite struct {
 	suite.Suite
 	function model.FunctionType
 	data     *model.DeviceClassificationManufacturerDataType
-	sut      *FunctionDataCmdImpl[model.DeviceClassificationManufacturerDataType]
+	sut      *FunctionDataCmd[model.DeviceClassificationManufacturerDataType]
 }
 
 func (suite *FctDataCmdSuite) SetupSuite() {
