@@ -97,6 +97,9 @@ type EntityLocalInterface interface {
 		useCaseAvailable bool,
 		scenarios []model.UseCaseScenarioSupportType,
 	)
+	HasUseCaseSupport(
+		actor model.UseCaseActorType,
+		useCaseName model.UseCaseNameType) bool
 	RemoveUseCaseSupport(
 		actor model.UseCaseActorType,
 		useCaseName model.UseCaseNameType,

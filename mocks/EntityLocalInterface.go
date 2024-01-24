@@ -472,6 +472,53 @@ func (_c *EntityLocalInterface_GetOrAddFeature_Call) RunAndReturn(run func(model
 	return _c
 }
 
+// HasUseCaseSupport provides a mock function with given fields: actor, useCaseName
+func (_m *EntityLocalInterface) HasUseCaseSupport(actor model.UseCaseActorType, useCaseName model.UseCaseNameType) bool {
+	ret := _m.Called(actor, useCaseName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasUseCaseSupport")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(model.UseCaseActorType, model.UseCaseNameType) bool); ok {
+		r0 = rf(actor, useCaseName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// EntityLocalInterface_HasUseCaseSupport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasUseCaseSupport'
+type EntityLocalInterface_HasUseCaseSupport_Call struct {
+	*mock.Call
+}
+
+// HasUseCaseSupport is a helper method to define mock.On call
+//   - actor model.UseCaseActorType
+//   - useCaseName model.UseCaseNameType
+func (_e *EntityLocalInterface_Expecter) HasUseCaseSupport(actor interface{}, useCaseName interface{}) *EntityLocalInterface_HasUseCaseSupport_Call {
+	return &EntityLocalInterface_HasUseCaseSupport_Call{Call: _e.mock.On("HasUseCaseSupport", actor, useCaseName)}
+}
+
+func (_c *EntityLocalInterface_HasUseCaseSupport_Call) Run(run func(actor model.UseCaseActorType, useCaseName model.UseCaseNameType)) *EntityLocalInterface_HasUseCaseSupport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.UseCaseActorType), args[1].(model.UseCaseNameType))
+	})
+	return _c
+}
+
+func (_c *EntityLocalInterface_HasUseCaseSupport_Call) Return(_a0 bool) *EntityLocalInterface_HasUseCaseSupport_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *EntityLocalInterface_HasUseCaseSupport_Call) RunAndReturn(run func(model.UseCaseActorType, model.UseCaseNameType) bool) *EntityLocalInterface_HasUseCaseSupport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Information provides a mock function with given fields:
 func (_m *EntityLocalInterface) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
 	ret := _m.Called()

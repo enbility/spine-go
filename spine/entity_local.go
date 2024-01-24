@@ -123,6 +123,22 @@ func (r *EntityLocal) AddUseCaseSupport(
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
+func (r *EntityLocal) HasUseCaseSupport(actor model.UseCaseActorType, useCaseName model.UseCaseNameType) bool {
+	nodeMgmt := r.device.NodeManagement()
+
+	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
+	if data == nil {
+		return false
+	}
+
+	address := model.FeatureAddressType{
+		Device: r.address.Device,
+		Entity: r.address.Entity,
+	}
+
+	return data.HasUseCaseSupport(address, actor, useCaseName)
+}
+
 // Remove a usecase with a given actor ans usecase name
 func (r *EntityLocal) RemoveUseCaseSupport(
 	actor model.UseCaseActorType,
@@ -147,7 +163,21 @@ func (r *EntityLocal) RemoveUseCaseSupport(
 
 // Remove all usecases
 func (r *EntityLocal) RemoveAllUseCaseSupports() {
-	r.RemoveUseCaseSupport("", "")
+	nodeMgmt := r.device.NodeManagement()
+
+	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
+	if data == nil {
+		return
+	}
+
+	address := model.FeatureAddressType{
+		Device: r.address.Device,
+		Entity: r.address.Entity,
+	}
+
+	data.RemoveUseCaseDataForAddress(address)
+
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
 // Remove all subscriptions

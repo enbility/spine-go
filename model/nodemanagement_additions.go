@@ -105,6 +105,18 @@ func (n *NodeManagementUseCaseDataType) AddUseCaseSupport(
 	}
 }
 
+func (n *NodeManagementUseCaseDataType) HasUseCaseSupport(
+	address FeatureAddressType,
+	actor UseCaseActorType,
+	useCaseName UseCaseNameType) bool {
+	nmMux.Lock()
+	defer nmMux.Unlock()
+
+	// is there an entry for the entity address, actor and usecase name
+	_, ok := n.useCaseInformationIndex(address, actor, useCaseName)
+	return ok
+}
+
 // Remove a UseCaseSupportType with
 // a provided FeatureAddressType, UseCaseActorType and UseCaseNameType
 func (n *NodeManagementUseCaseDataType) RemoveUseCaseSupport(
@@ -137,6 +149,23 @@ func (n *NodeManagementUseCaseDataType) RemoveUseCaseSupport(
 		}
 
 		usecaseInfo = append(usecaseInfo, item)
+	}
+
+	n.UseCaseInformation = usecaseInfo
+}
+
+// Remove all data for a given address type
+func (n *NodeManagementUseCaseDataType) RemoveUseCaseDataForAddress(address FeatureAddressType) {
+	nmMux.Lock()
+	defer nmMux.Unlock()
+
+	var usecaseInfo []UseCaseInformationDataType
+
+	for _, item := range n.UseCaseInformation {
+		if !reflect.DeepEqual(item.Address, &address) {
+			usecaseInfo = append(usecaseInfo, item)
+			continue
+		}
 	}
 
 	n.UseCaseInformation = usecaseInfo

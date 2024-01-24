@@ -56,14 +56,11 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 
 	entity.RemoveAllUseCaseSupports()
 
-	entity.AddUseCaseSupport(
+	hasUC := entity.HasUseCaseSupport(
 		model.UseCaseActorTypeCEM,
 		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-		model.SpecificationVersionType("1.0.0"),
-		"",
-		true,
-		[]model.UseCaseScenarioSupportType{1, 2},
 	)
+	assert.Equal(suite.T(), false, hasUC)
 
 	entity.AddUseCaseSupport(
 		model.UseCaseActorTypeCEM,
@@ -73,8 +70,62 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 		true,
 		[]model.UseCaseScenarioSupportType{1, 2},
 	)
+
+	hasUC = entity.HasUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+	assert.Equal(suite.T(), true, hasUC)
+
+	entity.AddUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		model.SpecificationVersionType("1.0.0"),
+		"",
+		true,
+		[]model.UseCaseScenarioSupportType{1, 2},
+	)
+
+	hasUC = entity.HasUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+	assert.Equal(suite.T(), true, hasUC)
+
+	entity.RemoveUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+
+	hasUC = entity.HasUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+	assert.Equal(suite.T(), false, hasUC)
+
+	entity.AddUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		model.SpecificationVersionType("1.0.0"),
+		"",
+		true,
+		[]model.UseCaseScenarioSupportType{1, 2},
+	)
+
+	hasUC = entity.HasUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+	assert.Equal(suite.T(), true, hasUC)
 
 	entity.RemoveAllUseCaseSupports()
+
+	hasUC = entity.HasUseCaseSupport(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	)
+	assert.Equal(suite.T(), false, hasUC)
+
 	entity.RemoveAllBindings()
 	entity.RemoveAllSubscriptions()
 }

@@ -79,6 +79,9 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation[0].UseCaseSupport))
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation[1].UseCaseSupport))
 
+	hasUC := ucs.HasUseCaseSupport(address, UseCaseActorTypeCEM, UseCaseNameTypeEVChargingSummary)
+	assert.Equal(s.T(), false, hasUC)
+
 	ucs.RemoveUseCaseSupport(
 		address,
 		UseCaseActorTypeCEM,
@@ -86,6 +89,9 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	)
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation))
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation[0].UseCaseSupport))
+
+	hasUC = ucs.HasUseCaseSupport(address, UseCaseActorTypeCEM, UseCaseNameTypeControlOfBattery)
+	assert.Equal(s.T(), true, hasUC)
 
 	ucs.RemoveUseCaseSupport(
 		address,
@@ -120,4 +126,18 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	)
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 
+	ucs.AddUseCaseSupport(
+		address,
+		UseCaseActorTypeEnergyGuard,
+		UseCaseNameTypeLimitationOfPowerConsumption,
+		SpecificationVersionType(""),
+		"",
+		true,
+		[]UseCaseScenarioSupportType{},
+	)
+	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
+	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation[0].UseCaseSupport))
+
+	ucs.RemoveUseCaseDataForAddress(address)
+	assert.Equal(s.T(), 0, len(ucs.UseCaseInformation))
 }
