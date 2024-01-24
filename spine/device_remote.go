@@ -182,6 +182,16 @@ func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeMa
 			rEntites = append(rEntites, entity)
 		}
 
+		// make sure the device address is set, which is not on entity 0 on startup !
+		if entity.Address().Device == nil || len(*entity.Address().Device) == 0 {
+			if data.DeviceInformation != nil &&
+				data.DeviceInformation.Description != nil &&
+				data.DeviceInformation.Description.DeviceAddress != nil &&
+				data.DeviceInformation.Description.DeviceAddress.Device != nil {
+				entity.UpdateDeviceAddress(*data.DeviceInformation.Description.DeviceAddress.Device)
+			}
+		}
+
 		entity.SetDescription(ei.Description.Description)
 		entity.RemoveAllFeatures()
 

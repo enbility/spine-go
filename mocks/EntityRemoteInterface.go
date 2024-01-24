@@ -446,6 +446,39 @@ func (_c *EntityRemoteInterface_SetDescription_Call) RunAndReturn(run func(*mode
 	return _c
 }
 
+// UpdateDeviceAddress provides a mock function with given fields: address
+func (_m *EntityRemoteInterface) UpdateDeviceAddress(address model.AddressDeviceType) {
+	_m.Called(address)
+}
+
+// EntityRemoteInterface_UpdateDeviceAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDeviceAddress'
+type EntityRemoteInterface_UpdateDeviceAddress_Call struct {
+	*mock.Call
+}
+
+// UpdateDeviceAddress is a helper method to define mock.On call
+//   - address model.AddressDeviceType
+func (_e *EntityRemoteInterface_Expecter) UpdateDeviceAddress(address interface{}) *EntityRemoteInterface_UpdateDeviceAddress_Call {
+	return &EntityRemoteInterface_UpdateDeviceAddress_Call{Call: _e.mock.On("UpdateDeviceAddress", address)}
+}
+
+func (_c *EntityRemoteInterface_UpdateDeviceAddress_Call) Run(run func(address model.AddressDeviceType)) *EntityRemoteInterface_UpdateDeviceAddress_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.AddressDeviceType))
+	})
+	return _c
+}
+
+func (_c *EntityRemoteInterface_UpdateDeviceAddress_Call) Return() *EntityRemoteInterface_UpdateDeviceAddress_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *EntityRemoteInterface_UpdateDeviceAddress_Call) RunAndReturn(run func(model.AddressDeviceType)) *EntityRemoteInterface_UpdateDeviceAddress_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewEntityRemoteInterface creates a new instance of EntityRemoteInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewEntityRemoteInterface(t interface {

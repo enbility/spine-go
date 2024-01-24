@@ -20,6 +20,10 @@ func NewEntityRemote(device api.DeviceRemoteInterface, eType model.EntityTypeTyp
 	}
 }
 
+func (r *EntityRemote) UpdateDeviceAddress(address model.AddressDeviceType) {
+	r.address.Device = &address
+}
+
 func (r *EntityRemote) Device() api.DeviceRemoteInterface {
 	return r.device
 }

@@ -112,6 +112,7 @@ type EntityRemoteInterface interface {
 	AddFeature(f FeatureRemoteInterface)
 	Features() []FeatureRemoteInterface
 	Feature(addressFeature *model.AddressFeatureType) FeatureRemoteInterface
+	UpdateDeviceAddress(address model.AddressDeviceType)
 	RemoveAllFeatures()
 }
 
