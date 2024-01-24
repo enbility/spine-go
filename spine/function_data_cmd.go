@@ -42,7 +42,15 @@ func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
 func (r *FunctionDataCmd[T]) NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
 	data := r.DataCopy()
 	cmd := createCmd(r.functionType, data)
-	cmd.Function = util.Ptr(model.FunctionType(r.functionType))
+
+	// SPINE 1.3.0 5.3.4.4: on pure delete function should be presnt but empty
+	if (deleteSelector != nil || deleteElements != nil) &&
+		partialSelector == nil &&
+		!partialWithoutSelector {
+		cmd.Function = util.Ptr(model.FunctionType(""))
+	} else {
+		cmd.Function = util.Ptr(model.FunctionType(r.functionType))
+	}
 
 	if partialWithoutSelector {
 		cmd.Filter = filterEmptyPartial()

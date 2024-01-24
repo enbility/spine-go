@@ -54,15 +54,21 @@ func (suite *FctDataCmdSuite) TestFunctionDataCmd_NotifyCmd() {
 	readCmd := suite.sut.NotifyCmdType(nil, nil, false, nil)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), readCmd.Function)
+	assert.NotEqual(suite.T(), 0, len(string(*readCmd.Function)))
 
 	readCmd = suite.sut.NotifyCmdType(nil, nil, true, nil)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), readCmd.Function)
+	assert.NotEqual(suite.T(), 0, len(string(*readCmd.Function)))
 
 	deleteS := model.NewFilterTypePartial()
 	readCmd = suite.sut.NotifyCmdType(deleteS, nil, false, nil)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), readCmd.Function)
+	assert.Equal(suite.T(), 0, len(string(*readCmd.Function)))
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_WriteCmd() {
