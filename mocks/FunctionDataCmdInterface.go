@@ -112,12 +112,12 @@ func (_c *FunctionDataCmdInterface_Function_Call) RunAndReturn(run func() model.
 	return _c
 }
 
-// NotifyCmdType provides a mock function with given fields: deleteSelector, partialSelector, partialWithoutSelector, deleteElements
-func (_m *FunctionDataCmdInterface) NotifyCmdType(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{}) model.CmdType {
+// NotifyOrWriteCmdType provides a mock function with given fields: deleteSelector, partialSelector, partialWithoutSelector, deleteElements
+func (_m *FunctionDataCmdInterface) NotifyOrWriteCmdType(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{}) model.CmdType {
 	ret := _m.Called(deleteSelector, partialSelector, partialWithoutSelector, deleteElements)
 
 	if len(ret) == 0 {
-		panic("no return value specified for NotifyCmdType")
+		panic("no return value specified for NotifyOrWriteCmdType")
 	}
 
 	var r0 model.CmdType
@@ -130,33 +130,33 @@ func (_m *FunctionDataCmdInterface) NotifyCmdType(deleteSelector interface{}, pa
 	return r0
 }
 
-// FunctionDataCmdInterface_NotifyCmdType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NotifyCmdType'
-type FunctionDataCmdInterface_NotifyCmdType_Call struct {
+// FunctionDataCmdInterface_NotifyOrWriteCmdType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NotifyOrWriteCmdType'
+type FunctionDataCmdInterface_NotifyOrWriteCmdType_Call struct {
 	*mock.Call
 }
 
-// NotifyCmdType is a helper method to define mock.On call
+// NotifyOrWriteCmdType is a helper method to define mock.On call
 //   - deleteSelector interface{}
 //   - partialSelector interface{}
 //   - partialWithoutSelector bool
 //   - deleteElements interface{}
-func (_e *FunctionDataCmdInterface_Expecter) NotifyCmdType(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector interface{}, deleteElements interface{}) *FunctionDataCmdInterface_NotifyCmdType_Call {
-	return &FunctionDataCmdInterface_NotifyCmdType_Call{Call: _e.mock.On("NotifyCmdType", deleteSelector, partialSelector, partialWithoutSelector, deleteElements)}
+func (_e *FunctionDataCmdInterface_Expecter) NotifyOrWriteCmdType(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector interface{}, deleteElements interface{}) *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call {
+	return &FunctionDataCmdInterface_NotifyOrWriteCmdType_Call{Call: _e.mock.On("NotifyOrWriteCmdType", deleteSelector, partialSelector, partialWithoutSelector, deleteElements)}
 }
 
-func (_c *FunctionDataCmdInterface_NotifyCmdType_Call) Run(run func(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{})) *FunctionDataCmdInterface_NotifyCmdType_Call {
+func (_c *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call) Run(run func(deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{})) *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(interface{}), args[1].(interface{}), args[2].(bool), args[3].(interface{}))
 	})
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_NotifyCmdType_Call) Return(_a0 model.CmdType) *FunctionDataCmdInterface_NotifyCmdType_Call {
+func (_c *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call) Return(_a0 model.CmdType) *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_NotifyCmdType_Call) RunAndReturn(run func(interface{}, interface{}, bool, interface{}) model.CmdType) *FunctionDataCmdInterface_NotifyCmdType_Call {
+func (_c *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call) RunAndReturn(run func(interface{}, interface{}, bool, interface{}) model.CmdType) *FunctionDataCmdInterface_NotifyOrWriteCmdType_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -285,54 +285,6 @@ func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Return() *FunctionDataCmd
 }
 
 func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) RunAndReturn(run func(interface{}, *model.FilterType, *model.FilterType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// WriteCmdType provides a mock function with given fields: deleteSelector, partialSelector, deleteElements
-func (_m *FunctionDataCmdInterface) WriteCmdType(deleteSelector interface{}, partialSelector interface{}, deleteElements interface{}) model.CmdType {
-	ret := _m.Called(deleteSelector, partialSelector, deleteElements)
-
-	if len(ret) == 0 {
-		panic("no return value specified for WriteCmdType")
-	}
-
-	var r0 model.CmdType
-	if rf, ok := ret.Get(0).(func(interface{}, interface{}, interface{}) model.CmdType); ok {
-		r0 = rf(deleteSelector, partialSelector, deleteElements)
-	} else {
-		r0 = ret.Get(0).(model.CmdType)
-	}
-
-	return r0
-}
-
-// FunctionDataCmdInterface_WriteCmdType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WriteCmdType'
-type FunctionDataCmdInterface_WriteCmdType_Call struct {
-	*mock.Call
-}
-
-// WriteCmdType is a helper method to define mock.On call
-//   - deleteSelector interface{}
-//   - partialSelector interface{}
-//   - deleteElements interface{}
-func (_e *FunctionDataCmdInterface_Expecter) WriteCmdType(deleteSelector interface{}, partialSelector interface{}, deleteElements interface{}) *FunctionDataCmdInterface_WriteCmdType_Call {
-	return &FunctionDataCmdInterface_WriteCmdType_Call{Call: _e.mock.On("WriteCmdType", deleteSelector, partialSelector, deleteElements)}
-}
-
-func (_c *FunctionDataCmdInterface_WriteCmdType_Call) Run(run func(deleteSelector interface{}, partialSelector interface{}, deleteElements interface{})) *FunctionDataCmdInterface_WriteCmdType_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(interface{}), args[1].(interface{}), args[2].(interface{}))
-	})
-	return _c
-}
-
-func (_c *FunctionDataCmdInterface_WriteCmdType_Call) Return(_a0 model.CmdType) *FunctionDataCmdInterface_WriteCmdType_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *FunctionDataCmdInterface_WriteCmdType_Call) RunAndReturn(run func(interface{}, interface{}, interface{}) model.CmdType) *FunctionDataCmdInterface_WriteCmdType_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -25,6 +25,7 @@ func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) mode
 	filters = filtersForSelectorsElements(r.functionType, filters, nil, partialSelector, nil, elements)
 	if len(filters) > 0 {
 		cmd.Filter = filters
+		cmd.Function = util.Ptr(model.FunctionType(""))
 	}
 
 	return cmd
@@ -35,42 +36,24 @@ func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
 	cmd := createCmd(r.functionType, data)
 	if partial {
 		cmd.Filter = filterEmptyPartial()
+		cmd.Function = util.Ptr(model.FunctionType(""))
 	}
 	return cmd
 }
 
-func (r *FunctionDataCmd[T]) NotifyCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
+func (r *FunctionDataCmd[T]) NotifyOrWriteCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType {
 	data := r.DataCopy()
 	cmd := createCmd(r.functionType, data)
 
-	// SPINE 1.3.0 5.3.4.4: on pure delete function should be presnt but empty
-	if (deleteSelector != nil || deleteElements != nil) &&
-		partialSelector == nil &&
-		!partialWithoutSelector {
-		cmd.Function = util.Ptr(model.FunctionType(""))
-	} else {
-		cmd.Function = util.Ptr(model.FunctionType(r.functionType))
-	}
-
 	if partialWithoutSelector {
 		cmd.Filter = filterEmptyPartial()
+		cmd.Function = util.Ptr(model.FunctionType(r.functionType))
 		return cmd
 	}
 	var filters []model.FilterType
 	if filters := filtersForSelectorsElements(r.functionType, filters, deleteSelector, partialSelector, deleteElements, nil); len(filters) > 0 {
 		cmd.Filter = filters
-	}
-
-	return cmd
-}
-
-func (r *FunctionDataCmd[T]) WriteCmdType(deleteSelector, partialSelector any, deleteElements any) model.CmdType {
-	data := r.DataCopy()
-	cmd := createCmd(r.functionType, data)
-
-	var filters []model.FilterType
-	if filters := filtersForSelectorsElements(r.functionType, filters, deleteSelector, partialSelector, deleteElements, nil); len(filters) > 0 {
-		cmd.Filter = filters
+		cmd.Function = util.Ptr(model.FunctionType(r.functionType))
 	}
 
 	return cmd

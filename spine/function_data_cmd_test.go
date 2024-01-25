@@ -33,11 +33,14 @@ func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReadCmd() {
 	readCmd := suite.sut.ReadCmdType(nil, nil)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Nil(suite.T(), readCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.Nil(suite.T(), readCmd.Function)
 
 	partialS := model.NewFilterTypePartial()
 	readCmd = suite.sut.ReadCmdType(partialS, nil)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Nil(suite.T(), readCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), readCmd.Function)
+	assert.Equal(suite.T(), 0, len(string(*readCmd.Function)))
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReplyCmd() {
@@ -51,35 +54,28 @@ func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReplyCmd() {
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_NotifyCmd() {
-	readCmd := suite.sut.NotifyCmdType(nil, nil, false, nil)
-	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
-	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
-	assert.NotNil(suite.T(), readCmd.Function)
-	assert.NotEqual(suite.T(), 0, len(string(*readCmd.Function)))
-
-	readCmd = suite.sut.NotifyCmdType(nil, nil, true, nil)
-	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
-	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
-	assert.NotNil(suite.T(), readCmd.Function)
-	assert.NotEqual(suite.T(), 0, len(string(*readCmd.Function)))
+	notifyCmd := suite.sut.NotifyOrWriteCmdType(nil, nil, false, nil)
+	assert.NotNil(suite.T(), notifyCmd.DeviceClassificationManufacturerData)
+	assert.Equal(suite.T(), suite.data.DeviceName, notifyCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.Nil(suite.T(), notifyCmd.Function)
 
 	deleteS := model.NewFilterTypePartial()
-	readCmd = suite.sut.NotifyCmdType(deleteS, nil, false, nil)
-	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
-	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
-	assert.NotNil(suite.T(), readCmd.Function)
-	assert.Equal(suite.T(), 0, len(string(*readCmd.Function)))
-}
+	notifyCmd = suite.sut.NotifyOrWriteCmdType(deleteS, nil, false, nil)
+	assert.NotNil(suite.T(), notifyCmd.DeviceClassificationManufacturerData)
+	assert.Equal(suite.T(), suite.data.DeviceName, notifyCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), notifyCmd.Function)
 
-func (suite *FctDataCmdSuite) TestFunctionDataCmd_WriteCmd() {
-	readCmd := suite.sut.WriteCmdType(nil, nil, nil)
-	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
-	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
+	notifyCmd = suite.sut.NotifyOrWriteCmdType(nil, nil, true, nil)
+	assert.NotNil(suite.T(), notifyCmd.DeviceClassificationManufacturerData)
+	assert.Equal(suite.T(), suite.data.DeviceName, notifyCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), notifyCmd.Function)
+	assert.NotEqual(suite.T(), 0, len(string(*notifyCmd.Function)))
 
-	partialS := model.NewFilterTypePartial()
-	readCmd = suite.sut.WriteCmdType(nil, partialS, nil)
-	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
-	assert.Equal(suite.T(), suite.data.DeviceName, readCmd.DeviceClassificationManufacturerData.DeviceName)
+	notifyCmd = suite.sut.NotifyOrWriteCmdType(deleteS, nil, false, nil)
+	assert.NotNil(suite.T(), notifyCmd.DeviceClassificationManufacturerData)
+	assert.Equal(suite.T(), suite.data.DeviceName, notifyCmd.DeviceClassificationManufacturerData.DeviceName)
+	assert.NotNil(suite.T(), notifyCmd.Function)
+	assert.NotEqual(suite.T(), 0, len(string(*notifyCmd.Function)))
 }
 
 func (suite *FctDataCmdSuite) Test_AddSelectorToFilter() {

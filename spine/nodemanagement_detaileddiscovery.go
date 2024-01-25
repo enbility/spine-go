@@ -14,7 +14,7 @@ func (r *NodeManagement) RequestDetailedDiscovery(remoteDeviceSki string, remote
 	cmd := model.CmdType{
 		NodeManagementDetailedDiscoveryData: &model.NodeManagementDetailedDiscoveryDataType{},
 	}
-	return r.RequestDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
+	return r.RequestRemoteDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
 }
 
 // handle incoming detailed discovery read call

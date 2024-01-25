@@ -444,40 +444,6 @@ func (_c *FeatureRemoteInterface_Sender_Call) RunAndReturn(run func() api.Sender
 	return _c
 }
 
-// SetData provides a mock function with given fields: function, data
-func (_m *FeatureRemoteInterface) SetData(function model.FunctionType, data interface{}) {
-	_m.Called(function, data)
-}
-
-// FeatureRemoteInterface_SetData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetData'
-type FeatureRemoteInterface_SetData_Call struct {
-	*mock.Call
-}
-
-// SetData is a helper method to define mock.On call
-//   - function model.FunctionType
-//   - data interface{}
-func (_e *FeatureRemoteInterface_Expecter) SetData(function interface{}, data interface{}) *FeatureRemoteInterface_SetData_Call {
-	return &FeatureRemoteInterface_SetData_Call{Call: _e.mock.On("SetData", function, data)}
-}
-
-func (_c *FeatureRemoteInterface_SetData_Call) Run(run func(function model.FunctionType, data interface{})) *FeatureRemoteInterface_SetData_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.FunctionType), args[1].(interface{}))
-	})
-	return _c
-}
-
-func (_c *FeatureRemoteInterface_SetData_Call) Return() *FeatureRemoteInterface_SetData_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *FeatureRemoteInterface_SetData_Call) RunAndReturn(run func(model.FunctionType, interface{})) *FeatureRemoteInterface_SetData_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetDescription provides a mock function with given fields: desc
 func (_m *FeatureRemoteInterface) SetDescription(desc *model.DescriptionType) {
 	_m.Called(desc)

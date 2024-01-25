@@ -14,7 +14,7 @@ func (r *NodeManagement) RequestUseCaseData(remoteDeviceSki string, remoteDevice
 	cmd := model.CmdType{
 		NodeManagementUseCaseData: &model.NodeManagementUseCaseDataType{},
 	}
-	return r.RequestDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
+	return r.RequestRemoteDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
 }
 
 func (r *NodeManagement) NotifyUseCaseData(remoteDevice api.DeviceRemoteInterface) (*model.MsgCounterType, error) {
@@ -27,7 +27,7 @@ func (r *NodeManagement) NotifyUseCaseData(remoteDevice api.DeviceRemoteInterfac
 	if fd == nil {
 		return nil, errors.New("function data not found")
 	}
-	cmd := fd.NotifyCmdType(nil, nil, false, nil)
+	cmd := fd.NotifyOrWriteCmdType(nil, nil, false, nil)
 
 	return featureRemote.Sender().Notify(r.Address(), rfAdress, cmd)
 }

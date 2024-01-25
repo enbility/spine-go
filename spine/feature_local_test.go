@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/enbility/spine-go/api"
@@ -46,11 +47,37 @@ func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName strin
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Reply() {
-	suite.senderMock.On("Request", model.CmdClassifierTypeRead, suite.localFeature.Address(), suite.remoteFeature.Address(), false, mock.AnythingOfType("[]model.CmdType")).Return(&suite.msgCounter, nil)
+	dummyAddress := &model.FeatureAddressType{
+		Device:  util.Ptr(model.AddressDeviceType("")),
+		Entity:  []model.AddressEntityType{2},
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+
+	suite.senderMock.EXPECT().Request(
+		model.CmdClassifierTypeRead,
+		suite.localFeature.Address(),
+		suite.remoteFeature.Address(),
+		false,
+		mock.AnythingOfType("[]model.CmdType")).Return(&suite.msgCounter, nil).Maybe()
+	suite.senderMock.EXPECT().Request(
+		model.CmdClassifierTypeRead,
+		suite.localFeature.Address(),
+		dummyAddress,
+		false,
+		mock.AnythingOfType("[]model.CmdType")).Return(nil, errors.New("test"))
+
+	msgCounter, err := suite.localFeature.RequestRemoteData(model.FunctionTypeBillListData, nil, nil, suite.remoteFeature)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), msgCounter)
+
+	msgCounter, err = suite.localFeature.RequestRemoteDataBySenderAddress(model.CmdType{}, suite.senderMock, "dummyfail", dummyAddress, 0)
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), msgCounter)
 
 	// send data request
-	msgCounter, err := suite.localFeature.RequestData(suite.function, nil, nil, suite.remoteFeature)
+	msgCounter, err = suite.localFeature.RequestRemoteData(suite.function, nil, nil, suite.remoteFeature)
 	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), msgCounter)
 
 	manufacturerData := &model.DeviceClassificationManufacturerDataType{
 		BrandName:    util.Ptr(model.DeviceClassificationStringType("brand name")),
@@ -79,7 +106,7 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Rep
 	}
 
 	// Act
-	result, err := suite.localFeature.FetchRequestData(*msgCounter, suite.remoteFeature)
+	result, err := suite.localFeature.FetchRequestRemoteData(*msgCounter, suite.remoteFeature)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
 	assert.IsType(suite.T(), &model.DeviceClassificationManufacturerDataType{}, result, "Data has wrong type")
@@ -99,7 +126,7 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Err
 	const errorDescription = "error occurred"
 
 	// send data request
-	msgCounter, err := suite.localFeature.RequestData(suite.function, nil, nil, suite.remoteFeature)
+	msgCounter, err := suite.localFeature.RequestRemoteData(suite.function, nil, nil, suite.remoteFeature)
 	assert.Nil(suite.T(), err)
 
 	replyMsg := api.Message{
@@ -127,7 +154,7 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Err
 	}
 
 	// Act
-	result, err := suite.localFeature.FetchRequestData(*msgCounter, suite.remoteFeature)
+	result, err := suite.localFeature.FetchRequestRemoteData(*msgCounter, suite.remoteFeature)
 	assert.Nil(suite.T(), result)
 	assert.NotNil(suite.T(), err)
 	assert.Equal(suite.T(), errorNumber, err.ErrorNumber)

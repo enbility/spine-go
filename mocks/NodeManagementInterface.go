@@ -422,12 +422,12 @@ func (_c *NodeManagementInterface_Entity_Call) RunAndReturn(run func() api.Entit
 	return _c
 }
 
-// FetchRequestData provides a mock function with given fields: msgCounter, destination
-func (_m *NodeManagementInterface) FetchRequestData(msgCounter model.MsgCounterType, destination api.FeatureRemoteInterface) (interface{}, *model.ErrorType) {
+// FetchRequestRemoteData provides a mock function with given fields: msgCounter, destination
+func (_m *NodeManagementInterface) FetchRequestRemoteData(msgCounter model.MsgCounterType, destination api.FeatureRemoteInterface) (interface{}, *model.ErrorType) {
 	ret := _m.Called(msgCounter, destination)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FetchRequestData")
+		panic("no return value specified for FetchRequestRemoteData")
 	}
 
 	var r0 interface{}
@@ -454,31 +454,31 @@ func (_m *NodeManagementInterface) FetchRequestData(msgCounter model.MsgCounterT
 	return r0, r1
 }
 
-// NodeManagementInterface_FetchRequestData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchRequestData'
-type NodeManagementInterface_FetchRequestData_Call struct {
+// NodeManagementInterface_FetchRequestRemoteData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchRequestRemoteData'
+type NodeManagementInterface_FetchRequestRemoteData_Call struct {
 	*mock.Call
 }
 
-// FetchRequestData is a helper method to define mock.On call
+// FetchRequestRemoteData is a helper method to define mock.On call
 //   - msgCounter model.MsgCounterType
 //   - destination api.FeatureRemoteInterface
-func (_e *NodeManagementInterface_Expecter) FetchRequestData(msgCounter interface{}, destination interface{}) *NodeManagementInterface_FetchRequestData_Call {
-	return &NodeManagementInterface_FetchRequestData_Call{Call: _e.mock.On("FetchRequestData", msgCounter, destination)}
+func (_e *NodeManagementInterface_Expecter) FetchRequestRemoteData(msgCounter interface{}, destination interface{}) *NodeManagementInterface_FetchRequestRemoteData_Call {
+	return &NodeManagementInterface_FetchRequestRemoteData_Call{Call: _e.mock.On("FetchRequestRemoteData", msgCounter, destination)}
 }
 
-func (_c *NodeManagementInterface_FetchRequestData_Call) Run(run func(msgCounter model.MsgCounterType, destination api.FeatureRemoteInterface)) *NodeManagementInterface_FetchRequestData_Call {
+func (_c *NodeManagementInterface_FetchRequestRemoteData_Call) Run(run func(msgCounter model.MsgCounterType, destination api.FeatureRemoteInterface)) *NodeManagementInterface_FetchRequestRemoteData_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(model.MsgCounterType), args[1].(api.FeatureRemoteInterface))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_FetchRequestData_Call) Return(_a0 interface{}, _a1 *model.ErrorType) *NodeManagementInterface_FetchRequestData_Call {
+func (_c *NodeManagementInterface_FetchRequestRemoteData_Call) Return(_a0 interface{}, _a1 *model.ErrorType) *NodeManagementInterface_FetchRequestRemoteData_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NodeManagementInterface_FetchRequestData_Call) RunAndReturn(run func(model.MsgCounterType, api.FeatureRemoteInterface) (interface{}, *model.ErrorType)) *NodeManagementInterface_FetchRequestData_Call {
+func (_c *NodeManagementInterface_FetchRequestRemoteData_Call) RunAndReturn(run func(model.MsgCounterType, api.FeatureRemoteInterface) (interface{}, *model.ErrorType)) *NodeManagementInterface_FetchRequestRemoteData_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -574,71 +574,6 @@ func (_c *NodeManagementInterface_Information_Call) Return(_a0 *model.NodeManage
 }
 
 func (_c *NodeManagementInterface_Information_Call) RunAndReturn(run func() *model.NodeManagementDetailedDiscoveryFeatureInformationType) *NodeManagementInterface_Information_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// NotifyData provides a mock function with given fields: function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination
-func (_m *NodeManagementInterface) NotifyData(function model.FunctionType, deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{}, destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NotifyData")
-	}
-
-	var r0 *model.MsgCounterType
-	var r1 *model.ErrorType
-	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, interface{}, bool, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination)
-	}
-	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, interface{}, bool, interface{}, api.FeatureRemoteInterface) *model.MsgCounterType); ok {
-		r0 = rf(function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.MsgCounterType)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(model.FunctionType, interface{}, interface{}, bool, interface{}, api.FeatureRemoteInterface) *model.ErrorType); ok {
-		r1 = rf(function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.ErrorType)
-		}
-	}
-
-	return r0, r1
-}
-
-// NodeManagementInterface_NotifyData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NotifyData'
-type NodeManagementInterface_NotifyData_Call struct {
-	*mock.Call
-}
-
-// NotifyData is a helper method to define mock.On call
-//   - function model.FunctionType
-//   - deleteSelector interface{}
-//   - partialSelector interface{}
-//   - partialWithoutSelector bool
-//   - deleteElements interface{}
-//   - destination api.FeatureRemoteInterface
-func (_e *NodeManagementInterface_Expecter) NotifyData(function interface{}, deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector interface{}, deleteElements interface{}, destination interface{}) *NodeManagementInterface_NotifyData_Call {
-	return &NodeManagementInterface_NotifyData_Call{Call: _e.mock.On("NotifyData", function, deleteSelector, partialSelector, partialWithoutSelector, deleteElements, destination)}
-}
-
-func (_c *NodeManagementInterface_NotifyData_Call) Run(run func(function model.FunctionType, deleteSelector interface{}, partialSelector interface{}, partialWithoutSelector bool, deleteElements interface{}, destination api.FeatureRemoteInterface)) *NodeManagementInterface_NotifyData_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.FunctionType), args[1].(interface{}), args[2].(interface{}), args[3].(bool), args[4].(interface{}), args[5].(api.FeatureRemoteInterface))
-	})
-	return _c
-}
-
-func (_c *NodeManagementInterface_NotifyData_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_NotifyData_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *NodeManagementInterface_NotifyData_Call) RunAndReturn(run func(model.FunctionType, interface{}, interface{}, bool, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_NotifyData_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -820,12 +755,12 @@ func (_c *NodeManagementInterface_RemoveSubscription_Call) RunAndReturn(run func
 	return _c
 }
 
-// RequestData provides a mock function with given fields: function, selector, elements, destination
-func (_m *NodeManagementInterface) RequestData(function model.FunctionType, selector interface{}, elements interface{}, destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
+// RequestRemoteData provides a mock function with given fields: function, selector, elements, destination
+func (_m *NodeManagementInterface) RequestRemoteData(function model.FunctionType, selector interface{}, elements interface{}, destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(function, selector, elements, destination)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RequestData")
+		panic("no return value specified for RequestRemoteData")
 	}
 
 	var r0 *model.MsgCounterType
@@ -852,43 +787,43 @@ func (_m *NodeManagementInterface) RequestData(function model.FunctionType, sele
 	return r0, r1
 }
 
-// NodeManagementInterface_RequestData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestData'
-type NodeManagementInterface_RequestData_Call struct {
+// NodeManagementInterface_RequestRemoteData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestRemoteData'
+type NodeManagementInterface_RequestRemoteData_Call struct {
 	*mock.Call
 }
 
-// RequestData is a helper method to define mock.On call
+// RequestRemoteData is a helper method to define mock.On call
 //   - function model.FunctionType
 //   - selector interface{}
 //   - elements interface{}
 //   - destination api.FeatureRemoteInterface
-func (_e *NodeManagementInterface_Expecter) RequestData(function interface{}, selector interface{}, elements interface{}, destination interface{}) *NodeManagementInterface_RequestData_Call {
-	return &NodeManagementInterface_RequestData_Call{Call: _e.mock.On("RequestData", function, selector, elements, destination)}
+func (_e *NodeManagementInterface_Expecter) RequestRemoteData(function interface{}, selector interface{}, elements interface{}, destination interface{}) *NodeManagementInterface_RequestRemoteData_Call {
+	return &NodeManagementInterface_RequestRemoteData_Call{Call: _e.mock.On("RequestRemoteData", function, selector, elements, destination)}
 }
 
-func (_c *NodeManagementInterface_RequestData_Call) Run(run func(function model.FunctionType, selector interface{}, elements interface{}, destination api.FeatureRemoteInterface)) *NodeManagementInterface_RequestData_Call {
+func (_c *NodeManagementInterface_RequestRemoteData_Call) Run(run func(function model.FunctionType, selector interface{}, elements interface{}, destination api.FeatureRemoteInterface)) *NodeManagementInterface_RequestRemoteData_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(model.FunctionType), args[1].(interface{}), args[2].(interface{}), args[3].(api.FeatureRemoteInterface))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RequestData_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_RequestData_Call {
+func (_c *NodeManagementInterface_RequestRemoteData_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_RequestRemoteData_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NodeManagementInterface_RequestData_Call) RunAndReturn(run func(model.FunctionType, interface{}, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_RequestData_Call {
+func (_c *NodeManagementInterface_RequestRemoteData_Call) RunAndReturn(run func(model.FunctionType, interface{}, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_RequestRemoteData_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RequestDataBySenderAddress provides a mock function with given fields: cmd, sender, destinationSki, destinationAddress, maxDelay
-func (_m *NodeManagementInterface) RequestDataBySenderAddress(cmd model.CmdType, sender api.SenderInterface, destinationSki string, destinationAddress *model.FeatureAddressType, maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
+// RequestRemoteDataBySenderAddress provides a mock function with given fields: cmd, sender, destinationSki, destinationAddress, maxDelay
+func (_m *NodeManagementInterface) RequestRemoteDataBySenderAddress(cmd model.CmdType, sender api.SenderInterface, destinationSki string, destinationAddress *model.FeatureAddressType, maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(cmd, sender, destinationSki, destinationAddress, maxDelay)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RequestDataBySenderAddress")
+		panic("no return value specified for RequestRemoteDataBySenderAddress")
 	}
 
 	var r0 *model.MsgCounterType
@@ -915,34 +850,34 @@ func (_m *NodeManagementInterface) RequestDataBySenderAddress(cmd model.CmdType,
 	return r0, r1
 }
 
-// NodeManagementInterface_RequestDataBySenderAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestDataBySenderAddress'
-type NodeManagementInterface_RequestDataBySenderAddress_Call struct {
+// NodeManagementInterface_RequestRemoteDataBySenderAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestRemoteDataBySenderAddress'
+type NodeManagementInterface_RequestRemoteDataBySenderAddress_Call struct {
 	*mock.Call
 }
 
-// RequestDataBySenderAddress is a helper method to define mock.On call
+// RequestRemoteDataBySenderAddress is a helper method to define mock.On call
 //   - cmd model.CmdType
 //   - sender api.SenderInterface
 //   - destinationSki string
 //   - destinationAddress *model.FeatureAddressType
 //   - maxDelay time.Duration
-func (_e *NodeManagementInterface_Expecter) RequestDataBySenderAddress(cmd interface{}, sender interface{}, destinationSki interface{}, destinationAddress interface{}, maxDelay interface{}) *NodeManagementInterface_RequestDataBySenderAddress_Call {
-	return &NodeManagementInterface_RequestDataBySenderAddress_Call{Call: _e.mock.On("RequestDataBySenderAddress", cmd, sender, destinationSki, destinationAddress, maxDelay)}
+func (_e *NodeManagementInterface_Expecter) RequestRemoteDataBySenderAddress(cmd interface{}, sender interface{}, destinationSki interface{}, destinationAddress interface{}, maxDelay interface{}) *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call {
+	return &NodeManagementInterface_RequestRemoteDataBySenderAddress_Call{Call: _e.mock.On("RequestRemoteDataBySenderAddress", cmd, sender, destinationSki, destinationAddress, maxDelay)}
 }
 
-func (_c *NodeManagementInterface_RequestDataBySenderAddress_Call) Run(run func(cmd model.CmdType, sender api.SenderInterface, destinationSki string, destinationAddress *model.FeatureAddressType, maxDelay time.Duration)) *NodeManagementInterface_RequestDataBySenderAddress_Call {
+func (_c *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call) Run(run func(cmd model.CmdType, sender api.SenderInterface, destinationSki string, destinationAddress *model.FeatureAddressType, maxDelay time.Duration)) *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(model.CmdType), args[1].(api.SenderInterface), args[2].(string), args[3].(*model.FeatureAddressType), args[4].(time.Duration))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RequestDataBySenderAddress_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_RequestDataBySenderAddress_Call {
+func (_c *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NodeManagementInterface_RequestDataBySenderAddress_Call) RunAndReturn(run func(model.CmdType, api.SenderInterface, string, *model.FeatureAddressType, time.Duration) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_RequestDataBySenderAddress_Call {
+func (_c *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call) RunAndReturn(run func(model.CmdType, api.SenderInterface, string, *model.FeatureAddressType, time.Duration) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_RequestRemoteDataBySenderAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1238,70 +1173,6 @@ func (_c *NodeManagementInterface_Type_Call) Return(_a0 model.FeatureTypeType) *
 }
 
 func (_c *NodeManagementInterface_Type_Call) RunAndReturn(run func() model.FeatureTypeType) *NodeManagementInterface_Type_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// WriteData provides a mock function with given fields: function, deleteSelector, partialSelector, deleteElements, destination
-func (_m *NodeManagementInterface) WriteData(function model.FunctionType, deleteSelector interface{}, partialSelector interface{}, deleteElements interface{}, destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(function, deleteSelector, partialSelector, deleteElements, destination)
-
-	if len(ret) == 0 {
-		panic("no return value specified for WriteData")
-	}
-
-	var r0 *model.MsgCounterType
-	var r1 *model.ErrorType
-	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, interface{}, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(function, deleteSelector, partialSelector, deleteElements, destination)
-	}
-	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, interface{}, interface{}, api.FeatureRemoteInterface) *model.MsgCounterType); ok {
-		r0 = rf(function, deleteSelector, partialSelector, deleteElements, destination)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.MsgCounterType)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(model.FunctionType, interface{}, interface{}, interface{}, api.FeatureRemoteInterface) *model.ErrorType); ok {
-		r1 = rf(function, deleteSelector, partialSelector, deleteElements, destination)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.ErrorType)
-		}
-	}
-
-	return r0, r1
-}
-
-// NodeManagementInterface_WriteData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WriteData'
-type NodeManagementInterface_WriteData_Call struct {
-	*mock.Call
-}
-
-// WriteData is a helper method to define mock.On call
-//   - function model.FunctionType
-//   - deleteSelector interface{}
-//   - partialSelector interface{}
-//   - deleteElements interface{}
-//   - destination api.FeatureRemoteInterface
-func (_e *NodeManagementInterface_Expecter) WriteData(function interface{}, deleteSelector interface{}, partialSelector interface{}, deleteElements interface{}, destination interface{}) *NodeManagementInterface_WriteData_Call {
-	return &NodeManagementInterface_WriteData_Call{Call: _e.mock.On("WriteData", function, deleteSelector, partialSelector, deleteElements, destination)}
-}
-
-func (_c *NodeManagementInterface_WriteData_Call) Run(run func(function model.FunctionType, deleteSelector interface{}, partialSelector interface{}, deleteElements interface{}, destination api.FeatureRemoteInterface)) *NodeManagementInterface_WriteData_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.FunctionType), args[1].(interface{}), args[2].(interface{}), args[3].(interface{}), args[4].(api.FeatureRemoteInterface))
-	})
-	return _c
-}
-
-func (_c *NodeManagementInterface_WriteData_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_WriteData_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *NodeManagementInterface_WriteData_Call) RunAndReturn(run func(model.FunctionType, interface{}, interface{}, interface{}, api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_WriteData_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -145,7 +145,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 		true,
 		[]model.UseCaseScenarioSupportType{1},
 	)
-	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
+	nodeMgmt.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 	data = nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
@@ -165,7 +165,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 		true,
 		[]model.UseCaseScenarioSupportType{1},
 	)
-	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
+	nodeMgmt.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 	data = nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
@@ -185,7 +185,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 		false,
 		[]model.UseCaseScenarioSupportType{1},
 	)
-	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
+	nodeMgmt.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 	data = nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
@@ -205,7 +205,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 		true,
 		[]model.UseCaseScenarioSupportType{1},
 	)
-	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
+	nodeMgmt.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
 		model.UseCaseActorTypeEVSE,

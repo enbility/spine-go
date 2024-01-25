@@ -92,7 +92,7 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 
 	r.mux.Unlock()
 
-	r.Device().NotifySubscribers(r.Address(), fd.NotifyCmdType(nil, nil, false, nil))
+	r.Device().NotifySubscribers(r.Address(), fd.NotifyOrWriteCmdType(nil, nil, false, nil))
 }
 
 func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
@@ -157,7 +157,7 @@ func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatu
 	return &res
 }
 
-func (r *FeatureLocal) RequestData(
+func (r *FeatureLocal) RequestRemoteData(
 	function model.FunctionType,
 	selector any,
 	elements any,
@@ -169,10 +169,10 @@ func (r *FeatureLocal) RequestData(
 
 	cmd := fd.ReadCmdType(selector, elements)
 
-	return r.RequestDataBySenderAddress(cmd, destination.Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
+	return r.RequestRemoteDataBySenderAddress(cmd, destination.Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
 }
 
-func (r *FeatureLocal) RequestDataBySenderAddress(
+func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 	cmd model.CmdType,
 	sender api.SenderInterface,
 	deviceSki string,
@@ -190,7 +190,7 @@ func (r *FeatureLocal) RequestDataBySenderAddress(
 
 // Wait and return the response from destination for a message with the msgCounter ID
 // this will block until the response is received
-func (r *FeatureLocal) FetchRequestData(
+func (r *FeatureLocal) FetchRequestRemoteData(
 	msgCounter model.MsgCounterType,
 	destination api.FeatureRemoteInterface) (any, *model.ErrorType) {
 
@@ -312,47 +312,6 @@ func (r *FeatureLocal) RemoveAllBindings() {
 	for _, item := range r.bindings {
 		r.RemoveBinding(item)
 	}
-}
-
-// Send a notification message with the current data of function to the destination
-func (r *FeatureLocal) NotifyData(
-	function model.FunctionType,
-	deleteSelector, partialSelector any,
-	partialWithoutSelector bool,
-	deleteElements any,
-	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
-	fd := r.functionData(function)
-	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
-	}
-
-	cmd := fd.NotifyCmdType(deleteSelector, partialSelector, partialWithoutSelector, deleteElements)
-
-	msgCounter, err := destination.Sender().Request(model.CmdClassifierTypeRead, r.Address(), destination.Address(), false, []model.CmdType{cmd})
-	if err != nil {
-		return nil, model.NewErrorTypeFromString(err.Error())
-	}
-	return msgCounter, nil
-}
-
-// Send a write message with provided data of function to the destination
-func (r *FeatureLocal) WriteData(
-	function model.FunctionType,
-	deleteSelector, partialSelector any,
-	deleteElements any,
-	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
-	fd := r.functionData(function)
-	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
-	}
-	cmd := fd.WriteCmdType(deleteSelector, partialSelector, deleteElements)
-
-	msgCounter, err := destination.Sender().Write(r.Address(), destination.Address(), cmd)
-	if err != nil {
-		return nil, model.NewErrorTypeFromString(err.Error())
-	}
-
-	return msgCounter, nil
 }
 
 func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
