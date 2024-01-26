@@ -208,7 +208,50 @@ func NewScaledNumberType(value float64) *ScaledNumberType {
 	return m
 }
 
+// DeviceAddressType
+
+var _ UpdateHelper = (*DeviceAddressType)(nil)
+
+func (r *DeviceAddressType) String() string {
+	if r == nil {
+		return ""
+	}
+
+	var result string = ""
+	if r.Device != nil {
+		result += string(*r.Device)
+	}
+
+	return result
+}
+
+// EntityAddressType
+
+var _ UpdateHelper = (*EntityAddressType)(nil)
+
+func (r *EntityAddressType) String() string {
+	if r == nil {
+		return ""
+	}
+
+	var result string = ""
+	if r.Device != nil {
+		result += string(*r.Device)
+	}
+	result += ":["
+	for index, id := range r.Entity {
+		if index > 0 {
+			result += ","
+		}
+		result += fmt.Sprintf("%d", id)
+	}
+	result += "]:"
+	return result
+}
+
 // FeatureAddressType
+
+var _ UpdateHelper = (*FeatureAddressType)(nil)
 
 func (r *FeatureAddressType) String() string {
 	if r == nil {
@@ -231,4 +274,8 @@ func (r *FeatureAddressType) String() string {
 		result += fmt.Sprintf("%d", *r.Feature)
 	}
 	return result
+}
+
+func (r *FeatureAddressType) GetHashValue() string {
+	return r.String()
 }

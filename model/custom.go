@@ -6,6 +6,11 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
+// provides a helper method to create hash values of custom structs for usage with collection updates
+type UpdateHelper interface {
+	String() string
+}
+
 type ErrorType struct {
 	ErrorNumber ErrorNumberType
 	Description *DescriptionType

@@ -41,6 +41,25 @@ func hashKey(data any) string {
 			}
 			result = fmt.Sprintf("%s%d", result, value)
 
+		case reflect.Struct:
+			value := f.Type()
+			fmt.Println(value)
+
+			if !f.CanInterface() {
+				return result
+			}
+
+			c, ok := f.Interface().(UpdateHelper)
+			if !ok {
+				return result
+			}
+
+			if len(result) > 0 {
+				result = fmt.Sprintf("%s|", result)
+			}
+			result = fmt.Sprintf("%s%s", result, c.String())
+
+			return result
 		default:
 			return result
 		}

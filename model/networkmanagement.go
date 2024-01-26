@@ -138,7 +138,7 @@ type NetworkManagementReportCandidateDataElementsType struct {
 }
 
 type NetworkManagementDeviceDescriptionDataType struct {
-	DeviceAddress                       *DeviceAddressType                                        `json:"deviceAddress,omitempty"`
+	DeviceAddress                       *DeviceAddressType                                        `json:"deviceAddress,omitempty" eebus:"key"`
 	DeviceType                          *DeviceTypeType                                           `json:"deviceType,omitempty"`
 	NetworkManagementResponsibleAddress *FeatureAddressType                                       `json:"networkManagementResponsibleAddress,omitempty"`
 	NativeSetup                         *NetworkManagementNativeSetupType                         `json:"nativeSetup,omitempty"`
@@ -175,7 +175,7 @@ type NetworkManagementDeviceDescriptionListDataSelectorsType struct {
 }
 
 type NetworkManagementEntityDescriptionDataType struct {
-	EntityAddress     *EntityAddressType                      `json:"entityAddress,omitempty"`
+	EntityAddress     *EntityAddressType                      `json:"entityAddress,omitempty" eebus:"key"`
 	EntityType        *EntityTypeType                         `json:"entityType,omitempty"`
 	LastStateChange   *NetworkManagementStateChangeType       `json:"lastStateChange,omitempty"`
 	MinimumTrustLevel *NetworkManagementMinimumTrustLevelType `json:"minimumTrustLevel,omitempty"`
@@ -202,7 +202,7 @@ type NetworkManagementEntityDescriptionListDataSelectorsType struct {
 }
 
 type NetworkManagementFeatureDescriptionDataType struct {
-	FeatureAddress    *FeatureAddressType                     `json:"featureAddress,omitempty"`
+	FeatureAddress    *FeatureAddressType                     `json:"featureAddress,omitempty" eebus:"key"`
 	FeatureType       *FeatureTypeType                        `json:"featureType,omitempty"`
 	SpecificUsage     []FeatureSpecificUsageType              `json:"specificUsage,omitempty"`
 	FeatureGroup      *FeatureGroupType                       `json:"featureGroup,omitempty"`
