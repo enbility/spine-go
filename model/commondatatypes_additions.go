@@ -275,7 +275,3 @@ func (r *FeatureAddressType) String() string {
 	}
 	return result
 }
-
-func (r *FeatureAddressType) GetHashValue() string {
-	return r.String()
-}
