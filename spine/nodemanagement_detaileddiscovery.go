@@ -177,7 +177,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 			}
 
 			entityAddress := ei.Description.EntityAddress.Entity
-			removedEntity := remoteDevice.RemoveByAddress(entityAddress)
+			removedEntity := remoteDevice.RemoveEntityByAddress(entityAddress)
 
 			// only continue if the entity existed
 			if removedEntity == nil {

@@ -174,7 +174,7 @@ func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteIn
 			continue
 		}
 
-		clientFeature := remoteEntity.Feature(item.ClientFeature.Address().Feature)
+		clientFeature := remoteEntity.FeatureOfAddress(item.ClientFeature.Address().Feature)
 		payload := api.EventPayload{
 			Ski:        remoteEntity.Device().Ski(),
 			EventType:  api.EventTypeBindingChange,

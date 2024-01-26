@@ -10,8 +10,6 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionDataInterface = (*FunctionData[int])(nil)
-
 type FunctionData[T any] struct {
 	functionType model.FunctionType
 	data         *T
@@ -25,7 +23,11 @@ func NewFunctionData[T any](function model.FunctionType) *FunctionData[T] {
 	}
 }
 
-func (r *FunctionData[T]) Function() model.FunctionType {
+var _ api.FunctionDataInterface = (*FunctionData[int])(nil)
+
+/* FunctionDataInterface */
+
+func (r *FunctionData[T]) FunctionType() model.FunctionType {
 	return r.functionType
 }
 

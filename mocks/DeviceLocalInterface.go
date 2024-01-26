@@ -979,6 +979,66 @@ func (_c *DeviceLocalInterface_RemoveRemoteDeviceConnection_Call) RunAndReturn(r
 	return _c
 }
 
+// RequestRemoteDetailedDiscoveryData provides a mock function with given fields: rDevice
+func (_m *DeviceLocalInterface) RequestRemoteDetailedDiscoveryData(rDevice api.DeviceRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
+	ret := _m.Called(rDevice)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RequestRemoteDetailedDiscoveryData")
+	}
+
+	var r0 *model.MsgCounterType
+	var r1 *model.ErrorType
+	if rf, ok := ret.Get(0).(func(api.DeviceRemoteInterface) (*model.MsgCounterType, *model.ErrorType)); ok {
+		return rf(rDevice)
+	}
+	if rf, ok := ret.Get(0).(func(api.DeviceRemoteInterface) *model.MsgCounterType); ok {
+		r0 = rf(rDevice)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.MsgCounterType)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(api.DeviceRemoteInterface) *model.ErrorType); ok {
+		r1 = rf(rDevice)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.ErrorType)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestRemoteDetailedDiscoveryData'
+type DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call struct {
+	*mock.Call
+}
+
+// RequestRemoteDetailedDiscoveryData is a helper method to define mock.On call
+//   - rDevice api.DeviceRemoteInterface
+func (_e *DeviceLocalInterface_Expecter) RequestRemoteDetailedDiscoveryData(rDevice interface{}) *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call {
+	return &DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call{Call: _e.mock.On("RequestRemoteDetailedDiscoveryData", rDevice)}
+}
+
+func (_c *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call) Run(run func(rDevice api.DeviceRemoteInterface)) *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(api.DeviceRemoteInterface))
+	})
+	return _c
+}
+
+func (_c *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call) RunAndReturn(run func(api.DeviceRemoteInterface) (*model.MsgCounterType, *model.ErrorType)) *DeviceLocalInterface_RequestRemoteDetailedDiscoveryData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetupRemoteDevice provides a mock function with given fields: ski, writeI
 func (_m *DeviceLocalInterface) SetupRemoteDevice(ski string, writeI ship_goapi.ShipConnectionDataWriterInterface) ship_goapi.ShipConnectionDataReaderInterface {
 	ret := _m.Called(ski, writeI)

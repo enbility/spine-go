@@ -173,12 +173,12 @@ func (_c *FeatureLocalInterface_Address_Call) RunAndReturn(run func() *model.Fea
 	return _c
 }
 
-// Bind provides a mock function with given fields: remoteAdress
-func (_m *FeatureLocalInterface) Bind(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// BindToRemote provides a mock function with given fields: remoteAdress
+func (_m *FeatureLocalInterface) BindToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(remoteAdress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Bind")
+		panic("no return value specified for BindToRemote")
 	}
 
 	var r0 *model.MsgCounterType
@@ -205,30 +205,30 @@ func (_m *FeatureLocalInterface) Bind(remoteAdress *model.FeatureAddressType) (*
 	return r0, r1
 }
 
-// FeatureLocalInterface_Bind_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Bind'
-type FeatureLocalInterface_Bind_Call struct {
+// FeatureLocalInterface_BindToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BindToRemote'
+type FeatureLocalInterface_BindToRemote_Call struct {
 	*mock.Call
 }
 
-// Bind is a helper method to define mock.On call
+// BindToRemote is a helper method to define mock.On call
 //   - remoteAdress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) Bind(remoteAdress interface{}) *FeatureLocalInterface_Bind_Call {
-	return &FeatureLocalInterface_Bind_Call{Call: _e.mock.On("Bind", remoteAdress)}
+func (_e *FeatureLocalInterface_Expecter) BindToRemote(remoteAdress interface{}) *FeatureLocalInterface_BindToRemote_Call {
+	return &FeatureLocalInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAdress)}
 }
 
-func (_c *FeatureLocalInterface_Bind_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_Bind_Call {
+func (_c *FeatureLocalInterface_BindToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_BindToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_Bind_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *FeatureLocalInterface_Bind_Call {
+func (_c *FeatureLocalInterface_BindToRemote_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *FeatureLocalInterface_BindToRemote_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FeatureLocalInterface_Bind_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *FeatureLocalInterface_Bind_Call {
+func (_c *FeatureLocalInterface_BindToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *FeatureLocalInterface_BindToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -625,132 +625,132 @@ func (_c *FeatureLocalInterface_Operations_Call) RunAndReturn(run func() map[mod
 	return _c
 }
 
-// RemoveAllBindings provides a mock function with given fields:
-func (_m *FeatureLocalInterface) RemoveAllBindings() {
+// RemoveAllRemoteBindings provides a mock function with given fields:
+func (_m *FeatureLocalInterface) RemoveAllRemoteBindings() {
 	_m.Called()
 }
 
-// FeatureLocalInterface_RemoveAllBindings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllBindings'
-type FeatureLocalInterface_RemoveAllBindings_Call struct {
+// FeatureLocalInterface_RemoveAllRemoteBindings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllRemoteBindings'
+type FeatureLocalInterface_RemoveAllRemoteBindings_Call struct {
 	*mock.Call
 }
 
-// RemoveAllBindings is a helper method to define mock.On call
-func (_e *FeatureLocalInterface_Expecter) RemoveAllBindings() *FeatureLocalInterface_RemoveAllBindings_Call {
-	return &FeatureLocalInterface_RemoveAllBindings_Call{Call: _e.mock.On("RemoveAllBindings")}
+// RemoveAllRemoteBindings is a helper method to define mock.On call
+func (_e *FeatureLocalInterface_Expecter) RemoveAllRemoteBindings() *FeatureLocalInterface_RemoveAllRemoteBindings_Call {
+	return &FeatureLocalInterface_RemoveAllRemoteBindings_Call{Call: _e.mock.On("RemoveAllRemoteBindings")}
 }
 
-func (_c *FeatureLocalInterface_RemoveAllBindings_Call) Run(run func()) *FeatureLocalInterface_RemoveAllBindings_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteBindings_Call) Run(run func()) *FeatureLocalInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveAllBindings_Call) Return() *FeatureLocalInterface_RemoveAllBindings_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteBindings_Call) Return() *FeatureLocalInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveAllBindings_Call) RunAndReturn(run func()) *FeatureLocalInterface_RemoveAllBindings_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteBindings_Call) RunAndReturn(run func()) *FeatureLocalInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveAllSubscriptions provides a mock function with given fields:
-func (_m *FeatureLocalInterface) RemoveAllSubscriptions() {
+// RemoveAllRemoteSubscriptions provides a mock function with given fields:
+func (_m *FeatureLocalInterface) RemoveAllRemoteSubscriptions() {
 	_m.Called()
 }
 
-// FeatureLocalInterface_RemoveAllSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllSubscriptions'
-type FeatureLocalInterface_RemoveAllSubscriptions_Call struct {
+// FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllRemoteSubscriptions'
+type FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call struct {
 	*mock.Call
 }
 
-// RemoveAllSubscriptions is a helper method to define mock.On call
-func (_e *FeatureLocalInterface_Expecter) RemoveAllSubscriptions() *FeatureLocalInterface_RemoveAllSubscriptions_Call {
-	return &FeatureLocalInterface_RemoveAllSubscriptions_Call{Call: _e.mock.On("RemoveAllSubscriptions")}
+// RemoveAllRemoteSubscriptions is a helper method to define mock.On call
+func (_e *FeatureLocalInterface_Expecter) RemoveAllRemoteSubscriptions() *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call {
+	return &FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call{Call: _e.mock.On("RemoveAllRemoteSubscriptions")}
 }
 
-func (_c *FeatureLocalInterface_RemoveAllSubscriptions_Call) Run(run func()) *FeatureLocalInterface_RemoveAllSubscriptions_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call) Run(run func()) *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveAllSubscriptions_Call) Return() *FeatureLocalInterface_RemoveAllSubscriptions_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call) Return() *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveAllSubscriptions_Call) RunAndReturn(run func()) *FeatureLocalInterface_RemoveAllSubscriptions_Call {
+func (_c *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call) RunAndReturn(run func()) *FeatureLocalInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveBinding provides a mock function with given fields: remoteAddress
-func (_m *FeatureLocalInterface) RemoveBinding(remoteAddress *model.FeatureAddressType) {
+// RemoveRemoteBinding provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) {
 	_m.Called(remoteAddress)
 }
 
-// FeatureLocalInterface_RemoveBinding_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveBinding'
-type FeatureLocalInterface_RemoveBinding_Call struct {
+// FeatureLocalInterface_RemoveRemoteBinding_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRemoteBinding'
+type FeatureLocalInterface_RemoveRemoteBinding_Call struct {
 	*mock.Call
 }
 
-// RemoveBinding is a helper method to define mock.On call
+// RemoveRemoteBinding is a helper method to define mock.On call
 //   - remoteAddress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) RemoveBinding(remoteAddress interface{}) *FeatureLocalInterface_RemoveBinding_Call {
-	return &FeatureLocalInterface_RemoveBinding_Call{Call: _e.mock.On("RemoveBinding", remoteAddress)}
+func (_e *FeatureLocalInterface_Expecter) RemoveRemoteBinding(remoteAddress interface{}) *FeatureLocalInterface_RemoveRemoteBinding_Call {
+	return &FeatureLocalInterface_RemoveRemoteBinding_Call{Call: _e.mock.On("RemoveRemoteBinding", remoteAddress)}
 }
 
-func (_c *FeatureLocalInterface_RemoveBinding_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_RemoveBinding_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteBinding_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_RemoveRemoteBinding_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveBinding_Call) Return() *FeatureLocalInterface_RemoveBinding_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteBinding_Call) Return() *FeatureLocalInterface_RemoveRemoteBinding_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveBinding_Call) RunAndReturn(run func(*model.FeatureAddressType)) *FeatureLocalInterface_RemoveBinding_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteBinding_Call) RunAndReturn(run func(*model.FeatureAddressType)) *FeatureLocalInterface_RemoveRemoteBinding_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveSubscription provides a mock function with given fields: remoteAddress
-func (_m *FeatureLocalInterface) RemoveSubscription(remoteAddress *model.FeatureAddressType) {
+// RemoveRemoteSubscription provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) {
 	_m.Called(remoteAddress)
 }
 
-// FeatureLocalInterface_RemoveSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveSubscription'
-type FeatureLocalInterface_RemoveSubscription_Call struct {
+// FeatureLocalInterface_RemoveRemoteSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRemoteSubscription'
+type FeatureLocalInterface_RemoveRemoteSubscription_Call struct {
 	*mock.Call
 }
 
-// RemoveSubscription is a helper method to define mock.On call
+// RemoveRemoteSubscription is a helper method to define mock.On call
 //   - remoteAddress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) RemoveSubscription(remoteAddress interface{}) *FeatureLocalInterface_RemoveSubscription_Call {
-	return &FeatureLocalInterface_RemoveSubscription_Call{Call: _e.mock.On("RemoveSubscription", remoteAddress)}
+func (_e *FeatureLocalInterface_Expecter) RemoveRemoteSubscription(remoteAddress interface{}) *FeatureLocalInterface_RemoveRemoteSubscription_Call {
+	return &FeatureLocalInterface_RemoveRemoteSubscription_Call{Call: _e.mock.On("RemoveRemoteSubscription", remoteAddress)}
 }
 
-func (_c *FeatureLocalInterface_RemoveSubscription_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_RemoveSubscription_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteSubscription_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveSubscription_Call) Return() *FeatureLocalInterface_RemoveSubscription_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteSubscription_Call) Return() *FeatureLocalInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_RemoveSubscription_Call) RunAndReturn(run func(*model.FeatureAddressType)) *FeatureLocalInterface_RemoveSubscription_Call {
+func (_c *FeatureLocalInterface_RemoveRemoteSubscription_Call) RunAndReturn(run func(*model.FeatureAddressType)) *FeatureLocalInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1072,12 +1072,12 @@ func (_c *FeatureLocalInterface_String_Call) RunAndReturn(run func() string) *Fe
 	return _c
 }
 
-// Subscribe provides a mock function with given fields: remoteAdress
-func (_m *FeatureLocalInterface) Subscribe(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// SubscribeToRemote provides a mock function with given fields: remoteAdress
+func (_m *FeatureLocalInterface) SubscribeToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(remoteAdress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Subscribe")
+		panic("no return value specified for SubscribeToRemote")
 	}
 
 	var r0 *model.MsgCounterType
@@ -1104,30 +1104,30 @@ func (_m *FeatureLocalInterface) Subscribe(remoteAdress *model.FeatureAddressTyp
 	return r0, r1
 }
 
-// FeatureLocalInterface_Subscribe_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Subscribe'
-type FeatureLocalInterface_Subscribe_Call struct {
+// FeatureLocalInterface_SubscribeToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SubscribeToRemote'
+type FeatureLocalInterface_SubscribeToRemote_Call struct {
 	*mock.Call
 }
 
-// Subscribe is a helper method to define mock.On call
+// SubscribeToRemote is a helper method to define mock.On call
 //   - remoteAdress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) Subscribe(remoteAdress interface{}) *FeatureLocalInterface_Subscribe_Call {
-	return &FeatureLocalInterface_Subscribe_Call{Call: _e.mock.On("Subscribe", remoteAdress)}
+func (_e *FeatureLocalInterface_Expecter) SubscribeToRemote(remoteAdress interface{}) *FeatureLocalInterface_SubscribeToRemote_Call {
+	return &FeatureLocalInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAdress)}
 }
 
-func (_c *FeatureLocalInterface_Subscribe_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_Subscribe_Call {
+func (_c *FeatureLocalInterface_SubscribeToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_SubscribeToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_Subscribe_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *FeatureLocalInterface_Subscribe_Call {
+func (_c *FeatureLocalInterface_SubscribeToRemote_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *FeatureLocalInterface_SubscribeToRemote_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *FeatureLocalInterface_Subscribe_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *FeatureLocalInterface_Subscribe_Call {
+func (_c *FeatureLocalInterface_SubscribeToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *FeatureLocalInterface_SubscribeToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -23,23 +23,8 @@ func (_m *DeviceRemoteInterface) EXPECT() *DeviceRemoteInterface_Expecter {
 }
 
 // AddEntity provides a mock function with given fields: entity
-func (_m *DeviceRemoteInterface) AddEntity(entity api.EntityRemoteInterface) api.EntityRemoteInterface {
-	ret := _m.Called(entity)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddEntity")
-	}
-
-	var r0 api.EntityRemoteInterface
-	if rf, ok := ret.Get(0).(func(api.EntityRemoteInterface) api.EntityRemoteInterface); ok {
-		r0 = rf(entity)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(api.EntityRemoteInterface)
-		}
-	}
-
-	return r0
+func (_m *DeviceRemoteInterface) AddEntity(entity api.EntityRemoteInterface) {
+	_m.Called(entity)
 }
 
 // DeviceRemoteInterface_AddEntity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddEntity'
@@ -60,12 +45,12 @@ func (_c *DeviceRemoteInterface_AddEntity_Call) Run(run func(entity api.EntityRe
 	return _c
 }
 
-func (_c *DeviceRemoteInterface_AddEntity_Call) Return(_a0 api.EntityRemoteInterface) *DeviceRemoteInterface_AddEntity_Call {
-	_c.Call.Return(_a0)
+func (_c *DeviceRemoteInterface_AddEntity_Call) Return() *DeviceRemoteInterface_AddEntity_Call {
+	_c.Call.Return()
 	return _c
 }
 
-func (_c *DeviceRemoteInterface_AddEntity_Call) RunAndReturn(run func(api.EntityRemoteInterface) api.EntityRemoteInterface) *DeviceRemoteInterface_AddEntity_Call {
+func (_c *DeviceRemoteInterface_AddEntity_Call) RunAndReturn(run func(api.EntityRemoteInterface)) *DeviceRemoteInterface_AddEntity_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -613,12 +598,12 @@ func (_c *DeviceRemoteInterface_HandleSpineMesssage_Call) RunAndReturn(run func(
 	return _c
 }
 
-// RemoveByAddress provides a mock function with given fields: addr
-func (_m *DeviceRemoteInterface) RemoveByAddress(addr []model.AddressEntityType) api.EntityRemoteInterface {
+// RemoveEntityByAddress provides a mock function with given fields: addr
+func (_m *DeviceRemoteInterface) RemoveEntityByAddress(addr []model.AddressEntityType) api.EntityRemoteInterface {
 	ret := _m.Called(addr)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RemoveByAddress")
+		panic("no return value specified for RemoveEntityByAddress")
 	}
 
 	var r0 api.EntityRemoteInterface
@@ -633,30 +618,30 @@ func (_m *DeviceRemoteInterface) RemoveByAddress(addr []model.AddressEntityType)
 	return r0
 }
 
-// DeviceRemoteInterface_RemoveByAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveByAddress'
-type DeviceRemoteInterface_RemoveByAddress_Call struct {
+// DeviceRemoteInterface_RemoveEntityByAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveEntityByAddress'
+type DeviceRemoteInterface_RemoveEntityByAddress_Call struct {
 	*mock.Call
 }
 
-// RemoveByAddress is a helper method to define mock.On call
+// RemoveEntityByAddress is a helper method to define mock.On call
 //   - addr []model.AddressEntityType
-func (_e *DeviceRemoteInterface_Expecter) RemoveByAddress(addr interface{}) *DeviceRemoteInterface_RemoveByAddress_Call {
-	return &DeviceRemoteInterface_RemoveByAddress_Call{Call: _e.mock.On("RemoveByAddress", addr)}
+func (_e *DeviceRemoteInterface_Expecter) RemoveEntityByAddress(addr interface{}) *DeviceRemoteInterface_RemoveEntityByAddress_Call {
+	return &DeviceRemoteInterface_RemoveEntityByAddress_Call{Call: _e.mock.On("RemoveEntityByAddress", addr)}
 }
 
-func (_c *DeviceRemoteInterface_RemoveByAddress_Call) Run(run func(addr []model.AddressEntityType)) *DeviceRemoteInterface_RemoveByAddress_Call {
+func (_c *DeviceRemoteInterface_RemoveEntityByAddress_Call) Run(run func(addr []model.AddressEntityType)) *DeviceRemoteInterface_RemoveEntityByAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].([]model.AddressEntityType))
 	})
 	return _c
 }
 
-func (_c *DeviceRemoteInterface_RemoveByAddress_Call) Return(_a0 api.EntityRemoteInterface) *DeviceRemoteInterface_RemoveByAddress_Call {
+func (_c *DeviceRemoteInterface_RemoveEntityByAddress_Call) Return(_a0 api.EntityRemoteInterface) *DeviceRemoteInterface_RemoveEntityByAddress_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *DeviceRemoteInterface_RemoveByAddress_Call) RunAndReturn(run func([]model.AddressEntityType) api.EntityRemoteInterface) *DeviceRemoteInterface_RemoveByAddress_Call {
+func (_c *DeviceRemoteInterface_RemoveEntityByAddress_Call) RunAndReturn(run func([]model.AddressEntityType) api.EntityRemoteInterface) *DeviceRemoteInterface_RemoveEntityByAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -704,39 +689,6 @@ func (_c *DeviceRemoteInterface_Sender_Call) Return(_a0 api.SenderInterface) *De
 }
 
 func (_c *DeviceRemoteInterface_Sender_Call) RunAndReturn(run func() api.SenderInterface) *DeviceRemoteInterface_Sender_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SetAddress provides a mock function with given fields: address
-func (_m *DeviceRemoteInterface) SetAddress(address *model.AddressDeviceType) {
-	_m.Called(address)
-}
-
-// DeviceRemoteInterface_SetAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAddress'
-type DeviceRemoteInterface_SetAddress_Call struct {
-	*mock.Call
-}
-
-// SetAddress is a helper method to define mock.On call
-//   - address *model.AddressDeviceType
-func (_e *DeviceRemoteInterface_Expecter) SetAddress(address interface{}) *DeviceRemoteInterface_SetAddress_Call {
-	return &DeviceRemoteInterface_SetAddress_Call{Call: _e.mock.On("SetAddress", address)}
-}
-
-func (_c *DeviceRemoteInterface_SetAddress_Call) Run(run func(address *model.AddressDeviceType)) *DeviceRemoteInterface_SetAddress_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*model.AddressDeviceType))
-	})
-	return _c
-}
-
-func (_c *DeviceRemoteInterface_SetAddress_Call) Return() *DeviceRemoteInterface_SetAddress_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *DeviceRemoteInterface_SetAddress_Call) RunAndReturn(run func(*model.AddressDeviceType)) *DeviceRemoteInterface_SetAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }

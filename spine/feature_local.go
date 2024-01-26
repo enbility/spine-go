@@ -12,8 +12,6 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FeatureLocalInterface = (*FeatureLocal)(nil)
-
 type FeatureLocal struct {
 	*Feature
 
@@ -43,12 +41,16 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
-		res.functionDataMap[fd.Function()] = fd
+		res.functionDataMap[fd.FunctionType()] = fd
 	}
 	res.operations = make(map[model.FunctionType]api.OperationsInterface)
 
 	return res
 }
+
+var _ api.FeatureLocalInterface = (*FeatureLocal)(nil)
+
+/* FeatureLocalInterface */
 
 func (r *FeatureLocal) Device() api.DeviceLocalInterface {
 	return r.entity.Device()
@@ -67,44 +69,6 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 		return
 	}
 	r.operations[function] = NewOperations(read, write)
-}
-
-func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	fctData := r.functionData(function)
-	if fctData == nil {
-		return nil
-	}
-
-	return fctData.DataCopyAny()
-}
-
-func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
-	r.mux.Lock()
-
-	fd := r.functionData(function)
-	if fd == nil {
-		return
-	}
-	fd.UpdateDataAny(data, nil, nil)
-
-	r.mux.Unlock()
-
-	r.Device().NotifySubscribers(r.Address(), fd.NotifyOrWriteCmdType(nil, nil, false, nil))
-}
-
-func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	fctData := r.functionData(function)
-	if fctData == nil {
-		return
-	}
-
-	fctData.UpdateDataAny(data, filterPartial, filterDelete)
 }
 
 func (r *FeatureLocal) AddResultHandler(handler api.FeatureResultInterface) {
@@ -132,29 +96,40 @@ func (r *FeatureLocal) processResultCallbacks(msgCounterReference model.MsgCount
 	delete(r.resultCallback, msgCounterReference)
 }
 
-func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
-	var funs []model.FunctionPropertyType
-	for fun, operations := range r.operations {
-		var functionType model.FunctionType = model.FunctionType(fun)
-		sf := model.FunctionPropertyType{
-			Function:           &functionType,
-			PossibleOperations: operations.Information(),
-		}
+func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
-		funs = append(funs, sf)
+	fctData := r.functionData(function)
+	if fctData == nil {
+		return nil
 	}
 
-	res := model.NodeManagementDetailedDiscoveryFeatureInformationType{
-		Description: &model.NetworkManagementFeatureDescriptionDataType{
-			FeatureAddress:    r.Address(),
-			FeatureType:       &r.ftype,
-			Role:              &r.role,
-			Description:       r.description,
-			SupportedFunction: funs,
-		},
+	return fctData.DataCopyAny()
+}
+
+func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
+	fctData := r.updateData(function, data, nil, nil)
+
+	if fctData == nil {
+		return
 	}
 
-	return &res
+	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+}
+
+func (r *FeatureLocal) updateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) api.FunctionDataCmdInterface {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	fctData := r.functionData(function)
+	if fctData == nil {
+		return nil
+	}
+
+	fctData.UpdateDataAny(data, filterPartial, filterDelete)
+
+	return fctData
 }
 
 func (r *FeatureLocal) RequestRemoteData(
@@ -169,7 +144,7 @@ func (r *FeatureLocal) RequestRemoteData(
 
 	cmd := fd.ReadCmdType(selector, elements)
 
-	return r.RequestRemoteDataBySenderAddress(cmd, destination.Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
+	return r.RequestRemoteDataBySenderAddress(cmd, destination.Device().Sender(), destination.Device().Ski(), destination.Address(), destination.MaxResponseDelayDuration())
 }
 
 func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
@@ -197,8 +172,8 @@ func (r *FeatureLocal) FetchRequestRemoteData(
 	return r.pendingRequests.GetData(destination.Device().Ski(), msgCounter)
 }
 
-// Subscribe to a remote feature
-func (r *FeatureLocal) Subscribe(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// SubscribeToRemote to a remote feature
+func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
 	}
@@ -224,7 +199,7 @@ func (r *FeatureLocal) Subscribe(remoteAddress *model.FeatureAddressType) (*mode
 }
 
 // Remove a subscriptions to a remote feature
-func (r *FeatureLocal) RemoveSubscription(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return
@@ -251,14 +226,14 @@ func (r *FeatureLocal) RemoveSubscription(remoteAddress *model.FeatureAddressTyp
 }
 
 // Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllSubscriptions() {
+func (r *FeatureLocal) RemoveAllRemoteSubscriptions() {
 	for _, item := range r.subscriptions {
-		r.RemoveSubscription(item)
+		r.RemoveRemoteSubscription(item)
 	}
 }
 
-// Bind to a remote feature
-func (r *FeatureLocal) Bind(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// BindToRemote to a remote feature
+func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -281,7 +256,7 @@ func (r *FeatureLocal) Bind(remoteAddress *model.FeatureAddressType) (*model.Msg
 }
 
 // Remove a binding to a remote feature
-func (r *FeatureLocal) RemoveBinding(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) {
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return
@@ -308,9 +283,9 @@ func (r *FeatureLocal) RemoveBinding(remoteAddress *model.FeatureAddressType) {
 }
 
 // Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllBindings() {
+func (r *FeatureLocal) RemoveAllRemoteBindings() {
 	for _, item := range r.bindings {
-		r.RemoveBinding(item)
+		r.RemoveRemoteBinding(item)
 	}
 }
 
@@ -409,7 +384,7 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 	}
 
 	cmd := fd.ReplyCmdType(false)
-	if err := featureRemote.Sender().Reply(requestHeader, r.Address(), cmd); err != nil {
+	if err := featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd); err != nil {
 		return model.NewErrorTypeFromString(err.Error())
 	}
 
@@ -461,7 +436,10 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 }
 
 func (r *FeatureLocal) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	r.UpdateData(function, data, filterPartial, filterDelete)
+	fctData := r.updateData(function, data, filterPartial, filterDelete)
+	if fctData == nil {
+		model.NewErrorTypeFromString("function not found")
+	}
 
 	payload := api.EventPayload{
 		Ski:           featureRemote.Device().Ski(),
@@ -487,4 +465,29 @@ func (r *FeatureLocal) functionData(function model.FunctionType) api.FunctionDat
 		return nil
 	}
 	return fd
+}
+
+func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
+	var funs []model.FunctionPropertyType
+	for fun, operations := range r.operations {
+		var functionType model.FunctionType = model.FunctionType(fun)
+		sf := model.FunctionPropertyType{
+			Function:           &functionType,
+			PossibleOperations: operations.Information(),
+		}
+
+		funs = append(funs, sf)
+	}
+
+	res := model.NodeManagementDetailedDiscoveryFeatureInformationType{
+		Description: &model.NetworkManagementFeatureDescriptionDataType{
+			FeatureAddress:    r.Address(),
+			FeatureType:       &r.ftype,
+			Role:              &r.role,
+			Description:       r.description,
+			SupportedFunction: funs,
+		},
+	}
+
+	return &res
 }

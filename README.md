@@ -15,3 +15,29 @@ Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is 
 This repository was started as part of the [eebus-go](https://github.com/enbility/eebus-go) before it was moved into its own repository and this separate go package.
 
 Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is required. Please check the corresponding specifications on the [EEBUS downloads website](https://www.eebus.org/media-downloads/).
+
+## Packages
+
+### api
+
+This package contains required interfaces. They are used extensivly to be able to mock everything and implement tests that focus specificaly on a limited set of interface implementations
+
+### integrationtests
+
+This packge contains tests that cover implementations of multiple packages in concert.
+
+### mocks
+
+This package contains auto generated mocks for the interfaces defined in the api package using [Mockery](https://github.com/vektra/mockery).
+
+### model
+
+This package contains the go represenation of the SPINE data model. It makes use of go tags for proper JSON serialization and also for implementing generic SPINE feature to function and data mapping.
+
+### spine
+
+This package contains the implementation for working with the SPINE devices, entites, features, functions and data.
+
+### util
+
+This package contains generic helpers used by most of the packages, e.g. for working with pointers.

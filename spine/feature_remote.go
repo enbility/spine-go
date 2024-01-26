@@ -14,8 +14,6 @@ import (
 
 const defaultMaxResponseDelay = time.Duration(time.Second * 10)
 
-var _ api.FeatureRemoteInterface = (*FeatureRemote)(nil)
-
 type FeatureRemote struct {
 	*Feature
 
@@ -36,7 +34,7 @@ func NewFeatureRemote(id uint, entity api.EntityRemoteInterface, ftype model.Fea
 		functionDataMap: make(map[model.FunctionType]api.FunctionDataInterface),
 	}
 	for _, fd := range CreateFunctionData[api.FunctionDataInterface](ftype) {
-		res.functionDataMap[fd.Function()] = fd
+		res.functionDataMap[fd.FunctionType()] = fd
 	}
 
 	res.operations = make(map[model.FunctionType]api.OperationsInterface)
@@ -44,6 +42,17 @@ func NewFeatureRemote(id uint, entity api.EntityRemoteInterface, ftype model.Fea
 	return res
 }
 
+var _ api.FeatureRemoteInterface = (*FeatureRemote)(nil)
+
+/* FeatureRemoteInterface */
+
+func (r *FeatureRemote) Device() api.DeviceRemoteInterface {
+	return r.entity.Device()
+}
+
+func (r *FeatureRemote) Entity() api.EntityRemoteInterface {
+	return r.entity
+}
 func (r *FeatureRemote) DataCopy(function model.FunctionType) any {
 	r.mux.Lock()
 	defer r.mux.Unlock()
@@ -65,18 +74,6 @@ func (r *FeatureRemote) UpdateData(function model.FunctionType, data any, filter
 		return
 	}
 	fd.UpdateDataAny(data, filterPartial, filterDelete)
-}
-
-func (r *FeatureRemote) Sender() api.SenderInterface {
-	return r.Device().Sender()
-}
-
-func (r *FeatureRemote) Device() api.DeviceRemoteInterface {
-	return r.entity.Device()
-}
-
-func (r *FeatureRemote) Entity() api.EntityRemoteInterface {
-	return r.entity
 }
 
 func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {

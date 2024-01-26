@@ -14,8 +14,6 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
-
 type DeviceLocal struct {
 	*Device
 	entities            []api.EntityLocalInterface
@@ -68,46 +66,9 @@ func NewDeviceLocal(
 	return res
 }
 
-func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
-	remoteDevice := r.RemoteDeviceForSki(ski)
+var _ api.EventHandlerInterface = (*DeviceLocal)(nil)
 
-	r.RemoveRemoteDevice(ski)
-
-	// inform about the disconnection
-	payload := api.EventPayload{
-		Ski:        ski,
-		EventType:  api.EventTypeDeviceChange,
-		ChangeType: api.ElementChangeRemove,
-		Device:     remoteDevice,
-	}
-	Events.Publish(payload)
-}
-
-// Helper method used by tests and AddRemoteDevice
-func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemoteInterface) {
-	r.mux.Lock()
-	r.remoteDevices[ski] = rDevice
-	r.mux.Unlock()
-}
-
-// Setup a new remote device with a given SKI and triggers SPINE requesting device details
-func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface {
-	sender := NewSender(writeI)
-	rDevice := NewDeviceRemote(r, ski, sender)
-
-	r.AddRemoteDeviceForSki(ski, rDevice)
-
-	// Request Detailed Discovery Data
-	_, _ = r.nodeManagement.RequestDetailedDiscovery(rDevice.ski, rDevice.address, rDevice.sender)
-
-	// TODO: Add error handling
-	// If the request returned an error, it should be retried until it does not
-
-	// always add subscription, as it checks if it already exists
-	_ = Events.subscribe(api.EventHandlerLevelCore, r)
-
-	return rDevice
-}
+/* EventHandlerInterface */
 
 // React to some specific events
 func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
@@ -132,11 +93,62 @@ func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 	//revive:disable-next-line
 	switch payload.Data.(type) {
 	case *model.NodeManagementDetailedDiscoveryDataType:
-		_, _ = r.nodeManagement.Subscribe(payload.Feature.Address())
+		_, _ = r.nodeManagement.SubscribeToRemote(payload.Feature.Address())
 
 		// Request Use Case Data
 		_, _ = r.nodeManagement.RequestUseCaseData(payload.Device.Ski(), payload.Device.Address(), payload.Device.Sender())
 	}
+}
+
+var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
+
+/* DeviceLocalInterface */
+
+// Setup a new remote device with a given SKI and triggers SPINE requesting device details
+func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface {
+	sender := NewSender(writeI)
+	rDevice := NewDeviceRemote(r, ski, sender)
+
+	r.AddRemoteDeviceForSki(ski, rDevice)
+
+	// always add subscription, as it checks if it already exists
+	_ = Events.subscribe(api.EventHandlerLevelCore, r)
+
+	// Request Detailed Discovery Data
+	_, _ = r.RequestRemoteDetailedDiscoveryData(rDevice)
+
+	// TODO: Add error handling
+	// If the request returned an error, it should be retried until it does not
+
+	return rDevice
+}
+
+func (r *DeviceLocal) RequestRemoteDetailedDiscoveryData(rDevice api.DeviceRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
+	// Request Detailed Discovery Data
+	return r.nodeManagement.RequestDetailedDiscovery(rDevice.Ski(), rDevice.Address(), rDevice.Sender())
+}
+
+// Helper method used by tests and AddRemoteDevice
+func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemoteInterface) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	r.remoteDevices[ski] = rDevice
+}
+
+func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
+	remoteDevice := r.RemoteDeviceForSki(ski)
+
+	r.RemoveRemoteDevice(ski)
+
+	// inform about the disconnection
+	payload := api.EventPayload{
+		Ski:        ski,
+		EventType:  api.EventTypeDeviceChange,
+		ChangeType: api.ElementChangeRemove,
+		Device:     remoteDevice,
+	}
+	Events.Publish(payload)
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
@@ -196,111 +208,6 @@ func (r *DeviceLocal) RemoteDeviceForSki(ski string) api.DeviceRemoteInterface {
 	defer r.mux.Unlock()
 
 	return r.remoteDevices[ski]
-}
-
-func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemoteInterface) error {
-	destAddr := datagram.Header.AddressDestination
-	localFeature := r.FeatureByAddress(destAddr)
-
-	cmdClassifier := datagram.Header.CmdClassifier
-	if len(datagram.Payload.Cmd) == 0 {
-		return errors.New("no payload cmd content available")
-	}
-	cmd := datagram.Payload.Cmd[0]
-
-	// TODO check if cmd.Function is the same as the provided cmd value
-	filterPartial, filterDelete := cmd.ExtractFilter()
-
-	remoteEntity := remoteDevice.Entity(datagram.Header.AddressSource.Entity)
-	remoteFeature := remoteDevice.FeatureByAddress(datagram.Header.AddressSource)
-	if remoteFeature == nil {
-		return fmt.Errorf("invalid remote feature address: '%s'", datagram.Header.AddressSource)
-	}
-
-	message := &api.Message{
-		RequestHeader: &datagram.Header,
-		CmdClassifier: *cmdClassifier,
-		Cmd:           cmd,
-		FilterPartial: filterPartial,
-		FilterDelete:  filterDelete,
-		FeatureRemote: remoteFeature,
-		EntityRemote:  remoteEntity,
-		DeviceRemote:  remoteDevice,
-	}
-
-	ackRequest := datagram.Header.AckRequest
-
-	if localFeature == nil {
-		errorMessage := "invalid feature address"
-		_ = remoteFeature.Sender().ResultError(message.RequestHeader, destAddr, model.NewErrorType(model.ErrorNumberTypeDestinationUnknown, errorMessage))
-
-		return errors.New(errorMessage)
-	}
-
-	lfType := string(localFeature.Type())
-	rfType := ""
-	if remoteFeature != nil {
-		rfType = string(remoteFeature.Type())
-	}
-
-	logging.Log().Debug(datagram.PrintMessageOverview(false, lfType, rfType))
-
-	// check if this is a write with an existing binding and if write is allowed on this feature
-	if message.CmdClassifier == model.CmdClassifierTypeWrite {
-		cmdData, err := cmd.Data()
-		if err != nil || cmdData.Function == nil {
-			err := model.NewErrorTypeFromString("no function found for cmd data")
-			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
-			return errors.New(err.String())
-		}
-
-		if operations, ok := localFeature.Operations()[*cmdData.Function]; !ok || !operations.Write() {
-			err := model.NewErrorTypeFromString("write is not allowed on this function")
-			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
-			return errors.New(err.String())
-		}
-
-		if remoteFeature == nil ||
-			!r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
-			err := model.NewErrorTypeFromString("write denied due to missing binding")
-			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
-			return errors.New(err.String())
-		}
-
-	}
-
-	err := localFeature.HandleMessage(message)
-	if err != nil {
-		// TODO: add error description in a useful format
-
-		// Don't send error responses for incoming resulterror messages
-		if message.CmdClassifier != model.CmdClassifierTypeResult {
-			_ = remoteFeature.Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
-		}
-
-		return errors.New(err.String())
-	}
-	if ackRequest != nil && *ackRequest {
-		_ = remoteFeature.Sender().ResultSuccess(message.RequestHeader, localFeature.Address())
-	}
-
-	return nil
-}
-
-func (r *DeviceLocal) NodeManagement() api.NodeManagementInterface {
-	return r.nodeManagement
-}
-
-func (r *DeviceLocal) SubscriptionManager() api.SubscriptionManagerInterface {
-	return r.subscriptionManager
-}
-
-func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
-	return r.bindingManager
-}
-
-func (r *DeviceLocal) HeartbeatManager() api.HeartbeatManagerInterface {
-	return r.heartbeatManager
 }
 
 func (r *DeviceLocal) AddEntity(entity api.EntityLocalInterface) {
@@ -366,9 +273,114 @@ func (r *DeviceLocal) EntityForType(entityType model.EntityTypeType) api.EntityL
 func (r *DeviceLocal) FeatureByAddress(address *model.FeatureAddressType) api.FeatureLocalInterface {
 	entity := r.Entity(address.Entity)
 	if entity != nil {
-		return entity.Feature(address.Feature)
+		return entity.FeatureOfAddress(address.Feature)
 	}
 	return nil
+}
+
+func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemoteInterface) error {
+	destAddr := datagram.Header.AddressDestination
+	localFeature := r.FeatureByAddress(destAddr)
+
+	cmdClassifier := datagram.Header.CmdClassifier
+	if len(datagram.Payload.Cmd) == 0 {
+		return errors.New("no payload cmd content available")
+	}
+	cmd := datagram.Payload.Cmd[0]
+
+	// TODO check if cmd.Function is the same as the provided cmd value
+	filterPartial, filterDelete := cmd.ExtractFilter()
+
+	remoteEntity := remoteDevice.Entity(datagram.Header.AddressSource.Entity)
+	remoteFeature := remoteDevice.FeatureByAddress(datagram.Header.AddressSource)
+	if remoteFeature == nil {
+		return fmt.Errorf("invalid remote feature address: '%s'", datagram.Header.AddressSource)
+	}
+
+	message := &api.Message{
+		RequestHeader: &datagram.Header,
+		CmdClassifier: *cmdClassifier,
+		Cmd:           cmd,
+		FilterPartial: filterPartial,
+		FilterDelete:  filterDelete,
+		FeatureRemote: remoteFeature,
+		EntityRemote:  remoteEntity,
+		DeviceRemote:  remoteDevice,
+	}
+
+	ackRequest := datagram.Header.AckRequest
+
+	if localFeature == nil {
+		errorMessage := "invalid feature address"
+		_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, destAddr, model.NewErrorType(model.ErrorNumberTypeDestinationUnknown, errorMessage))
+
+		return errors.New(errorMessage)
+	}
+
+	lfType := string(localFeature.Type())
+	rfType := ""
+	if remoteFeature != nil {
+		rfType = string(remoteFeature.Type())
+	}
+
+	logging.Log().Debug(datagram.PrintMessageOverview(false, lfType, rfType))
+
+	// check if this is a write with an existing binding and if write is allowed on this feature
+	if message.CmdClassifier == model.CmdClassifierTypeWrite {
+		cmdData, err := cmd.Data()
+		if err != nil || cmdData.Function == nil {
+			err := model.NewErrorTypeFromString("no function found for cmd data")
+			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+		if operations, ok := localFeature.Operations()[*cmdData.Function]; !ok || !operations.Write() {
+			err := model.NewErrorTypeFromString("write is not allowed on this function")
+			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+		if remoteFeature == nil ||
+			!r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
+			err := model.NewErrorTypeFromString("write denied due to missing binding")
+			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+			return errors.New(err.String())
+		}
+
+	}
+
+	err := localFeature.HandleMessage(message)
+	if err != nil {
+		// TODO: add error description in a useful format
+
+		// Don't send error responses for incoming resulterror messages
+		if message.CmdClassifier != model.CmdClassifierTypeResult {
+			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+		}
+
+		return errors.New(err.String())
+	}
+	if ackRequest != nil && *ackRequest {
+		_ = remoteFeature.Device().Sender().ResultSuccess(message.RequestHeader, localFeature.Address())
+	}
+
+	return nil
+}
+
+func (r *DeviceLocal) NodeManagement() api.NodeManagementInterface {
+	return r.nodeManagement
+}
+
+func (r *DeviceLocal) SubscriptionManager() api.SubscriptionManagerInterface {
+	return r.subscriptionManager
+}
+
+func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
+	return r.bindingManager
+}
+
+func (r *DeviceLocal) HeartbeatManager() api.HeartbeatManagerInterface {
+	return r.heartbeatManager
 }
 
 func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
@@ -384,22 +396,11 @@ func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDevice
 	return &res
 }
 
-// send a notify message to all remote devices
-func (r *DeviceLocal) NotifyUseCaseData() {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, remoteDevice := range r.remoteDevices {
-		// TODO: add error management
-		_, _ = r.nodeManagement.NotifyUseCaseData(remoteDevice)
-	}
-}
-
 func (r *DeviceLocal) NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType) {
 	subscriptions := r.SubscriptionManager().SubscriptionsOnFeature(*featureAddress)
 	for _, subscription := range subscriptions {
 		// TODO: error handling
-		_, _ = subscription.ClientFeature.Sender().Notify(subscription.ServerFeature.Address(), subscription.ClientFeature.Address(), cmd)
+		_, _ = subscription.ClientFeature.Device().Sender().Notify(subscription.ServerFeature.Address(), subscription.ClientFeature.Address(), cmd)
 	}
 }
 

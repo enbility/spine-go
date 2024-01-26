@@ -1,6 +1,8 @@
 package spine
 
 import (
+	"sync"
+
 	"github.com/ahmetb/go-linq/v3"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -16,6 +18,8 @@ type Entity struct {
 	address      *model.EntityAddressType
 	description  *model.DescriptionType
 	fIdGenerator func() uint
+
+	muxGenerator sync.Mutex
 }
 
 var _ api.EntityInterface = (*Entity)(nil)
@@ -39,12 +43,12 @@ func NewEntity(eType model.EntityTypeType, deviceAdress *model.AddressDeviceType
 	return entity
 }
 
-func (r *Entity) EntityType() model.EntityTypeType {
-	return r.eType
-}
-
 func (r *Entity) Address() *model.EntityAddressType {
 	return r.address
+}
+
+func (r *Entity) EntityType() model.EntityTypeType {
+	return r.eType
 }
 
 func (r *Entity) Description() *model.DescriptionType {
@@ -56,6 +60,9 @@ func (r *Entity) SetDescription(d *model.DescriptionType) {
 }
 
 func (r *Entity) NextFeatureId() uint {
+	r.muxGenerator.Lock()
+	defer r.muxGenerator.Unlock()
+
 	return r.fIdGenerator()
 }
 

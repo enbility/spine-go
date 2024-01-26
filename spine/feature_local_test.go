@@ -165,62 +165,62 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscribipt
 	suite.senderMock.On("Subscribe", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 	suite.senderMock.On("Unsubscribe", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 
-	msgCounter, err := suite.localFeature.Subscribe(suite.remoteFeature.Address())
+	msgCounter, err := suite.localFeature.SubscribeToRemote(suite.remoteFeature.Address())
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveSubscription(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
 
 	suite.localFeature.Device().AddRemoteDeviceForSki(suite.remoteFeature.Device().Ski(), suite.remoteFeature.Device())
 
-	msgCounter, err = suite.localServerFeature.Subscribe(suite.remoteFeature.Address())
+	msgCounter, err = suite.localServerFeature.SubscribeToRemote(suite.remoteFeature.Address())
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveSubscription(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
 
-	msgCounter, err = suite.localFeature.Subscribe(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.SubscribeToRemote(suite.remoteFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	msgCounter, err = suite.localFeature.Subscribe(suite.remoteSubFeature.Address())
+	msgCounter, err = suite.localFeature.SubscribeToRemote(suite.remoteSubFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveSubscription(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
 
-	suite.localFeature.RemoveAllSubscriptions()
+	suite.localFeature.RemoveAllRemoteSubscriptions()
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() {
 	suite.senderMock.On("Bind", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 	suite.senderMock.On("Unbind", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 
-	msgCounter, err := suite.localFeature.Bind(suite.remoteFeature.Address())
+	msgCounter, err := suite.localFeature.BindToRemote(suite.remoteFeature.Address())
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveBinding(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
 
 	suite.localFeature.Device().AddRemoteDeviceForSki(suite.remoteFeature.Device().Ski(), suite.remoteFeature.Device())
 
-	msgCounter, err = suite.localServerFeature.Bind(suite.remoteFeature.Address())
+	msgCounter, err = suite.localServerFeature.BindToRemote(suite.remoteFeature.Address())
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveBinding(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
 
-	msgCounter, err = suite.localFeature.Bind(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.BindToRemote(suite.remoteFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	msgCounter, err = suite.localFeature.Bind(suite.remoteSubFeature.Address())
+	msgCounter, err = suite.localFeature.BindToRemote(suite.remoteSubFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveBinding(suite.remoteFeature.Address())
+	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
 
-	suite.localFeature.RemoveAllBindings()
+	suite.localFeature.RemoveAllRemoteBindings()
 }
 
 func (suite *DeviceClassificationTestSuite) Test_Reply() {

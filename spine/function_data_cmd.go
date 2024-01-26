@@ -6,8 +6,6 @@ import (
 	"github.com/enbility/spine-go/util"
 )
 
-var _ api.FunctionDataCmdInterface = (*FunctionDataCmd[int])(nil)
-
 type FunctionDataCmd[T any] struct {
 	*FunctionData[T]
 }
@@ -17,6 +15,10 @@ func NewFunctionDataCmd[T any](function model.FunctionType) *FunctionDataCmd[T] 
 		FunctionData: NewFunctionData[T](function),
 	}
 }
+
+var _ api.FunctionDataCmdInterface = (*FunctionDataCmd[int])(nil)
+
+/* FunctionDataCmdInterface */
 
 func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) model.CmdType {
 	cmd := createCmd[T](r.functionType, nil)

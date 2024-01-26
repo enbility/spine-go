@@ -67,12 +67,12 @@ func (_c *FunctionDataCmdInterface_DataCopyAny_Call) RunAndReturn(run func() int
 	return _c
 }
 
-// Function provides a mock function with given fields:
-func (_m *FunctionDataCmdInterface) Function() model.FunctionType {
+// FunctionType provides a mock function with given fields:
+func (_m *FunctionDataCmdInterface) FunctionType() model.FunctionType {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Function")
+		panic("no return value specified for FunctionType")
 	}
 
 	var r0 model.FunctionType
@@ -85,29 +85,29 @@ func (_m *FunctionDataCmdInterface) Function() model.FunctionType {
 	return r0
 }
 
-// FunctionDataCmdInterface_Function_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Function'
-type FunctionDataCmdInterface_Function_Call struct {
+// FunctionDataCmdInterface_FunctionType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FunctionType'
+type FunctionDataCmdInterface_FunctionType_Call struct {
 	*mock.Call
 }
 
-// Function is a helper method to define mock.On call
-func (_e *FunctionDataCmdInterface_Expecter) Function() *FunctionDataCmdInterface_Function_Call {
-	return &FunctionDataCmdInterface_Function_Call{Call: _e.mock.On("Function")}
+// FunctionType is a helper method to define mock.On call
+func (_e *FunctionDataCmdInterface_Expecter) FunctionType() *FunctionDataCmdInterface_FunctionType_Call {
+	return &FunctionDataCmdInterface_FunctionType_Call{Call: _e.mock.On("FunctionType")}
 }
 
-func (_c *FunctionDataCmdInterface_Function_Call) Run(run func()) *FunctionDataCmdInterface_Function_Call {
+func (_c *FunctionDataCmdInterface_FunctionType_Call) Run(run func()) *FunctionDataCmdInterface_FunctionType_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_Function_Call) Return(_a0 model.FunctionType) *FunctionDataCmdInterface_Function_Call {
+func (_c *FunctionDataCmdInterface_FunctionType_Call) Return(_a0 model.FunctionType) *FunctionDataCmdInterface_FunctionType_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_Function_Call) RunAndReturn(run func() model.FunctionType) *FunctionDataCmdInterface_Function_Call {
+func (_c *FunctionDataCmdInterface_FunctionType_Call) RunAndReturn(run func() model.FunctionType) *FunctionDataCmdInterface_FunctionType_Call {
 	_c.Call.Return(run)
 	return _c
 }

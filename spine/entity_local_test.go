@@ -29,14 +29,14 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 	entity.AddFeature(f)
 	assert.Equal(suite.T(), 1, len(entity.Features()))
 
-	f1 := entity.Feature(nil)
+	f1 := entity.FeatureOfAddress(nil)
 	assert.Nil(suite.T(), f1)
 
-	f1 = entity.Feature(f.Address().Feature)
+	f1 = entity.FeatureOfAddress(f.Address().Feature)
 	assert.NotNil(suite.T(), f1)
 
 	fakeAddress := model.AddressFeatureType(5)
-	f1 = entity.Feature(&fakeAddress)
+	f1 = entity.FeatureOfAddress(&fakeAddress)
 	assert.Nil(suite.T(), f1)
 
 	f2 := entity.GetOrAddFeature(model.FeatureTypeTypeMeasurement, model.RoleTypeClient)

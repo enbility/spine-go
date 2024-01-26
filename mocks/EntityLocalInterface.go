@@ -279,12 +279,12 @@ func (_c *EntityLocalInterface_EntityType_Call) RunAndReturn(run func() model.En
 	return _c
 }
 
-// Feature provides a mock function with given fields: addressFeature
-func (_m *EntityLocalInterface) Feature(addressFeature *model.AddressFeatureType) api.FeatureLocalInterface {
+// FeatureOfAddress provides a mock function with given fields: addressFeature
+func (_m *EntityLocalInterface) FeatureOfAddress(addressFeature *model.AddressFeatureType) api.FeatureLocalInterface {
 	ret := _m.Called(addressFeature)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Feature")
+		panic("no return value specified for FeatureOfAddress")
 	}
 
 	var r0 api.FeatureLocalInterface
@@ -299,30 +299,30 @@ func (_m *EntityLocalInterface) Feature(addressFeature *model.AddressFeatureType
 	return r0
 }
 
-// EntityLocalInterface_Feature_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Feature'
-type EntityLocalInterface_Feature_Call struct {
+// EntityLocalInterface_FeatureOfAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FeatureOfAddress'
+type EntityLocalInterface_FeatureOfAddress_Call struct {
 	*mock.Call
 }
 
-// Feature is a helper method to define mock.On call
+// FeatureOfAddress is a helper method to define mock.On call
 //   - addressFeature *model.AddressFeatureType
-func (_e *EntityLocalInterface_Expecter) Feature(addressFeature interface{}) *EntityLocalInterface_Feature_Call {
-	return &EntityLocalInterface_Feature_Call{Call: _e.mock.On("Feature", addressFeature)}
+func (_e *EntityLocalInterface_Expecter) FeatureOfAddress(addressFeature interface{}) *EntityLocalInterface_FeatureOfAddress_Call {
+	return &EntityLocalInterface_FeatureOfAddress_Call{Call: _e.mock.On("FeatureOfAddress", addressFeature)}
 }
 
-func (_c *EntityLocalInterface_Feature_Call) Run(run func(addressFeature *model.AddressFeatureType)) *EntityLocalInterface_Feature_Call {
+func (_c *EntityLocalInterface_FeatureOfAddress_Call) Run(run func(addressFeature *model.AddressFeatureType)) *EntityLocalInterface_FeatureOfAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.AddressFeatureType))
 	})
 	return _c
 }
 
-func (_c *EntityLocalInterface_Feature_Call) Return(_a0 api.FeatureLocalInterface) *EntityLocalInterface_Feature_Call {
+func (_c *EntityLocalInterface_FeatureOfAddress_Call) Return(_a0 api.FeatureLocalInterface) *EntityLocalInterface_FeatureOfAddress_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *EntityLocalInterface_Feature_Call) RunAndReturn(run func(*model.AddressFeatureType) api.FeatureLocalInterface) *EntityLocalInterface_Feature_Call {
+func (_c *EntityLocalInterface_FeatureOfAddress_Call) RunAndReturn(run func(*model.AddressFeatureType) api.FeatureLocalInterface) *EntityLocalInterface_FeatureOfAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }

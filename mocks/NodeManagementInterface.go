@@ -173,12 +173,12 @@ func (_c *NodeManagementInterface_Address_Call) RunAndReturn(run func() *model.F
 	return _c
 }
 
-// Bind provides a mock function with given fields: remoteAdress
-func (_m *NodeManagementInterface) Bind(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// BindToRemote provides a mock function with given fields: remoteAdress
+func (_m *NodeManagementInterface) BindToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(remoteAdress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Bind")
+		panic("no return value specified for BindToRemote")
 	}
 
 	var r0 *model.MsgCounterType
@@ -205,30 +205,30 @@ func (_m *NodeManagementInterface) Bind(remoteAdress *model.FeatureAddressType) 
 	return r0, r1
 }
 
-// NodeManagementInterface_Bind_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Bind'
-type NodeManagementInterface_Bind_Call struct {
+// NodeManagementInterface_BindToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BindToRemote'
+type NodeManagementInterface_BindToRemote_Call struct {
 	*mock.Call
 }
 
-// Bind is a helper method to define mock.On call
+// BindToRemote is a helper method to define mock.On call
 //   - remoteAdress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) Bind(remoteAdress interface{}) *NodeManagementInterface_Bind_Call {
-	return &NodeManagementInterface_Bind_Call{Call: _e.mock.On("Bind", remoteAdress)}
+func (_e *NodeManagementInterface_Expecter) BindToRemote(remoteAdress interface{}) *NodeManagementInterface_BindToRemote_Call {
+	return &NodeManagementInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAdress)}
 }
 
-func (_c *NodeManagementInterface_Bind_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_Bind_Call {
+func (_c *NodeManagementInterface_BindToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_BindToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_Bind_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_Bind_Call {
+func (_c *NodeManagementInterface_BindToRemote_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_BindToRemote_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NodeManagementInterface_Bind_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_Bind_Call {
+func (_c *NodeManagementInterface_BindToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_BindToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -625,132 +625,132 @@ func (_c *NodeManagementInterface_Operations_Call) RunAndReturn(run func() map[m
 	return _c
 }
 
-// RemoveAllBindings provides a mock function with given fields:
-func (_m *NodeManagementInterface) RemoveAllBindings() {
+// RemoveAllRemoteBindings provides a mock function with given fields:
+func (_m *NodeManagementInterface) RemoveAllRemoteBindings() {
 	_m.Called()
 }
 
-// NodeManagementInterface_RemoveAllBindings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllBindings'
-type NodeManagementInterface_RemoveAllBindings_Call struct {
+// NodeManagementInterface_RemoveAllRemoteBindings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllRemoteBindings'
+type NodeManagementInterface_RemoveAllRemoteBindings_Call struct {
 	*mock.Call
 }
 
-// RemoveAllBindings is a helper method to define mock.On call
-func (_e *NodeManagementInterface_Expecter) RemoveAllBindings() *NodeManagementInterface_RemoveAllBindings_Call {
-	return &NodeManagementInterface_RemoveAllBindings_Call{Call: _e.mock.On("RemoveAllBindings")}
+// RemoveAllRemoteBindings is a helper method to define mock.On call
+func (_e *NodeManagementInterface_Expecter) RemoveAllRemoteBindings() *NodeManagementInterface_RemoveAllRemoteBindings_Call {
+	return &NodeManagementInterface_RemoveAllRemoteBindings_Call{Call: _e.mock.On("RemoveAllRemoteBindings")}
 }
 
-func (_c *NodeManagementInterface_RemoveAllBindings_Call) Run(run func()) *NodeManagementInterface_RemoveAllBindings_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteBindings_Call) Run(run func()) *NodeManagementInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveAllBindings_Call) Return() *NodeManagementInterface_RemoveAllBindings_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteBindings_Call) Return() *NodeManagementInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveAllBindings_Call) RunAndReturn(run func()) *NodeManagementInterface_RemoveAllBindings_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteBindings_Call) RunAndReturn(run func()) *NodeManagementInterface_RemoveAllRemoteBindings_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveAllSubscriptions provides a mock function with given fields:
-func (_m *NodeManagementInterface) RemoveAllSubscriptions() {
+// RemoveAllRemoteSubscriptions provides a mock function with given fields:
+func (_m *NodeManagementInterface) RemoveAllRemoteSubscriptions() {
 	_m.Called()
 }
 
-// NodeManagementInterface_RemoveAllSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllSubscriptions'
-type NodeManagementInterface_RemoveAllSubscriptions_Call struct {
+// NodeManagementInterface_RemoveAllRemoteSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAllRemoteSubscriptions'
+type NodeManagementInterface_RemoveAllRemoteSubscriptions_Call struct {
 	*mock.Call
 }
 
-// RemoveAllSubscriptions is a helper method to define mock.On call
-func (_e *NodeManagementInterface_Expecter) RemoveAllSubscriptions() *NodeManagementInterface_RemoveAllSubscriptions_Call {
-	return &NodeManagementInterface_RemoveAllSubscriptions_Call{Call: _e.mock.On("RemoveAllSubscriptions")}
+// RemoveAllRemoteSubscriptions is a helper method to define mock.On call
+func (_e *NodeManagementInterface_Expecter) RemoveAllRemoteSubscriptions() *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call {
+	return &NodeManagementInterface_RemoveAllRemoteSubscriptions_Call{Call: _e.mock.On("RemoveAllRemoteSubscriptions")}
 }
 
-func (_c *NodeManagementInterface_RemoveAllSubscriptions_Call) Run(run func()) *NodeManagementInterface_RemoveAllSubscriptions_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call) Run(run func()) *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveAllSubscriptions_Call) Return() *NodeManagementInterface_RemoveAllSubscriptions_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call) Return() *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveAllSubscriptions_Call) RunAndReturn(run func()) *NodeManagementInterface_RemoveAllSubscriptions_Call {
+func (_c *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call) RunAndReturn(run func()) *NodeManagementInterface_RemoveAllRemoteSubscriptions_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveBinding provides a mock function with given fields: remoteAddress
-func (_m *NodeManagementInterface) RemoveBinding(remoteAddress *model.FeatureAddressType) {
+// RemoveRemoteBinding provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) {
 	_m.Called(remoteAddress)
 }
 
-// NodeManagementInterface_RemoveBinding_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveBinding'
-type NodeManagementInterface_RemoveBinding_Call struct {
+// NodeManagementInterface_RemoveRemoteBinding_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRemoteBinding'
+type NodeManagementInterface_RemoveRemoteBinding_Call struct {
 	*mock.Call
 }
 
-// RemoveBinding is a helper method to define mock.On call
+// RemoveRemoteBinding is a helper method to define mock.On call
 //   - remoteAddress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) RemoveBinding(remoteAddress interface{}) *NodeManagementInterface_RemoveBinding_Call {
-	return &NodeManagementInterface_RemoveBinding_Call{Call: _e.mock.On("RemoveBinding", remoteAddress)}
+func (_e *NodeManagementInterface_Expecter) RemoveRemoteBinding(remoteAddress interface{}) *NodeManagementInterface_RemoveRemoteBinding_Call {
+	return &NodeManagementInterface_RemoveRemoteBinding_Call{Call: _e.mock.On("RemoveRemoteBinding", remoteAddress)}
 }
 
-func (_c *NodeManagementInterface_RemoveBinding_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_RemoveBinding_Call {
+func (_c *NodeManagementInterface_RemoveRemoteBinding_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_RemoveRemoteBinding_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveBinding_Call) Return() *NodeManagementInterface_RemoveBinding_Call {
+func (_c *NodeManagementInterface_RemoveRemoteBinding_Call) Return() *NodeManagementInterface_RemoveRemoteBinding_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveBinding_Call) RunAndReturn(run func(*model.FeatureAddressType)) *NodeManagementInterface_RemoveBinding_Call {
+func (_c *NodeManagementInterface_RemoveRemoteBinding_Call) RunAndReturn(run func(*model.FeatureAddressType)) *NodeManagementInterface_RemoveRemoteBinding_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RemoveSubscription provides a mock function with given fields: remoteAddress
-func (_m *NodeManagementInterface) RemoveSubscription(remoteAddress *model.FeatureAddressType) {
+// RemoveRemoteSubscription provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) {
 	_m.Called(remoteAddress)
 }
 
-// NodeManagementInterface_RemoveSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveSubscription'
-type NodeManagementInterface_RemoveSubscription_Call struct {
+// NodeManagementInterface_RemoveRemoteSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveRemoteSubscription'
+type NodeManagementInterface_RemoveRemoteSubscription_Call struct {
 	*mock.Call
 }
 
-// RemoveSubscription is a helper method to define mock.On call
+// RemoveRemoteSubscription is a helper method to define mock.On call
 //   - remoteAddress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) RemoveSubscription(remoteAddress interface{}) *NodeManagementInterface_RemoveSubscription_Call {
-	return &NodeManagementInterface_RemoveSubscription_Call{Call: _e.mock.On("RemoveSubscription", remoteAddress)}
+func (_e *NodeManagementInterface_Expecter) RemoveRemoteSubscription(remoteAddress interface{}) *NodeManagementInterface_RemoveRemoteSubscription_Call {
+	return &NodeManagementInterface_RemoveRemoteSubscription_Call{Call: _e.mock.On("RemoveRemoteSubscription", remoteAddress)}
 }
 
-func (_c *NodeManagementInterface_RemoveSubscription_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_RemoveSubscription_Call {
+func (_c *NodeManagementInterface_RemoveRemoteSubscription_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveSubscription_Call) Return() *NodeManagementInterface_RemoveSubscription_Call {
+func (_c *NodeManagementInterface_RemoveRemoteSubscription_Call) Return() *NodeManagementInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *NodeManagementInterface_RemoveSubscription_Call) RunAndReturn(run func(*model.FeatureAddressType)) *NodeManagementInterface_RemoveSubscription_Call {
+func (_c *NodeManagementInterface_RemoveRemoteSubscription_Call) RunAndReturn(run func(*model.FeatureAddressType)) *NodeManagementInterface_RemoveRemoteSubscription_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1072,12 +1072,12 @@ func (_c *NodeManagementInterface_String_Call) RunAndReturn(run func() string) *
 	return _c
 }
 
-// Subscribe provides a mock function with given fields: remoteAdress
-func (_m *NodeManagementInterface) Subscribe(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+// SubscribeToRemote provides a mock function with given fields: remoteAdress
+func (_m *NodeManagementInterface) SubscribeToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	ret := _m.Called(remoteAdress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Subscribe")
+		panic("no return value specified for SubscribeToRemote")
 	}
 
 	var r0 *model.MsgCounterType
@@ -1104,30 +1104,30 @@ func (_m *NodeManagementInterface) Subscribe(remoteAdress *model.FeatureAddressT
 	return r0, r1
 }
 
-// NodeManagementInterface_Subscribe_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Subscribe'
-type NodeManagementInterface_Subscribe_Call struct {
+// NodeManagementInterface_SubscribeToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SubscribeToRemote'
+type NodeManagementInterface_SubscribeToRemote_Call struct {
 	*mock.Call
 }
 
-// Subscribe is a helper method to define mock.On call
+// SubscribeToRemote is a helper method to define mock.On call
 //   - remoteAdress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) Subscribe(remoteAdress interface{}) *NodeManagementInterface_Subscribe_Call {
-	return &NodeManagementInterface_Subscribe_Call{Call: _e.mock.On("Subscribe", remoteAdress)}
+func (_e *NodeManagementInterface_Expecter) SubscribeToRemote(remoteAdress interface{}) *NodeManagementInterface_SubscribeToRemote_Call {
+	return &NodeManagementInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAdress)}
 }
 
-func (_c *NodeManagementInterface_Subscribe_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_Subscribe_Call {
+func (_c *NodeManagementInterface_SubscribeToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_SubscribeToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_Subscribe_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_Subscribe_Call {
+func (_c *NodeManagementInterface_SubscribeToRemote_Call) Return(_a0 *model.MsgCounterType, _a1 *model.ErrorType) *NodeManagementInterface_SubscribeToRemote_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *NodeManagementInterface_Subscribe_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_Subscribe_Call {
+func (_c *NodeManagementInterface_SubscribeToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)) *NodeManagementInterface_SubscribeToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }

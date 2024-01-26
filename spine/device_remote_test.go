@@ -37,7 +37,12 @@ func (s *DeviceRemoteSuite) BeforeTest(suiteName, testName string) {
 	ski := "test"
 	sender := NewSender(s)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
-	s.remoteDevice.SetAddress(util.Ptr(model.AddressDeviceType("test")))
+	desc := &model.NetworkManagementDeviceDescriptionDataType{
+		DeviceAddress: &model.DeviceAddressType{
+			Device: util.Ptr(model.AddressDeviceType("test")),
+		},
+	}
+	s.remoteDevice.UpdateDevice(desc)
 	_ = s.localDevice.SetupRemoteDevice(ski, s)
 
 	s.remoteEntity = NewEntityRemote(s.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
@@ -51,10 +56,10 @@ func (s *DeviceRemoteSuite) BeforeTest(suiteName, testName string) {
 func (s *DeviceRemoteSuite) Test_RemoveByAddress() {
 	assert.Equal(s.T(), 2, len(s.remoteDevice.Entities()))
 
-	s.remoteDevice.RemoveByAddress([]model.AddressEntityType{2})
+	s.remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{2})
 	assert.Equal(s.T(), 2, len(s.remoteDevice.Entities()))
 
-	s.remoteDevice.RemoveByAddress([]model.AddressEntityType{1})
+	s.remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{1})
 	assert.Equal(s.T(), 1, len(s.remoteDevice.Entities()))
 }
 
@@ -70,11 +75,11 @@ func (s *DeviceRemoteSuite) Test_FeatureByEntityTypeAndRole() {
 	feature = s.remoteDevice.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
 	assert.NotNil(s.T(), feature)
 
-	s.remoteDevice.RemoveByAddress([]model.AddressEntityType{1})
+	s.remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{1})
 	assert.Equal(s.T(), 1, len(s.remoteDevice.Entities()))
 
 	_ = s.remoteDevice.Entity([]model.AddressEntityType{0})
-	s.remoteDevice.RemoveByAddress([]model.AddressEntityType{0})
+	s.remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{0})
 	assert.Equal(s.T(), 0, len(s.remoteDevice.Entities()))
 
 	feature = s.remoteDevice.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
@@ -121,7 +126,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 	assert.Equal(s.T(), false, result)
 
 	nodeMgmtEntity := s.remoteDevice.Entity(DeviceInformationAddressEntity)
-	nodeMgmt := nodeMgmtEntity.Feature(util.Ptr(model.AddressFeatureType(NodeManagementFeatureId)))
+	nodeMgmt := nodeMgmtEntity.FeatureOfAddress(util.Ptr(model.AddressFeatureType(NodeManagementFeatureId)))
 
 	// initialize with empty data
 	newData := &model.NodeManagementUseCaseDataType{
@@ -264,7 +269,7 @@ func (s *DeviceRemoteSuite) Test_VerifyUseCaseScenariosAndFeaturesSupport() {
 	)
 	assert.Equal(s.T(), true, result)
 
-	s.remoteDevice.RemoveByAddress(feature.Address().Entity)
+	s.remoteDevice.RemoveEntityByAddress(feature.Address().Entity)
 
 	result = s.remoteDevice.VerifyUseCaseScenariosAndFeaturesSupport(
 		model.UseCaseActorTypeEVSE,

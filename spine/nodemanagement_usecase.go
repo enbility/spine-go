@@ -17,21 +17,6 @@ func (r *NodeManagement) RequestUseCaseData(remoteDeviceSki string, remoteDevice
 	return r.RequestRemoteDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
 }
 
-func (r *NodeManagement) NotifyUseCaseData(remoteDevice api.DeviceRemoteInterface) (*model.MsgCounterType, error) {
-	rfAdress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDevice.Address(), DeviceInformationAddressEntity))
-	rEntity := remoteDevice.Entity([]model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
-
-	featureRemote := remoteDevice.FeatureByEntityTypeAndRole(rEntity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
-
-	fd := r.functionData(model.FunctionTypeNodeManagementUseCaseData)
-	if fd == nil {
-		return nil, errors.New("function data not found")
-	}
-	cmd := fd.NotifyOrWriteCmdType(nil, nil, false, nil)
-
-	return featureRemote.Sender().Notify(r.Address(), rfAdress, cmd)
-}
-
 func (r *NodeManagement) processReadUseCaseData(featureRemote api.FeatureRemoteInterface, requestHeader *model.HeaderType) error {
 	fd := r.functionData(model.FunctionTypeNodeManagementUseCaseData)
 	if fd == nil {
@@ -39,7 +24,7 @@ func (r *NodeManagement) processReadUseCaseData(featureRemote api.FeatureRemoteI
 	}
 	cmd := fd.ReplyCmdType(false)
 
-	return featureRemote.Sender().Reply(requestHeader, r.Address(), cmd)
+	return featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd)
 }
 
 func (r *NodeManagement) processReplyUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {

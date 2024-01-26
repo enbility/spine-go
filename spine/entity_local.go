@@ -1,16 +1,18 @@
 package spine
 
 import (
+	"sync"
+
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 )
-
-var _ api.EntityLocalInterface = (*EntityLocal)(nil)
 
 type EntityLocal struct {
 	*Entity
 	device   api.DeviceLocalInterface
 	features []api.FeatureLocalInterface
+
+	mux sync.Mutex
 }
 
 func NewEntityLocal(device api.DeviceLocalInterface, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityLocal {
@@ -20,12 +22,19 @@ func NewEntityLocal(device api.DeviceLocalInterface, eType model.EntityTypeType,
 	}
 }
 
+var _ api.EntityLocalInterface = (*EntityLocal)(nil)
+
+/* EntityLocalInterface */
+
 func (r *EntityLocal) Device() api.DeviceLocalInterface {
 	return r.device
 }
 
 // Add a feature to the entity if it is not already added
 func (r *EntityLocal) AddFeature(f api.FeatureLocalInterface) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
 	// check if this feature is already added
 	for _, f2 := range r.features {
 		if f2.Type() == f.Type() && f2.Role() == f.Role() {
@@ -41,6 +50,10 @@ func (r *EntityLocal) GetOrAddFeature(featureType model.FeatureTypeType, role mo
 	if f := r.FeatureOfTypeAndRole(featureType, role); f != nil {
 		return f
 	}
+
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
 	f := NewFeatureLocal(r.NextFeatureId(), r, featureType, role)
 
 	description := string(featureType)
@@ -62,39 +75,39 @@ func (r *EntityLocal) GetOrAddFeature(featureType model.FeatureTypeType, role mo
 }
 
 func (r *EntityLocal) FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) api.FeatureLocalInterface {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
 	for _, f := range r.features {
 		if f.Type() == featureType && f.Role() == role {
 			return f
 		}
 	}
+
 	return nil
 }
 
-func (r *EntityLocal) Features() []api.FeatureLocalInterface {
-	return r.features
-}
+func (r *EntityLocal) FeatureOfAddress(addressFeature *model.AddressFeatureType) api.FeatureLocalInterface {
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
-func (r *EntityLocal) Feature(addressFeature *model.AddressFeatureType) api.FeatureLocalInterface {
 	if addressFeature == nil {
 		return nil
 	}
 	for _, f := range r.features {
-		if *f.Address().Feature == *addressFeature {
+		if f.Address().Feature != nil && *f.Address().Feature == *addressFeature {
 			return f
 		}
 	}
+
 	return nil
 }
 
-func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
-	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
-		Description: &model.NetworkManagementEntityDescriptionDataType{
-			EntityAddress: r.Address(),
-			EntityType:    &r.eType,
-		},
-	}
+func (r *EntityLocal) Features() []api.FeatureLocalInterface {
+	r.mux.Lock()
+	defer r.mux.Unlock()
 
-	return res
+	return r.features
 }
 
 // add a new usecase
@@ -183,13 +196,24 @@ func (r *EntityLocal) RemoveAllUseCaseSupports() {
 // Remove all subscriptions
 func (r *EntityLocal) RemoveAllSubscriptions() {
 	for _, item := range r.features {
-		item.RemoveAllSubscriptions()
+		item.RemoveAllRemoteSubscriptions()
 	}
 }
 
 // Remove all bindings
 func (r *EntityLocal) RemoveAllBindings() {
 	for _, item := range r.features {
-		item.RemoveAllBindings()
+		item.RemoveAllRemoteBindings()
 	}
+}
+
+func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
+	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
+		Description: &model.NetworkManagementEntityDescriptionDataType{
+			EntityAddress: r.Address(),
+			EntityType:    &r.eType,
+		},
+	}
+
+	return res
 }

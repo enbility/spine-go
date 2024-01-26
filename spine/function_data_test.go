@@ -18,7 +18,7 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	getData := sut.DataCopy()
 
 	assert.Equal(t, newData.DeviceName, getData.DeviceName)
-	assert.Equal(t, functionType, sut.Function())
+	assert.Equal(t, functionType, sut.FunctionType())
 
 	// another update should not be reflected in the first dataset
 	newData = &model.DeviceClassificationManufacturerDataType{
@@ -29,7 +29,7 @@ func TestFunctionData_UpdateData(t *testing.T) {
 
 	assert.Equal(t, newData.DeviceName, getNewData.DeviceName)
 	assert.NotEqual(t, getData.DeviceName, getNewData.DeviceName)
-	assert.Equal(t, functionType, sut.Function())
+	assert.Equal(t, functionType, sut.FunctionType())
 }
 
 func TestFunctionData_UpdateDataPartial(t *testing.T) {

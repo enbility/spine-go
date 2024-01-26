@@ -24,7 +24,7 @@ func (r *NodeManagement) processReadDestinationListData(featureRemote api.Featur
 		},
 	}
 
-	return featureRemote.Sender().Reply(requestHeader, r.Address(), cmd)
+	return featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd)
 }
 
 func (r *NodeManagement) processReplyDestinationListData(message *api.Message, data model.NodeManagementDestinationListDataType) error {
