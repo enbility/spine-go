@@ -1145,6 +1145,50 @@ func TestElectricalConnectionDescriptionListDataType_Update(t *testing.T) {
 	assert.Equal(t, ElectricalConnectionVoltageTypeTypeDc, *item2.PowerSupplyType)
 }
 
+func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
+	sut := ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicListData: []ElectricalConnectionCharacteristicDataType{
+			{
+				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(0)),
+				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(0)),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypeApparentPowerConsumptionNominalMax),
+			},
+			{
+				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
+				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(1)),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypePowerConsumptionMax),
+			},
+		},
+	}
+
+	newData := ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicListData: []ElectricalConnectionCharacteristicDataType{
+			{
+				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
+				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(1)),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypeEnergyCapacityNominalMax),
+			},
+		},
+	}
+
+	// Act
+	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+
+	data := sut.ElectricalConnectionCharacteristicListData
+	// check the non changing items
+	assert.Equal(t, 2, len(data))
+	item1 := data[0]
+	assert.Equal(t, 0, int(*item1.ElectricalConnectionId))
+	assert.Equal(t, ElectricalConnectionCharacteristicTypeTypeApparentPowerConsumptionNominalMax, *item1.CharacteristicType)
+	// check properties of updated item
+	item2 := data[1]
+	assert.Equal(t, 1, int(*item2.ElectricalConnectionId))
+	assert.Equal(t, ElectricalConnectionCharacteristicTypeTypeEnergyCapacityNominalMax, *item2.CharacteristicType)
+}
+
 func TestElectricalConnectionParameterDescriptionListDataType_Update(t *testing.T) {
 	sut := ElectricalConnectionParameterDescriptionListDataType{
 		ElectricalConnectionParameterDescriptionData: []ElectricalConnectionParameterDescriptionDataType{

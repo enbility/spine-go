@@ -54,8 +54,8 @@ type MeasurementValueTypeType string
 const (
 	MeasurementValueTypeTypeValue             MeasurementValueTypeType = "value"
 	MeasurementValueTypeTypeAverageValue      MeasurementValueTypeType = "averageValue"
-	MeasurementValueTypeTypeMinvValue         MeasurementValueTypeType = "minValue"
-	MeasurementValueTypeTypeMaxvVlue          MeasurementValueTypeType = "maxValue"
+	MeasurementValueTypeTypeMinValue          MeasurementValueTypeType = "minValue"
+	MeasurementValueTypeTypeMaxValue          MeasurementValueTypeType = "maxValue"
 	MeasurementValueTypeTypeStandardDeviation MeasurementValueTypeType = "standardDeviation"
 )
 

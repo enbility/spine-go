@@ -92,6 +92,47 @@ func TestMeasurementListDataType_Update_Replace(t *testing.T) {
 	assert.Equal(t, 10.0, item2.Value.GetValue())
 }
 
+func TestMeasurementSeriesListDataType_Update(t *testing.T) {
+	sut := MeasurementSeriesListDataType{
+		MeasurementSeriesData: []MeasurementSeriesDataType{
+			{
+				MeasurementId: util.Ptr(MeasurementIdType(0)),
+				ValueType:     util.Ptr(MeasurementValueTypeTypeMinValue),
+				Value:         NewScaledNumberType(1),
+			},
+			{
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				ValueType:     util.Ptr(MeasurementValueTypeTypeMaxValue),
+				Value:         NewScaledNumberType(10),
+			},
+		},
+	}
+
+	newData := MeasurementSeriesListDataType{
+		MeasurementSeriesData: []MeasurementSeriesDataType{
+			{
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				ValueType:     util.Ptr(MeasurementValueTypeTypeMaxValue),
+				Value:         NewScaledNumberType(100),
+			},
+		},
+	}
+
+	// Act
+	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+
+	data := sut.MeasurementSeriesData
+	// check the non changing items
+	assert.Equal(t, 2, len(data))
+	item1 := data[0]
+	assert.Equal(t, 0, int(*item1.MeasurementId))
+	assert.Equal(t, 1.0, item1.Value.GetValue())
+	// check properties of updated item
+	item2 := data[1]
+	assert.Equal(t, 1, int(*item2.MeasurementId))
+	assert.Equal(t, 100.0, item2.Value.GetValue())
+}
+
 func TestMeasurementConstraintsListDataType_Update(t *testing.T) {
 	sut := MeasurementConstraintsListDataType{
 		MeasurementConstraintsData: []MeasurementConstraintsDataType{

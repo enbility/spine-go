@@ -4,7 +4,7 @@ type ElectricalConnectionIdType uint
 
 type ElectricalConnectionParameterIdType uint
 
-type ElectricalConnectionCharaceteristicsIdType uint
+type ElectricalConnectionCharaceteristicIdType uint
 
 type ElectricalConnectionMeasurandVariantType string
 
@@ -211,7 +211,7 @@ type ElectricalConnectionDescriptionListDataSelectorsType struct {
 type ElectricalConnectionCharacteristicDataType struct {
 	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty" eebus:"key"`
 	ParameterId            *ElectricalConnectionParameterIdType           `json:"parameterId,omitempty" eebus:"key"`
-	CharacteristicId       *ElectricalConnectionCharaceteristicsIdType    `json:"characteristicId,omitempty" eebus:"key"`
+	CharacteristicId       *ElectricalConnectionCharaceteristicIdType     `json:"characteristicId,omitempty" eebus:"key"`
 	CharacteristicContext  *ElectricalConnectionCharacteristicContextType `json:"characteristicContext,omitempty"`
 	CharacteristicType     *ElectricalConnectionCharacteristicTypeType    `json:"characteristicType,omitempty"`
 	Value                  *ScaledNumberType                              `json:"value,omitempty"`
@@ -235,7 +235,7 @@ type ElectricalConnectionCharacteristicListDataType struct {
 type ElectricalConnectionCharacteristicListDataSelectorsType struct {
 	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty"`
 	ParameterId            *ElectricalConnectionParameterIdType           `json:"parameterId,omitempty"`
-	CharacteristicId       *ElectricalConnectionCharaceteristicsIdType    `json:"characteristicId,omitempty"`
+	CharacteristicId       *ElectricalConnectionCharaceteristicIdType     `json:"characteristicId,omitempty"`
 	CharacteristicContext  *ElectricalConnectionCharacteristicContextType `json:"characteristicContext,omitempty"`
 	CharacteristicType     *ElectricalConnectionCharacteristicTypeType    `json:"characteristicType,omitempty"`
 }
