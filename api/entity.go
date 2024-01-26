@@ -7,7 +7,7 @@ import "github.com/enbility/spine-go/model"
 // This interface defines the functions being common to local and remote entites
 // An entity corresponds to a SPINE entity, see SPINE Introduction Chapter 2.2
 type EntityInterface interface {
-	// Get the entity addres
+	// Get the entity address
 	Address() *model.EntityAddressType
 	// Get the entity type
 	EntityType() model.EntityTypeType
