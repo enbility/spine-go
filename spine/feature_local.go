@@ -183,7 +183,7 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 	}
 
 	if r.Role() == model.RoleTypeServer {
-		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a subscription", r))
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a subscription", r.Feature.String()))
 	}
 
 	msgCounter, err := remoteDevice.Sender().Subscribe(r.Address(), remoteAddress, r.ftype)
@@ -240,7 +240,7 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 	}
 
 	if r.Role() == model.RoleTypeServer {
-		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a binding", r))
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a binding", r.Feature.String()))
 	}
 
 	msgCounter, err := remoteDevice.Sender().Bind(r.Address(), remoteAddress, r.ftype)
