@@ -157,10 +157,7 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	if r.remoteDevices[ski] == nil {
+	if r.RemoteDeviceForSki(ski) == nil {
 		return
 	}
 
@@ -217,9 +214,10 @@ func (r *DeviceLocal) RemoteDeviceForSki(ski string) api.DeviceRemoteInterface {
 
 func (r *DeviceLocal) AddEntity(entity api.EntityLocalInterface) {
 	r.mux.Lock()
-	defer r.mux.Unlock()
 
 	r.entities = append(r.entities, entity)
+
+	r.mux.Unlock()
 
 	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeAdded)
 }
@@ -230,7 +228,6 @@ func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllBindings()
 
 	r.mux.Lock()
-	defer r.mux.Unlock()
 
 	var entities []api.EntityLocalInterface
 	for _, e := range r.entities {
@@ -240,6 +237,8 @@ func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	}
 
 	r.entities = entities
+
+	r.mux.Unlock()
 
 	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeRemoved)
 }
