@@ -85,7 +85,8 @@ func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 		return
 	}
 
-	if r.RemoteDeviceForSki(payload.Ski) == nil {
+	remoteDevice := r.RemoteDeviceForSki(payload.Ski)
+	if remoteDevice == nil {
 		return
 	}
 
@@ -93,10 +94,14 @@ func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 	//revive:disable-next-line
 	switch payload.Data.(type) {
 	case *model.NodeManagementDetailedDiscoveryDataType:
-		_, _ = r.nodeManagement.SubscribeToRemote(payload.Feature.Address())
+		address := payload.Feature.Address()
+		if address.Device == nil {
+			address.Device = remoteDevice.Address()
+		}
+		_, _ = r.nodeManagement.SubscribeToRemote(address)
 
 		// Request Use Case Data
-		_, _ = r.nodeManagement.RequestUseCaseData(payload.Device.Ski(), payload.Device.Address(), payload.Device.Sender())
+		_, _ = r.nodeManagement.RequestUseCaseData(payload.Device.Ski(), remoteDevice.Address(), payload.Device.Sender())
 	}
 }
 
