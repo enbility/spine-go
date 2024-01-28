@@ -60,7 +60,7 @@ func (r *Feature) String() string {
 	if r == nil {
 		return ""
 	}
-	return fmt.Sprintf("Id: %d (%s)", *r.Address().Feature, *r.Description())
+	return fmt.Sprintf("Id: %d (%s)", *r.Address().Feature, string(r.ftype))
 }
 
 func featureAddressType(id uint, entityAddress *model.EntityAddressType) *model.FeatureAddressType {
