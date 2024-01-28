@@ -47,6 +47,7 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 	suite.localDevice.AddEntity(entity)
 
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, false, false)
 	entity.AddFeature(localFeature)
 
 	remoteEntity := NewEntityRemote(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
@@ -94,7 +95,18 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 	assert.Nil(suite.T(), data)
 
 	running := suite.sut.IsHeartbeatRunning()
-	assert.Equal(suite.T(), true, running)
+	assert.Equal(suite.T(), false, running)
+
+	suite.localDevice.RemoveEntity(entity)
+	entity = NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	suite.localDevice.AddEntity(entity)
+
+	localFeature = entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+	entity.AddFeature(localFeature)
+
+	err = suite.localDevice.ProcessCmd(datagram, suite.remoteDevice)
+	assert.Nil(suite.T(), err)
 
 	err = suite.sut.StartHeartbeat()
 	assert.Nil(suite.T(), err)

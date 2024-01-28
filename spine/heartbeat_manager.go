@@ -52,12 +52,20 @@ func (c *HeartbeatManager) UpdateHeartbeatOnSubscriptions() {
 		return
 	}
 
-	featureAddr := c.localEntity.FeatureOfTypeAndRole(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
-	if featureAddr == nil {
+	feature := c.localEntity.FeatureOfTypeAndRole(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	if feature == nil {
 		return
 	}
 
-	subscriptions := c.subscriptionManager.SubscriptionsOnFeature(*featureAddr.Address())
+	// check if the local device diagnosis server feature, supports the heartbeat function
+	ops, ok := feature.Operations()[model.FunctionTypeDeviceDiagnosisHeartbeatData]
+	if !ok || !ops.Read() {
+		return
+	}
+
+	subscriptions := c.subscriptionManager.SubscriptionsOnFeature(*feature.Address())
+	// check if any subscription address supports Heartbeat function
+
 	if len(subscriptions) == 0 {
 		// stop creating heartbeats
 		c.StopHeartbeat()
