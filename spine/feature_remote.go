@@ -1,7 +1,6 @@
 package spine
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -108,7 +107,8 @@ func (r *FeatureRemote) MaxResponseDelayDuration() time.Duration {
 func (r *FeatureRemote) functionData(function model.FunctionType) api.FunctionDataInterface {
 	fd, found := r.functionDataMap[function]
 	if !found {
-		panic(fmt.Errorf("Data was not found for function '%s'", function))
+		logging.Log().Errorf("Data was not found for function '%s'", function)
+		return nil
 	}
 	return fd
 }
