@@ -4,6 +4,12 @@ type DeviceConfigurationKeyIdType uint
 
 type DeviceConfigurationKeyValueStringType string
 
+const (
+	DeviceConfigurationKeyValueStringTypeISO151182ED1 DeviceConfigurationKeyValueStringType = "iso15118-2ed1"
+	DeviceConfigurationKeyValueStringTypeISO151182ED2 DeviceConfigurationKeyValueStringType = "iso15118-2ed2"
+	DeviceConfigurationKeyValueStringTypeIEC61851     DeviceConfigurationKeyValueStringType = "iec61851"
+)
+
 type DeviceConfigurationKeyNameType string
 
 const (
