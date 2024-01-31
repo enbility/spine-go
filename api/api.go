@@ -50,9 +50,7 @@ type SubscriptionManagerInterface interface {
 
 type HeartbeatManagerInterface interface {
 	IsHeartbeatRunning() bool
-	UpdateHeartbeatOnSubscriptions()
 	SetLocalFeature(entity EntityLocalInterface, feature FeatureLocalInterface)
-	StartHeartbeat() error
 	StopHeartbeat()
 }
 

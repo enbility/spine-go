@@ -25,7 +25,7 @@ type HeartBeatManagerSuite struct {
 
 func (suite *HeartBeatManagerSuite) WriteShipMessageWithPayload([]byte) {}
 
-func (suite *HeartBeatManagerSuite) SetupSuite() {
+func (suite *HeartBeatManagerSuite) BeforeTest(suiteName, testName string) {
 	suite.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 
 	ski := "test"
@@ -38,8 +38,33 @@ func (suite *HeartBeatManagerSuite) SetupSuite() {
 }
 
 func (suite *HeartBeatManagerSuite) Test_HeartbeatFailure() {
-	err := suite.sut.StartHeartbeat()
-	assert.NotNil(suite.T(), err)
+	suite.sut.SetLocalFeature(nil, nil)
+
+	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	suite.localDevice.AddEntity(entity)
+
+	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceConfiguration, model.RoleTypeServer)
+	entity.AddFeature(localFeature)
+
+	suite.sut.SetLocalFeature(entity, localFeature)
+
+	running := suite.sut.IsHeartbeatRunning()
+	assert.Equal(suite.T(), false, running)
+
+	anotherFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	entity.AddFeature(anotherFeature)
+
+	suite.sut.SetLocalFeature(entity, anotherFeature)
+
+	running = suite.sut.IsHeartbeatRunning()
+	assert.Equal(suite.T(), false, running)
+
+	anotherFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+
+	suite.sut.SetLocalFeature(entity, anotherFeature)
+
+	running = suite.sut.IsHeartbeatRunning()
+	assert.Equal(suite.T(), true, running)
 }
 
 func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
@@ -49,6 +74,8 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
 	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, false, false)
 	entity.AddFeature(localFeature)
+
+	suite.sut.SetLocalFeature(entity, localFeature)
 
 	remoteEntity := NewEntityRemote(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
 	suite.remoteDevice.AddEntity(remoteEntity)
@@ -105,10 +132,9 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
 	entity.AddFeature(localFeature)
 
-	err = suite.localDevice.ProcessCmd(datagram, suite.remoteDevice)
-	assert.Nil(suite.T(), err)
+	suite.sut.SetLocalFeature(entity, localFeature)
 
-	err = suite.sut.StartHeartbeat()
+	err = suite.localDevice.ProcessCmd(datagram, suite.remoteDevice)
 	assert.Nil(suite.T(), err)
 
 	time.Sleep(time.Second * 5)
@@ -121,7 +147,7 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 
 	fctData := data.(*model.DeviceDiagnosisHeartbeatDataType)
 	var resultCounter uint64 = 1
-	assert.Equal(suite.T(), resultCounter, *fctData.HeartbeatCounter)
+	assert.LessOrEqual(suite.T(), resultCounter, *fctData.HeartbeatCounter)
 	resultTimeout, err := fctData.HeartbeatTimeout.GetTimeDuration()
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), time.Second*4, resultTimeout)
@@ -145,7 +171,10 @@ func (suite *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 	assert.Nil(suite.T(), err)
 
 	isHeartbeatRunning := suite.sut.IsHeartbeatRunning()
-	assert.Equal(suite.T(), false, isHeartbeatRunning)
+	assert.Equal(suite.T(), true, isHeartbeatRunning)
 
 	suite.sut.StopHeartbeat()
+
+	isHeartbeatRunning = suite.sut.IsHeartbeatRunning()
+	assert.Equal(suite.T(), false, isHeartbeatRunning)
 }

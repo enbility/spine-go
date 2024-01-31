@@ -198,9 +198,6 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 			subscriptionMgr := r.Device().SubscriptionManager()
 			subscriptionMgr.RemoveSubscriptionsForEntity(removedEntity)
 
-			// make sure Heartbeat Manager is up to date
-			r.Device().HeartbeatManager().UpdateHeartbeatOnSubscriptions()
-
 			// remove all bindings for this entity
 			bindingMgr := r.Device().BindingManager()
 			bindingMgr.RemoveBindingsForEntity(removedEntity)

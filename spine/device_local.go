@@ -165,9 +165,6 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	subscriptionMgr := r.SubscriptionManager()
 	subscriptionMgr.RemoveSubscriptionsForDevice(r.remoteDevices[ski])
 
-	// make sure Heartbeat Manager is up to date
-	r.HeartbeatManager().UpdateHeartbeatOnSubscriptions()
-
 	// remove all bindings for this device
 	bindingMgr := r.BindingManager()
 	bindingMgr.RemoveBindingsForDevice(r.remoteDevices[ski])

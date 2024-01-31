@@ -1,7 +1,6 @@
 package spine
 
 import (
-	"errors"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -21,7 +20,11 @@ type HeartbeatManager struct {
 
 	subscriptionManager api.SubscriptionManagerInterface
 	heartBeatTimeout    *model.DurationType
+
+	mux sync.Mutex
 }
+
+var _ api.HeartbeatManagerInterface = (*HeartbeatManager)(nil)
 
 // Create a new Heartbeat Manager which handles sending of heartbeats
 func NewHeartbeatManager(localDevice api.DeviceLocalInterface, subscriptionManager api.SubscriptionManagerInterface, timeout time.Duration) *HeartbeatManager {
@@ -45,15 +48,13 @@ func (c *HeartbeatManager) IsHeartbeatRunning() bool {
 	return false
 }
 
-// check if there are any heartbeat subscriptions left, otherwise stop creating new ones
-// or start creating heartbeats again if needed
-func (c *HeartbeatManager) UpdateHeartbeatOnSubscriptions() {
-	if c.localEntity == nil {
+func (c *HeartbeatManager) SetLocalFeature(entity api.EntityLocalInterface, feature api.FeatureLocalInterface) {
+	if entity == nil || feature == nil {
 		return
 	}
 
-	feature := c.localEntity.FeatureOfTypeAndRole(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
-	if feature == nil {
+	if feature.Type() != model.FeatureTypeTypeDeviceDiagnosis ||
+		feature.Role() != model.RoleTypeServer {
 		return
 	}
 
@@ -63,32 +64,28 @@ func (c *HeartbeatManager) UpdateHeartbeatOnSubscriptions() {
 		return
 	}
 
-	subscriptions := c.subscriptionManager.SubscriptionsOnFeature(*feature.Address())
-	// check if any subscription address supports Heartbeat function
+	c.mux.Lock()
 
-	if len(subscriptions) == 0 {
-		// stop creating heartbeats
-		c.StopHeartbeat()
-	} else if !c.IsHeartbeatRunning() {
-		// resume creating heartbeats
-		_ = c.StartHeartbeat()
-	}
-}
-
-func (c *HeartbeatManager) SetLocalFeature(entity api.EntityLocalInterface, feature api.FeatureLocalInterface) {
 	c.localEntity = entity
 	c.localFeature = feature
+
+	// initialise heartbeat data
+	heartbeatData := c.heartbeatData(time.Now(), c.heartBeatCounter())
+
+	// updating the data will automatically notify all subscribed remote features
+	feature.SetData(model.FunctionTypeDeviceDiagnosisHeartbeatData, heartbeatData)
+
+	c.mux.Unlock()
+
+	// start creating heartbeats
+	_ = c.startHeartbeat()
 }
 
 // Start setting heartbeat data
 // Make sure the a required FeatureTypeTypeDeviceDiagnosis with the role server is present
 // otherwise this will end with an error
 // Note: Remote features need to have a subscription to get notifications
-func (c *HeartbeatManager) StartHeartbeat() error {
-	if c.localEntity == nil {
-		return errors.New("unknown entity")
-	}
-
+func (c *HeartbeatManager) startHeartbeat() error {
 	timeout, err := c.heartBeatTimeout.GetTimeDuration()
 	if err != nil {
 		return err
@@ -113,10 +110,10 @@ func (c *HeartbeatManager) StopHeartbeat() {
 }
 
 func (c *HeartbeatManager) heartbeatData(t time.Time, counter *uint64) *model.DeviceDiagnosisHeartbeatDataType {
-	timestamp := t.UTC().Format(time.RFC3339)
+	timestamp := model.NewAbsoluteOrRelativeTimeTypeFromTime(t)
 
 	return &model.DeviceDiagnosisHeartbeatDataType{
-		Timestamp:        &timestamp,
+		Timestamp:        timestamp,
 		HeartbeatCounter: counter,
 		HeartbeatTimeout: c.heartBeatTimeout,
 	}
@@ -130,8 +127,10 @@ func (c *HeartbeatManager) updateHearbeatData(stopC chan struct{}, d time.Durati
 
 			heartbeatData := c.heartbeatData(time.Now(), c.heartBeatCounter())
 
+			c.mux.Lock()
 			// updating the data will automatically notify all subscribed remote features
 			c.localFeature.SetData(model.FunctionTypeDeviceDiagnosisHeartbeatData, heartbeatData)
+			c.mux.Unlock()
 
 		case <-stopC:
 			return
