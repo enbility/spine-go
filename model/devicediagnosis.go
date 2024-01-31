@@ -50,9 +50,9 @@ type DeviceDiagnosisStateDataElementsType struct {
 }
 
 type DeviceDiagnosisHeartbeatDataType struct {
-	Timestamp        *string       `json:"timestamp,omitempty"`
-	HeartbeatCounter *uint64       `json:"heartbeatCounter,omitempty"`
-	HeartbeatTimeout *DurationType `json:"heartbeatTimeout,omitempty"`
+	Timestamp        *AbsoluteOrRelativeTimeType `json:"timestamp,omitempty"`
+	HeartbeatCounter *uint64                     `json:"heartbeatCounter,omitempty"`
+	HeartbeatTimeout *DurationType               `json:"heartbeatTimeout,omitempty"`
 }
 
 type DeviceDiagnosisHeartbeatDataElementsType struct {
