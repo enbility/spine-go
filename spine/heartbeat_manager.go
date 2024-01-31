@@ -78,14 +78,14 @@ func (c *HeartbeatManager) SetLocalFeature(entity api.EntityLocalInterface, feat
 	c.mux.Unlock()
 
 	// start creating heartbeats
-	_ = c.startHeartbeat()
+	_ = c.StartHeartbeat()
 }
 
 // Start setting heartbeat data
 // Make sure the a required FeatureTypeTypeDeviceDiagnosis with the role server is present
 // otherwise this will end with an error
 // Note: Remote features need to have a subscription to get notifications
-func (c *HeartbeatManager) startHeartbeat() error {
+func (c *HeartbeatManager) StartHeartbeat() error {
 	timeout, err := c.heartBeatTimeout.GetTimeDuration()
 	if err != nil {
 		return err
