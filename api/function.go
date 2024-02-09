@@ -20,5 +20,5 @@ type FunctionDataInterface interface {
 	// Get a copy of the functions data
 	DataCopyAny() any
 	// Update the functions data
-	UpdateDataAny(data any, filterPartial *model.FilterType, filterDelete *model.FilterType)
+	UpdateDataAny(data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType
 }

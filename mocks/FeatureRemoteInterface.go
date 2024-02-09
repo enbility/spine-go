@@ -620,8 +620,23 @@ func (_c *FeatureRemoteInterface_Type_Call) RunAndReturn(run func() model.Featur
 }
 
 // UpdateData provides a mock function with given fields: function, data, filterPartial, filterDelete
-func (_m *FeatureRemoteInterface) UpdateData(function model.FunctionType, data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) {
-	_m.Called(function, data, filterPartial, filterDelete)
+func (_m *FeatureRemoteInterface) UpdateData(function model.FunctionType, data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	ret := _m.Called(function, data, filterPartial, filterDelete)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateData")
+	}
+
+	var r0 *model.ErrorType
+	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, *model.FilterType, *model.FilterType) *model.ErrorType); ok {
+		r0 = rf(function, data, filterPartial, filterDelete)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ErrorType)
+		}
+	}
+
+	return r0
 }
 
 // FeatureRemoteInterface_UpdateData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateData'
@@ -645,12 +660,12 @@ func (_c *FeatureRemoteInterface_UpdateData_Call) Run(run func(function model.Fu
 	return _c
 }
 
-func (_c *FeatureRemoteInterface_UpdateData_Call) Return() *FeatureRemoteInterface_UpdateData_Call {
-	_c.Call.Return()
+func (_c *FeatureRemoteInterface_UpdateData_Call) Return(_a0 *model.ErrorType) *FeatureRemoteInterface_UpdateData_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *FeatureRemoteInterface_UpdateData_Call) RunAndReturn(run func(model.FunctionType, interface{}, *model.FilterType, *model.FilterType)) *FeatureRemoteInterface_UpdateData_Call {
+func (_c *FeatureRemoteInterface_UpdateData_Call) RunAndReturn(run func(model.FunctionType, interface{}, *model.FilterType, *model.FilterType) *model.ErrorType) *FeatureRemoteInterface_UpdateData_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -255,8 +255,23 @@ func (_c *FunctionDataCmdInterface_ReplyCmdType_Call) RunAndReturn(run func(bool
 }
 
 // UpdateDataAny provides a mock function with given fields: data, filterPartial, filterDelete
-func (_m *FunctionDataCmdInterface) UpdateDataAny(data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) {
-	_m.Called(data, filterPartial, filterDelete)
+func (_m *FunctionDataCmdInterface) UpdateDataAny(data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	ret := _m.Called(data, filterPartial, filterDelete)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDataAny")
+	}
+
+	var r0 *model.ErrorType
+	if rf, ok := ret.Get(0).(func(interface{}, *model.FilterType, *model.FilterType) *model.ErrorType); ok {
+		r0 = rf(data, filterPartial, filterDelete)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ErrorType)
+		}
+	}
+
+	return r0
 }
 
 // FunctionDataCmdInterface_UpdateDataAny_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDataAny'
@@ -279,12 +294,12 @@ func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Run(run func(data interfa
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Return() *FunctionDataCmdInterface_UpdateDataAny_Call {
-	_c.Call.Return()
+func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Return(_a0 *model.ErrorType) *FunctionDataCmdInterface_UpdateDataAny_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) RunAndReturn(run func(interface{}, *model.FilterType, *model.FilterType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
+func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) RunAndReturn(run func(interface{}, *model.FilterType, *model.FilterType) *model.ErrorType) *FunctionDataCmdInterface_UpdateDataAny_Call {
 	_c.Call.Return(run)
 	return _c
 }

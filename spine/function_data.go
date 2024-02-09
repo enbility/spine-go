@@ -77,9 +77,11 @@ func (r *FunctionData[T]) DataCopyAny() any {
 	return r.DataCopy()
 }
 
-func (r *FunctionData[T]) UpdateDataAny(newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) {
+func (r *FunctionData[T]) UpdateDataAny(newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
 	err := r.UpdateData(newData.(*T), filterPartial, filterDelete)
 	if err != nil {
 		logging.Log().Debug(err.String())
 	}
+
+	return err
 }

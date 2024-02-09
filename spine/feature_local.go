@@ -400,7 +400,9 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 }
 
 func (r *FeatureLocal) processReply(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	featureRemote.UpdateData(function, data, filterPartial, filterDelete)
+	if err := featureRemote.UpdateData(function, data, filterPartial, filterDelete); err != nil {
+		return err
+	}
 
 	if requestHeader != nil && requestHeader.MsgCounterReference != nil {
 		_ = r.pendingRequests.SetData(featureRemote.Device().Ski(), *requestHeader.MsgCounterReference, data)
@@ -426,7 +428,9 @@ func (r *FeatureLocal) processReply(function model.FunctionType, data any, filte
 }
 
 func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	featureRemote.UpdateData(function, data, filterPartial, filterDelete)
+	if err := featureRemote.UpdateData(function, data, filterPartial, filterDelete); err != nil {
+		return err
+	}
 
 	payload := api.EventPayload{
 		Ski:           featureRemote.Device().Ski(),

@@ -359,6 +359,15 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 		}
 
+		// if this is an error for a notify message, automatically trigger a read request for the same
+		if message.CmdClassifier == model.CmdClassifierTypeNotify {
+			// set the command function to empty
+
+			if cmdData, err := message.Cmd.Data(); err == nil {
+				_, _ = localFeature.RequestRemoteData(*cmdData.Function, nil, nil, remoteFeature)
+			}
+		}
+
 		return errors.New(err.String())
 	}
 	if ackRequest != nil && *ackRequest {

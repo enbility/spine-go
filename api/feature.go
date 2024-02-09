@@ -111,7 +111,7 @@ type FeatureRemoteInterface interface {
 	// Get a copy of the features data for a given function type
 	DataCopy(function model.FunctionType) any
 	// Set the features data for a given function type
-	UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType)
+	UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType
 
 	// Set the supported operations of the feature for a set of functions
 	SetOperations(functions []model.FunctionPropertyType)

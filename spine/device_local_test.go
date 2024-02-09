@@ -132,6 +132,52 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	assert.Nil(d.T(), remote)
 }
 
+func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	localFeature := NewFeatureLocal(50, localEntity, model.FeatureTypeTypeSensing, model.RoleTypeClient)
+	localEntity.AddFeature(localFeature)
+	sut.AddEntity(localEntity)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+	remote := sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), remote)
+	remoteEntity := NewEntityRemote(remote, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	remoteFeature := NewFeatureRemote(50, remoteEntity, model.FeatureTypeTypeSensing, model.RoleTypeServer)
+	remoteEntity.AddFeature(remoteFeature)
+	remote.AddEntity(remoteEntity)
+
+	datagram := model.DatagramType{
+		Header: model.HeaderType{
+			AddressSource:      remoteFeature.Address(),
+			AddressDestination: localFeature.Address(),
+			MsgCounter:         util.Ptr(model.MsgCounterType(1)),
+			CmdClassifier:      util.Ptr(model.CmdClassifierTypeNotify),
+		},
+		Payload: model.PayloadType{
+			Cmd: []model.CmdType{
+				{
+					Function: util.Ptr(model.FunctionTypeSensingListData),
+					Filter:   filterEmptyPartial(),
+					SensingListData: &model.SensingListDataType{
+						SensingData: []model.SensingDataType{
+							{
+								Timestamp: model.NewAbsoluteOrRelativeTimeTypeFromTime(time.Now()),
+								Value:     model.NewScaledNumberType(99),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := sut.ProcessCmd(datagram, remote)
+	assert.NotNil(d.T(), err)
+
+}
+
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_Errors() {
 	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
 	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
