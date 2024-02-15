@@ -774,6 +774,41 @@ func (_c *EntityLocalInterface_SetDescription_Call) RunAndReturn(run func(*model
 	return _c
 }
 
+// SetUseCaseAvailability provides a mock function with given fields: actor, useCaseName, available
+func (_m *EntityLocalInterface) SetUseCaseAvailability(actor model.UseCaseActorType, useCaseName model.UseCaseNameType, available bool) {
+	_m.Called(actor, useCaseName, available)
+}
+
+// EntityLocalInterface_SetUseCaseAvailability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetUseCaseAvailability'
+type EntityLocalInterface_SetUseCaseAvailability_Call struct {
+	*mock.Call
+}
+
+// SetUseCaseAvailability is a helper method to define mock.On call
+//   - actor model.UseCaseActorType
+//   - useCaseName model.UseCaseNameType
+//   - available bool
+func (_e *EntityLocalInterface_Expecter) SetUseCaseAvailability(actor interface{}, useCaseName interface{}, available interface{}) *EntityLocalInterface_SetUseCaseAvailability_Call {
+	return &EntityLocalInterface_SetUseCaseAvailability_Call{Call: _e.mock.On("SetUseCaseAvailability", actor, useCaseName, available)}
+}
+
+func (_c *EntityLocalInterface_SetUseCaseAvailability_Call) Run(run func(actor model.UseCaseActorType, useCaseName model.UseCaseNameType, available bool)) *EntityLocalInterface_SetUseCaseAvailability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.UseCaseActorType), args[1].(model.UseCaseNameType), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *EntityLocalInterface_SetUseCaseAvailability_Call) Return() *EntityLocalInterface_SetUseCaseAvailability_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *EntityLocalInterface_SetUseCaseAvailability_Call) RunAndReturn(run func(model.UseCaseActorType, model.UseCaseNameType, bool)) *EntityLocalInterface_SetUseCaseAvailability_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewEntityLocalInterface creates a new instance of EntityLocalInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewEntityLocalInterface(t interface {

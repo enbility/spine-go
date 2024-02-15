@@ -93,6 +93,11 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	hasUC = ucs.HasUseCaseSupport(address, UseCaseActorTypeCEM, UseCaseNameTypeControlOfBattery)
 	assert.Equal(s.T(), true, hasUC)
 
+	assert.Equal(s.T(), true, *ucs.UseCaseInformation[0].UseCaseSupport[0].UseCaseAvailable)
+	ucs.SetAvailability(address, UseCaseActorTypeCEM, UseCaseNameTypeControlOfBattery, false)
+	assert.Equal(s.T(), false, *ucs.UseCaseInformation[0].UseCaseSupport[0].UseCaseAvailable)
+	ucs.SetAvailability(address, UseCaseActorTypeCEM, UseCaseNameTypeConfigurationOfDhwTemperature, false)
+
 	ucs.RemoveUseCaseSupport(
 		address,
 		UseCaseActorTypeCEM,

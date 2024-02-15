@@ -148,6 +148,29 @@ func (r *EntityLocal) HasUseCaseSupport(actor model.UseCaseActorType, useCaseNam
 	return data.HasUseCaseSupport(address, actor, useCaseName)
 }
 
+// Set the availability of a usecase. This may only be used for usescases
+// that act as a client within the usecase!
+func (r *EntityLocal) SetUseCaseAvailability(
+	actor model.UseCaseActorType,
+	useCaseName model.UseCaseNameType,
+	available bool) {
+	nodeMgmt := r.device.NodeManagement()
+
+	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
+	if err != nil {
+		return
+	}
+
+	address := model.FeatureAddressType{
+		Device: r.address.Device,
+		Entity: r.address.Entity,
+	}
+
+	data.SetAvailability(address, actor, useCaseName, available)
+
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
+}
+
 // Remove a usecase with a given actor ans usecase name
 func (r *EntityLocal) RemoveUseCaseSupport(
 	actor model.UseCaseActorType,

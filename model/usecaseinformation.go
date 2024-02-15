@@ -73,6 +73,10 @@ const (
 
 type UseCaseScenarioSupportType uint
 
+const (
+	UseCaseDocumentSubRevisionRelease string = "release"
+)
+
 type UseCaseSupportType struct {
 	UseCaseName                *UseCaseNameType             `json:"useCaseName,omitempty"`
 	UseCaseVersion             *SpecificationVersionType    `json:"useCaseVersion,omitempty"`

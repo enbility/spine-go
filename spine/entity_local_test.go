@@ -98,6 +98,12 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 	)
 	assert.Equal(suite.T(), true, hasUC)
 
+	entity.SetUseCaseAvailability(
+		model.UseCaseActorTypeCEM,
+		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		false,
+	)
+
 	entity.RemoveUseCaseSupport(
 		model.UseCaseActorTypeCEM,
 		model.UseCaseNameTypeEVSECommissioningAndConfiguration,

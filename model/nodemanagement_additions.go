@@ -3,6 +3,8 @@ package model
 import (
 	"reflect"
 	"sync"
+
+	"github.com/enbility/spine-go/util"
 )
 
 var nmMux sync.Mutex
@@ -115,6 +117,32 @@ func (n *NodeManagementUseCaseDataType) HasUseCaseSupport(
 	// is there an entry for the entity address, actor and usecase name
 	_, ok := n.useCaseInformationIndex(address, actor, useCaseName)
 	return ok
+}
+
+// Set the availability of a usecase
+func (n *NodeManagementUseCaseDataType) SetAvailability(
+	address FeatureAddressType,
+	actor UseCaseActorType,
+	useCaseName UseCaseNameType,
+	availability bool,
+) {
+	nmMux.Lock()
+	defer nmMux.Unlock()
+
+	// is there an entry for the entity address, actor and usecase name
+	usecaseIndex, ok := n.useCaseInformationIndex(address, actor, useCaseName)
+	if !ok {
+		return
+	}
+
+	useCaseInformation := n.UseCaseInformation[usecaseIndex]
+	for index, item := range useCaseInformation.UseCaseSupport {
+		if item.UseCaseName != nil && *item.UseCaseName == useCaseName {
+			n.UseCaseInformation[usecaseIndex].UseCaseSupport[index].UseCaseAvailable = util.Ptr(availability)
+
+			return
+		}
+	}
 }
 
 // Remove a UseCaseSupportType with

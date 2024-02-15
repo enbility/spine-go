@@ -54,6 +54,9 @@ type EntityLocalInterface interface {
 		actor model.UseCaseActorType,
 		useCaseName model.UseCaseNameType,
 	)
+	// Set the availability of a usecase. This may only be used for usescases
+	// that act as a client within the usecase!
+	SetUseCaseAvailability(actor model.UseCaseActorType, useCaseName model.UseCaseNameType, available bool)
 	// Remove all usecases
 	RemoveAllUseCaseSupports()
 
