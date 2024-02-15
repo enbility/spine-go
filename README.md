@@ -14,8 +14,6 @@ Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is 
 
 This repository was started as part of the [eebus-go](https://github.com/enbility/eebus-go) before it was moved into its own repository and this separate go package.
 
-Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is required. Please check the corresponding specifications on the [EEBUS downloads website](https://www.eebus.org/media-downloads/).
-
 __Important:__ In contrast to the EEBUS recommendation to use a "Generic" client feature, this library does not support this for the local device! Instead one should create a feature type with the client role for every required feature.
 
 ## Packages
