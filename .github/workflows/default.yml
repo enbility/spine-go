@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ^1.18
+          go-version: ^1.21.1
 
       - name: Build
         run: go build -v ./...
@@ -42,7 +42,11 @@ jobs:
       - name: Send coverage
         uses: coverallsapp/github-action@v2
         with:
-          file: coverage.out
+          file: coverage_temp.out
+
+      - name: Remove mocks from coverage
+        run: |
+          grep -v "/spine-go/mocks/" coverage_temp.out > coverage.out
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
