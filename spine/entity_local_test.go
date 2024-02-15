@@ -62,6 +62,9 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 	)
 	assert.Equal(suite.T(), false, hasUC)
 
+	_, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](device.NodeManagement(), model.FunctionTypeNodeManagementUseCaseData)
+	assert.NotNil(suite.T(), err)
+
 	entity.AddUseCaseSupport(
 		model.UseCaseActorTypeCEM,
 		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
@@ -70,6 +73,9 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 		true,
 		[]model.UseCaseScenarioSupportType{1, 2},
 	)
+
+	_, err = LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](device.NodeManagement(), model.FunctionTypeNodeManagementUseCaseData)
+	assert.Nil(suite.T(), err)
 
 	hasUC = entity.HasUseCaseSupport(
 		model.UseCaseActorTypeCEM,

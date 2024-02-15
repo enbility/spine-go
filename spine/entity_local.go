@@ -116,8 +116,8 @@ func (r *EntityLocal) AddUseCaseSupport(
 ) {
 	nodeMgmt := r.device.NodeManagement()
 
-	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-	if data == nil {
+	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
+	if err != nil {
 		data = &model.NodeManagementUseCaseDataType{}
 	}
 
@@ -131,11 +131,12 @@ func (r *EntityLocal) AddUseCaseSupport(
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
+// Check if a use case is already added
 func (r *EntityLocal) HasUseCaseSupport(actor model.UseCaseActorType, useCaseName model.UseCaseNameType) bool {
 	nodeMgmt := r.device.NodeManagement()
 
-	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-	if data == nil {
+	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
+	if err != nil {
 		return false
 	}
 
@@ -154,8 +155,8 @@ func (r *EntityLocal) RemoveUseCaseSupport(
 ) {
 	nodeMgmt := r.device.NodeManagement()
 
-	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-	if data == nil {
+	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
+	if err != nil {
 		return
 	}
 
@@ -173,8 +174,8 @@ func (r *EntityLocal) RemoveUseCaseSupport(
 func (r *EntityLocal) RemoveAllUseCaseSupports() {
 	nodeMgmt := r.device.NodeManagement()
 
-	data := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-	if data == nil {
+	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
+	if err != nil {
 		return
 	}
 
