@@ -37,16 +37,16 @@ jobs:
           args: --timeout=3m --issues-exit-code=0 ./...
 
       - name: Test
-        run: go test -race -v -coverprofile=coverage.out  -covermode=atomic ./...
-
-      - name: Send coverage
-        uses: coverallsapp/github-action@v2
-        with:
-          file: coverage_temp.out
+        run: go test -race -v -coverprofile=coverage_temp.out  -covermode=atomic ./...
 
       - name: Remove mocks from coverage
         run: |
           grep -v "/spine-go/mocks/" coverage_temp.out > coverage.out
+
+      - name: Send coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          file: coverage.out
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
