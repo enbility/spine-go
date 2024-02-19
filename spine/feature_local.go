@@ -180,6 +180,20 @@ func (r *FeatureLocal) FetchRequestRemoteData(
 	return r.pendingRequests.GetData(destination.Device().Ski(), msgCounter)
 }
 
+// check if there already is a subscription to a remote feature
+func (r *FeatureLocal) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	for _, item := range r.subscriptions {
+		if reflect.DeepEqual(*remoteAddress, *item) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SubscribeToRemote to a remote feature
 func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
@@ -238,6 +252,20 @@ func (r *FeatureLocal) RemoveAllRemoteSubscriptions() {
 	for _, item := range r.subscriptions {
 		r.RemoveRemoteSubscription(item)
 	}
+}
+
+// check if there already is a binding to a remote feature
+func (r *FeatureLocal) HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	for _, item := range r.bindings {
+		if reflect.DeepEqual(*remoteAddress, *item) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // BindToRemote to a remote feature

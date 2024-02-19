@@ -179,9 +179,15 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscribipt
 
 	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
 
+	subscribed := suite.localFeature.HasSubscriptionToRemote(suite.remoteFeature.Address())
+	assert.Equal(suite.T(), false, subscribed)
+
 	msgCounter, err = suite.localFeature.SubscribeToRemote(suite.remoteFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
+
+	subscribed = suite.localFeature.HasSubscriptionToRemote(suite.remoteFeature.Address())
+	assert.Equal(suite.T(), true, subscribed)
 
 	msgCounter, err = suite.localFeature.SubscribeToRemote(suite.remoteSubFeature.Address())
 	assert.Nil(suite.T(), err)
@@ -210,9 +216,15 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 
 	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
 
+	binding := suite.localFeature.HasBindingToRemote(suite.remoteFeature.Address())
+	assert.Equal(suite.T(), false, binding)
+
 	msgCounter, err = suite.localFeature.BindToRemote(suite.remoteFeature.Address())
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
+
+	binding = suite.localFeature.HasBindingToRemote(suite.remoteFeature.Address())
+	assert.Equal(suite.T(), true, binding)
 
 	msgCounter, err = suite.localFeature.BindToRemote(suite.remoteSubFeature.Address())
 	assert.Nil(suite.T(), err)

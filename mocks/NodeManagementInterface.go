@@ -173,9 +173,9 @@ func (_c *NodeManagementInterface_Address_Call) RunAndReturn(run func() *model.F
 	return _c
 }
 
-// BindToRemote provides a mock function with given fields: remoteAdress
-func (_m *NodeManagementInterface) BindToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(remoteAdress)
+// BindToRemote provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	ret := _m.Called(remoteAddress)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BindToRemote")
@@ -184,10 +184,10 @@ func (_m *NodeManagementInterface) BindToRemote(remoteAdress *model.FeatureAddre
 	var r0 *model.MsgCounterType
 	var r1 *model.ErrorType
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(remoteAdress)
+		return rf(remoteAddress)
 	}
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) *model.MsgCounterType); ok {
-		r0 = rf(remoteAdress)
+		r0 = rf(remoteAddress)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.MsgCounterType)
@@ -195,7 +195,7 @@ func (_m *NodeManagementInterface) BindToRemote(remoteAdress *model.FeatureAddre
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.FeatureAddressType) *model.ErrorType); ok {
-		r1 = rf(remoteAdress)
+		r1 = rf(remoteAddress)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.ErrorType)
@@ -211,12 +211,12 @@ type NodeManagementInterface_BindToRemote_Call struct {
 }
 
 // BindToRemote is a helper method to define mock.On call
-//   - remoteAdress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) BindToRemote(remoteAdress interface{}) *NodeManagementInterface_BindToRemote_Call {
-	return &NodeManagementInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAdress)}
+//   - remoteAddress *model.FeatureAddressType
+func (_e *NodeManagementInterface_Expecter) BindToRemote(remoteAddress interface{}) *NodeManagementInterface_BindToRemote_Call {
+	return &NodeManagementInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAddress)}
 }
 
-func (_c *NodeManagementInterface_BindToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_BindToRemote_Call {
+func (_c *NodeManagementInterface_BindToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_BindToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
@@ -527,6 +527,52 @@ func (_c *NodeManagementInterface_HandleMessage_Call) Return(_a0 *model.ErrorTyp
 }
 
 func (_c *NodeManagementInterface_HandleMessage_Call) RunAndReturn(run func(*api.Message) *model.ErrorType) *NodeManagementInterface_HandleMessage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// HasSubscriptionToRemote provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
+	ret := _m.Called(remoteAddress)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasSubscriptionToRemote")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) bool); ok {
+		r0 = rf(remoteAddress)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// NodeManagementInterface_HasSubscriptionToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasSubscriptionToRemote'
+type NodeManagementInterface_HasSubscriptionToRemote_Call struct {
+	*mock.Call
+}
+
+// HasSubscriptionToRemote is a helper method to define mock.On call
+//   - remoteAddress *model.FeatureAddressType
+func (_e *NodeManagementInterface_Expecter) HasSubscriptionToRemote(remoteAddress interface{}) *NodeManagementInterface_HasSubscriptionToRemote_Call {
+	return &NodeManagementInterface_HasSubscriptionToRemote_Call{Call: _e.mock.On("HasSubscriptionToRemote", remoteAddress)}
+}
+
+func (_c *NodeManagementInterface_HasSubscriptionToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_HasSubscriptionToRemote_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.FeatureAddressType))
+	})
+	return _c
+}
+
+func (_c *NodeManagementInterface_HasSubscriptionToRemote_Call) Return(_a0 bool) *NodeManagementInterface_HasSubscriptionToRemote_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *NodeManagementInterface_HasSubscriptionToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) bool) *NodeManagementInterface_HasSubscriptionToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1072,9 +1118,9 @@ func (_c *NodeManagementInterface_String_Call) RunAndReturn(run func() string) *
 	return _c
 }
 
-// SubscribeToRemote provides a mock function with given fields: remoteAdress
-func (_m *NodeManagementInterface) SubscribeToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(remoteAdress)
+// SubscribeToRemote provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	ret := _m.Called(remoteAddress)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SubscribeToRemote")
@@ -1083,10 +1129,10 @@ func (_m *NodeManagementInterface) SubscribeToRemote(remoteAdress *model.Feature
 	var r0 *model.MsgCounterType
 	var r1 *model.ErrorType
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(remoteAdress)
+		return rf(remoteAddress)
 	}
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) *model.MsgCounterType); ok {
-		r0 = rf(remoteAdress)
+		r0 = rf(remoteAddress)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.MsgCounterType)
@@ -1094,7 +1140,7 @@ func (_m *NodeManagementInterface) SubscribeToRemote(remoteAdress *model.Feature
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.FeatureAddressType) *model.ErrorType); ok {
-		r1 = rf(remoteAdress)
+		r1 = rf(remoteAddress)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.ErrorType)
@@ -1110,12 +1156,12 @@ type NodeManagementInterface_SubscribeToRemote_Call struct {
 }
 
 // SubscribeToRemote is a helper method to define mock.On call
-//   - remoteAdress *model.FeatureAddressType
-func (_e *NodeManagementInterface_Expecter) SubscribeToRemote(remoteAdress interface{}) *NodeManagementInterface_SubscribeToRemote_Call {
-	return &NodeManagementInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAdress)}
+//   - remoteAddress *model.FeatureAddressType
+func (_e *NodeManagementInterface_Expecter) SubscribeToRemote(remoteAddress interface{}) *NodeManagementInterface_SubscribeToRemote_Call {
+	return &NodeManagementInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAddress)}
 }
 
-func (_c *NodeManagementInterface_SubscribeToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *NodeManagementInterface_SubscribeToRemote_Call {
+func (_c *NodeManagementInterface_SubscribeToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *NodeManagementInterface_SubscribeToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})

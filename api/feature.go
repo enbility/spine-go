@@ -41,7 +41,7 @@ type FeatureLocalInterface interface {
 	AddFunctionType(function model.FunctionType, read, write bool)
 	// Add a FeatureResultInterface implementation to be able to get incoming result messages for this feature
 	AddResultHandler(handler FeatureResultInterface)
-	// Add a callback function to be invoked when SPINE message comes in with a given msgCoutnerReference value
+	// Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
 	AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg ResultMessage))
 
 	// Get a copy of the features data for a given function type
@@ -67,15 +67,19 @@ type FeatureLocalInterface interface {
 		msgCounter model.MsgCounterType,
 		destination FeatureRemoteInterface) (any, *model.ErrorType)
 
+	// Check if there already is a subscription to a given feature remote address
+	HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool
 	// Trigger a subscription request to a given feature remote address
-	SubscribeToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
+	SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a subscription removal request for a given feature remote address
 	RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType)
 	// Trigger subscription removal requests for all subscriptions of this feature
 	RemoveAllRemoteSubscriptions()
 
+	// Check if there already is a binding to a given feature remote address
+	HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool
 	// Trigger a binding request to a given feature remote address
-	BindToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
+	BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a binding removal request for a given feature remote address
 	RemoveRemoteBinding(remoteAddress *model.FeatureAddressType)
 	// Trigger binding removal requests for all subscriptions of this feature

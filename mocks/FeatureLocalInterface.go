@@ -173,9 +173,9 @@ func (_c *FeatureLocalInterface_Address_Call) RunAndReturn(run func() *model.Fea
 	return _c
 }
 
-// BindToRemote provides a mock function with given fields: remoteAdress
-func (_m *FeatureLocalInterface) BindToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(remoteAdress)
+// BindToRemote provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	ret := _m.Called(remoteAddress)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BindToRemote")
@@ -184,10 +184,10 @@ func (_m *FeatureLocalInterface) BindToRemote(remoteAdress *model.FeatureAddress
 	var r0 *model.MsgCounterType
 	var r1 *model.ErrorType
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(remoteAdress)
+		return rf(remoteAddress)
 	}
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) *model.MsgCounterType); ok {
-		r0 = rf(remoteAdress)
+		r0 = rf(remoteAddress)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.MsgCounterType)
@@ -195,7 +195,7 @@ func (_m *FeatureLocalInterface) BindToRemote(remoteAdress *model.FeatureAddress
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.FeatureAddressType) *model.ErrorType); ok {
-		r1 = rf(remoteAdress)
+		r1 = rf(remoteAddress)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.ErrorType)
@@ -211,12 +211,12 @@ type FeatureLocalInterface_BindToRemote_Call struct {
 }
 
 // BindToRemote is a helper method to define mock.On call
-//   - remoteAdress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) BindToRemote(remoteAdress interface{}) *FeatureLocalInterface_BindToRemote_Call {
-	return &FeatureLocalInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAdress)}
+//   - remoteAddress *model.FeatureAddressType
+func (_e *FeatureLocalInterface_Expecter) BindToRemote(remoteAddress interface{}) *FeatureLocalInterface_BindToRemote_Call {
+	return &FeatureLocalInterface_BindToRemote_Call{Call: _e.mock.On("BindToRemote", remoteAddress)}
 }
 
-func (_c *FeatureLocalInterface_BindToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_BindToRemote_Call {
+func (_c *FeatureLocalInterface_BindToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_BindToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
@@ -527,6 +527,52 @@ func (_c *FeatureLocalInterface_HandleMessage_Call) Return(_a0 *model.ErrorType)
 }
 
 func (_c *FeatureLocalInterface_HandleMessage_Call) RunAndReturn(run func(*api.Message) *model.ErrorType) *FeatureLocalInterface_HandleMessage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// HasSubscriptionToRemote provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
+	ret := _m.Called(remoteAddress)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasSubscriptionToRemote")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) bool); ok {
+		r0 = rf(remoteAddress)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// FeatureLocalInterface_HasSubscriptionToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasSubscriptionToRemote'
+type FeatureLocalInterface_HasSubscriptionToRemote_Call struct {
+	*mock.Call
+}
+
+// HasSubscriptionToRemote is a helper method to define mock.On call
+//   - remoteAddress *model.FeatureAddressType
+func (_e *FeatureLocalInterface_Expecter) HasSubscriptionToRemote(remoteAddress interface{}) *FeatureLocalInterface_HasSubscriptionToRemote_Call {
+	return &FeatureLocalInterface_HasSubscriptionToRemote_Call{Call: _e.mock.On("HasSubscriptionToRemote", remoteAddress)}
+}
+
+func (_c *FeatureLocalInterface_HasSubscriptionToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_HasSubscriptionToRemote_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.FeatureAddressType))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_HasSubscriptionToRemote_Call) Return(_a0 bool) *FeatureLocalInterface_HasSubscriptionToRemote_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FeatureLocalInterface_HasSubscriptionToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) bool) *FeatureLocalInterface_HasSubscriptionToRemote_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1072,9 +1118,9 @@ func (_c *FeatureLocalInterface_String_Call) RunAndReturn(run func() string) *Fe
 	return _c
 }
 
-// SubscribeToRemote provides a mock function with given fields: remoteAdress
-func (_m *FeatureLocalInterface) SubscribeToRemote(remoteAdress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
-	ret := _m.Called(remoteAdress)
+// SubscribeToRemote provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	ret := _m.Called(remoteAddress)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SubscribeToRemote")
@@ -1083,10 +1129,10 @@ func (_m *FeatureLocalInterface) SubscribeToRemote(remoteAdress *model.FeatureAd
 	var r0 *model.MsgCounterType
 	var r1 *model.ErrorType
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)); ok {
-		return rf(remoteAdress)
+		return rf(remoteAddress)
 	}
 	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) *model.MsgCounterType); ok {
-		r0 = rf(remoteAdress)
+		r0 = rf(remoteAddress)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.MsgCounterType)
@@ -1094,7 +1140,7 @@ func (_m *FeatureLocalInterface) SubscribeToRemote(remoteAdress *model.FeatureAd
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.FeatureAddressType) *model.ErrorType); ok {
-		r1 = rf(remoteAdress)
+		r1 = rf(remoteAddress)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.ErrorType)
@@ -1110,12 +1156,12 @@ type FeatureLocalInterface_SubscribeToRemote_Call struct {
 }
 
 // SubscribeToRemote is a helper method to define mock.On call
-//   - remoteAdress *model.FeatureAddressType
-func (_e *FeatureLocalInterface_Expecter) SubscribeToRemote(remoteAdress interface{}) *FeatureLocalInterface_SubscribeToRemote_Call {
-	return &FeatureLocalInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAdress)}
+//   - remoteAddress *model.FeatureAddressType
+func (_e *FeatureLocalInterface_Expecter) SubscribeToRemote(remoteAddress interface{}) *FeatureLocalInterface_SubscribeToRemote_Call {
+	return &FeatureLocalInterface_SubscribeToRemote_Call{Call: _e.mock.On("SubscribeToRemote", remoteAddress)}
 }
 
-func (_c *FeatureLocalInterface_SubscribeToRemote_Call) Run(run func(remoteAdress *model.FeatureAddressType)) *FeatureLocalInterface_SubscribeToRemote_Call {
+func (_c *FeatureLocalInterface_SubscribeToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_SubscribeToRemote_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*model.FeatureAddressType))
 	})
