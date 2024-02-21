@@ -86,7 +86,7 @@ type EntityRemoteInterface interface {
 	// Remove all features
 	RemoveAllFeatures()
 
-	// Get a FeatureLocalInterface implementation for a given feature type and role
+	// Get a FeatureRemoteInterface implementation for a given feature type and role
 	FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) FeatureRemoteInterface
 	// Get a FeatureRemoteInterface implementation for a given feature address
 	FeatureOfAddress(addressFeature *model.AddressFeatureType) FeatureRemoteInterface
