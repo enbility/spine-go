@@ -289,6 +289,55 @@ func (_c *EntityRemoteInterface_FeatureOfAddress_Call) RunAndReturn(run func(*mo
 	return _c
 }
 
+// FeatureOfTypeAndRole provides a mock function with given fields: featureType, role
+func (_m *EntityRemoteInterface) FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) api.FeatureRemoteInterface {
+	ret := _m.Called(featureType, role)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FeatureOfTypeAndRole")
+	}
+
+	var r0 api.FeatureRemoteInterface
+	if rf, ok := ret.Get(0).(func(model.FeatureTypeType, model.RoleType) api.FeatureRemoteInterface); ok {
+		r0 = rf(featureType, role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(api.FeatureRemoteInterface)
+		}
+	}
+
+	return r0
+}
+
+// EntityRemoteInterface_FeatureOfTypeAndRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FeatureOfTypeAndRole'
+type EntityRemoteInterface_FeatureOfTypeAndRole_Call struct {
+	*mock.Call
+}
+
+// FeatureOfTypeAndRole is a helper method to define mock.On call
+//   - featureType model.FeatureTypeType
+//   - role model.RoleType
+func (_e *EntityRemoteInterface_Expecter) FeatureOfTypeAndRole(featureType interface{}, role interface{}) *EntityRemoteInterface_FeatureOfTypeAndRole_Call {
+	return &EntityRemoteInterface_FeatureOfTypeAndRole_Call{Call: _e.mock.On("FeatureOfTypeAndRole", featureType, role)}
+}
+
+func (_c *EntityRemoteInterface_FeatureOfTypeAndRole_Call) Run(run func(featureType model.FeatureTypeType, role model.RoleType)) *EntityRemoteInterface_FeatureOfTypeAndRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.FeatureTypeType), args[1].(model.RoleType))
+	})
+	return _c
+}
+
+func (_c *EntityRemoteInterface_FeatureOfTypeAndRole_Call) Return(_a0 api.FeatureRemoteInterface) *EntityRemoteInterface_FeatureOfTypeAndRole_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *EntityRemoteInterface_FeatureOfTypeAndRole_Call) RunAndReturn(run func(model.FeatureTypeType, model.RoleType) api.FeatureRemoteInterface) *EntityRemoteInterface_FeatureOfTypeAndRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Features provides a mock function with given fields:
 func (_m *EntityRemoteInterface) Features() []api.FeatureRemoteInterface {
 	ret := _m.Called()

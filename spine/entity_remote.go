@@ -48,12 +48,26 @@ func (r *EntityRemote) RemoveAllFeatures() {
 	r.features = nil
 }
 
+func (r *EntityRemote) FeatureOfTypeAndRole(featureType model.FeatureTypeType, role model.RoleType) api.FeatureRemoteInterface {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	for _, f := range r.features {
+		if f.Type() == featureType && f.Role() == role {
+			return f
+		}
+	}
+
+	return nil
+}
+
 func (r *EntityRemote) FeatureOfAddress(addressFeature *model.AddressFeatureType) api.FeatureRemoteInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	for _, f := range r.features {
-		if *f.Address().Feature == *addressFeature {
+		if addressFeature != nil && f.Address() != nil &&
+			*f.Address().Feature == *addressFeature {
 			return f
 		}
 	}

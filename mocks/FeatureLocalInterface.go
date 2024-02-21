@@ -531,6 +531,52 @@ func (_c *FeatureLocalInterface_HandleMessage_Call) RunAndReturn(run func(*api.M
 	return _c
 }
 
+// HasBindingToRemote provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool {
+	ret := _m.Called(remoteAddress)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasBindingToRemote")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.FeatureAddressType) bool); ok {
+		r0 = rf(remoteAddress)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// FeatureLocalInterface_HasBindingToRemote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasBindingToRemote'
+type FeatureLocalInterface_HasBindingToRemote_Call struct {
+	*mock.Call
+}
+
+// HasBindingToRemote is a helper method to define mock.On call
+//   - remoteAddress *model.FeatureAddressType
+func (_e *FeatureLocalInterface_Expecter) HasBindingToRemote(remoteAddress interface{}) *FeatureLocalInterface_HasBindingToRemote_Call {
+	return &FeatureLocalInterface_HasBindingToRemote_Call{Call: _e.mock.On("HasBindingToRemote", remoteAddress)}
+}
+
+func (_c *FeatureLocalInterface_HasBindingToRemote_Call) Run(run func(remoteAddress *model.FeatureAddressType)) *FeatureLocalInterface_HasBindingToRemote_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.FeatureAddressType))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_HasBindingToRemote_Call) Return(_a0 bool) *FeatureLocalInterface_HasBindingToRemote_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FeatureLocalInterface_HasBindingToRemote_Call) RunAndReturn(run func(*model.FeatureAddressType) bool) *FeatureLocalInterface_HasBindingToRemote_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // HasSubscriptionToRemote provides a mock function with given fields: remoteAddress
 func (_m *FeatureLocalInterface) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
 	ret := _m.Called(remoteAddress)
