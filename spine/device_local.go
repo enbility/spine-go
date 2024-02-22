@@ -194,7 +194,7 @@ func (r *DeviceLocal) RemoteDeviceForAddress(address model.AddressDeviceType) ap
 	defer r.mux.Unlock()
 
 	for _, item := range r.remoteDevices {
-		if *item.Address() == address {
+		if item.Address() != nil && *item.Address() == address {
 			return item
 		}
 	}
