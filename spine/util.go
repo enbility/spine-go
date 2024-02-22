@@ -23,7 +23,10 @@ func dataCopyOfType[T any](rdata any) (T, error) {
 		return x.(T), notFoundError
 	}
 
-	data := rdata.(T)
+	data, ok := rdata.(T)
+	if !ok {
+		return x.(T), notFoundError
+	}
 
 	return data, nil
 }

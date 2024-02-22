@@ -43,6 +43,23 @@ func (s *UtilsSuite) Test_DataCopyOfType() {
 	)
 	assert.NotNil(s.T(), err)
 
+	data := &model.ElectricalConnectionDescriptionListDataType{
+		ElectricalConnectionDescriptionData: []model.ElectricalConnectionDescriptionDataType{},
+	}
+	localFeature.updateData(model.FunctionTypeElectricalConnectionDescriptionListData, data, nil, nil)
+
+	_, err = LocalFeatureDataCopyOfType[*model.ElectricalConnectionDescriptionListDataType](
+		localFeature,
+		model.FunctionTypeElectricalConnectionDescriptionListData,
+	)
+	assert.Nil(s.T(), err)
+
+	_, err = LocalFeatureDataCopyOfType[string](
+		localFeature,
+		model.FunctionTypeElectricalConnectionDescriptionListData,
+	)
+	assert.NotNil(s.T(), err)
+
 	ski := "test"
 	sender := NewSender(s)
 
@@ -56,5 +73,4 @@ func (s *UtilsSuite) Test_DataCopyOfType() {
 	// this function does not exist
 	_, err = RemoteFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](remoteFeature, "dummy")
 	assert.NotNil(s.T(), err)
-
 }
