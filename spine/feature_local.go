@@ -90,6 +90,16 @@ func (r *FeatureLocal) AddResultCallback(msgCounterReference model.MsgCounterTyp
 	r.resultCallback[msgCounterReference] = function
 }
 
+func (r *FeatureLocal) Functions() []model.FunctionType {
+	var fcts []model.FunctionType
+
+	for key := range r.operations {
+		fcts = append(fcts, key)
+	}
+
+	return fcts
+}
+
 func (r *FeatureLocal) processResultCallbacks(msgCounterReference model.MsgCounterType, msg api.ResultMessage) {
 	r.muxResultCB.Lock()
 	defer r.muxResultCB.Unlock()

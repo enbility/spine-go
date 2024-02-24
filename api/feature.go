@@ -44,6 +44,9 @@ type FeatureLocalInterface interface {
 	// Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
 	AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg ResultMessage))
 
+	// return all functions
+	Functions() []model.FunctionType
+
 	// Get a copy of the features data for a given function type
 	DataCopy(function model.FunctionType) any
 	// Set the features data for a given function type

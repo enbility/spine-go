@@ -46,6 +46,13 @@ func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName strin
 	suite.remoteSubFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 2, suite.subFeatureType)
 }
 
+func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Functions() {
+	fcts := suite.localServerFeatureWrite.Functions()
+	assert.NotNil(suite.T(), fcts)
+	assert.Equal(suite.T(), 1, len(fcts))
+	assert.Equal(suite.T(), suite.serverWriteFunction, fcts[0])
+}
+
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Reply() {
 	dummyAddress := &model.FeatureAddressType{
 		Device:  util.Ptr(model.AddressDeviceType("")),
@@ -161,7 +168,7 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Err
 	assert.Equal(suite.T(), errorDescription, string(*err.Description))
 }
 
-func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscribiptions() {
+func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscriptions() {
 	suite.senderMock.On("Subscribe", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 	suite.senderMock.On("Unsubscribe", mock.Anything, mock.Anything, mock.Anything).Return(&suite.msgCounter, nil)
 
