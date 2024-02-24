@@ -652,7 +652,7 @@ const (
 	EntityTypeTypeDHWStorage                    EntityTypeType = "DHWStorage"
 	EntityTypeTypeDishwasher                    EntityTypeType = "Dishwasher"
 	EntityTypeTypeDryer                         EntityTypeType = "Dryer"
-	EntityTypeTypeElectricalImmersionheater     EntityTypeType = "ElectricalImmersionHeater"
+	EntityTypeTypeElectricalImmersionHeater     EntityTypeType = "ElectricalImmersionHeater"
 	EntityTypeTypeFan                           EntityTypeType = "Fan"
 	EntityTypeTypeGasHeatingAppliance           EntityTypeType = "GasHeatingAppliance"
 	EntityTypeTypeGeneric                       EntityTypeType = "Generic"
