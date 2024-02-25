@@ -173,8 +173,8 @@ func (d *DeviceRemote) UseCases() []model.UseCaseInformationDataType {
 
 	nodemgmt := d.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
 
-	data := nodemgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-	if data != nil {
+	data, ok := nodemgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
+	if ok && data != nil {
 		return data.UseCaseInformation
 	}
 
@@ -193,9 +193,9 @@ func (d *DeviceRemote) VerifyUseCaseScenariosAndFeaturesSupport(
 
 	nodemgmt := d.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
 
-	usecases := nodemgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
+	usecases, ok := nodemgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
 
-	if usecases == nil || len(usecases.UseCaseInformation) == 0 {
+	if !ok || usecases == nil || len(usecases.UseCaseInformation) == 0 {
 		return false
 	}
 
