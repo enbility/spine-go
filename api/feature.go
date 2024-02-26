@@ -75,7 +75,7 @@ type FeatureLocalInterface interface {
 	// Trigger a subscription request to a given feature remote address
 	SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a subscription removal request for a given feature remote address
-	RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType)
+	RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger subscription removal requests for all subscriptions of this feature
 	RemoveAllRemoteSubscriptions()
 
@@ -84,7 +84,7 @@ type FeatureLocalInterface interface {
 	// Trigger a binding request to a given feature remote address
 	BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a binding removal request for a given feature remote address
-	RemoveRemoteBinding(remoteAddress *model.FeatureAddressType)
+	RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger binding removal requests for all subscriptions of this feature
 	RemoveAllRemoteBindings()
 

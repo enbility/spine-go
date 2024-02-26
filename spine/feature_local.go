@@ -231,14 +231,18 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 }
 
 // Remove a subscriptions to a remote feature
-func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	if remoteAddress.Device == nil {
+		return nil, model.NewErrorTypeFromString("device not found")
+	}
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
-		return
+		return nil, model.NewErrorTypeFromString("device not found")
 	}
 
-	if _, err := remoteDevice.Sender().Unsubscribe(r.Address(), remoteAddress); err != nil {
-		return
+	msgCounter, err := remoteDevice.Sender().Unsubscribe(r.Address(), remoteAddress)
+	if err != nil {
+		return nil, model.NewErrorTypeFromString("device not found")
 	}
 
 	var subscriptions []*model.FeatureAddressType
@@ -255,12 +259,14 @@ func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddr
 	}
 
 	r.subscriptions = subscriptions
+
+	return msgCounter, nil
 }
 
 // Remove all subscriptions to remote features
 func (r *FeatureLocal) RemoveAllRemoteSubscriptions() {
 	for _, item := range r.subscriptions {
-		r.RemoveRemoteSubscription(item)
+		_, _ = r.RemoveRemoteSubscription(item)
 	}
 }
 
@@ -280,6 +286,9 @@ func (r *FeatureLocal) HasBindingToRemote(remoteAddress *model.FeatureAddressTyp
 
 // BindToRemote to a remote feature
 func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	if remoteAddress.Device == nil {
+		return nil, model.NewErrorTypeFromString("device not found")
+	}
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -302,14 +311,18 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 }
 
 // Remove a binding to a remote feature
-func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) {
+func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
+	if remoteAddress.Device == nil {
+		return nil, model.NewErrorTypeFromString("device not found")
+	}
 	remoteDevice := r.entity.Device().RemoteDeviceForAddress(*remoteAddress.Device)
 	if remoteDevice == nil {
-		return
+		return nil, model.NewErrorTypeFromString("device not found")
 	}
 
-	if _, err := remoteDevice.Sender().Unbind(r.Address(), remoteAddress); err != nil {
-		return
+	msgCounter, err := remoteDevice.Sender().Unbind(r.Address(), remoteAddress)
+	if err != nil {
+		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
 	var bindings []*model.FeatureAddressType
@@ -326,12 +339,14 @@ func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressTy
 	}
 
 	r.bindings = bindings
+
+	return msgCounter, nil
 }
 
 // Remove all subscriptions to remote features
 func (r *FeatureLocal) RemoveAllRemoteBindings() {
 	for _, item := range r.bindings {
-		r.RemoveRemoteBinding(item)
+		_, _ = r.RemoveRemoteBinding(item)
 	}
 }
 

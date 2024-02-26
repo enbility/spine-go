@@ -176,7 +176,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscriptio
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), msgCounter)
 
 	suite.localFeature.Device().AddRemoteDeviceForSki(suite.remoteFeature.Device().Ski(), suite.remoteFeature.Device())
 
@@ -184,7 +186,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscriptio
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), msgCounter)
 
 	subscribed := suite.localFeature.HasSubscriptionToRemote(suite.remoteFeature.Address())
 	assert.Equal(suite.T(), false, subscribed)
@@ -200,7 +204,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscriptio
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteSubscription(suite.remoteFeature.Address())
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), msgCounter)
 
 	suite.localFeature.RemoveAllRemoteSubscriptions()
 }
@@ -213,7 +219,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	assert.NotNil(suite.T(), err)
+	assert.Nil(suite.T(), msgCounter)
 
 	suite.localFeature.Device().AddRemoteDeviceForSki(suite.remoteFeature.Device().Ski(), suite.remoteFeature.Device())
 
@@ -221,7 +229,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), msgCounter)
 
 	binding := suite.localFeature.HasBindingToRemote(suite.remoteFeature.Address())
 	assert.Equal(suite.T(), false, binding)
@@ -237,7 +247,9 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), msgCounter)
 
-	suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	msgCounter, err = suite.localFeature.RemoveRemoteBinding(suite.remoteFeature.Address())
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), msgCounter)
 
 	suite.localFeature.RemoveAllRemoteBindings()
 }
