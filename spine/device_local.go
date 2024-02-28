@@ -319,10 +319,7 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	}
 
 	lfType := string(localFeature.Type())
-	rfType := ""
-	if remoteFeature != nil {
-		rfType = string(remoteFeature.Type())
-	}
+	rfType := string(remoteFeature.Type())
 
 	logging.Log().Debug(datagram.PrintMessageOverview(false, lfType, rfType))
 
@@ -341,8 +338,7 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			return errors.New(err.String())
 		}
 
-		if remoteFeature == nil ||
-			!r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
+		if !r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
 			err := model.NewErrorTypeFromString("write denied due to missing binding")
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())

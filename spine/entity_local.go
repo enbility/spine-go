@@ -90,7 +90,7 @@ func (r *EntityLocal) FeatureOfAddress(addressFeature *model.AddressFeatureType)
 		return nil
 	}
 	for _, f := range r.features {
-		if f.Address().Feature != nil && addressFeature != nil &&
+		if f.Address().Feature != nil &&
 			*f.Address().Feature == *addressFeature {
 			return f
 		}

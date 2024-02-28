@@ -38,12 +38,12 @@ func (suite *DeviceClassificationTestSuite) BeforeTest(suiteName, testName strin
 	suite.msgCounter = model.MsgCounterType(1)
 
 	suite.localDevice, suite.localEntity = createLocalDeviceAndEntity(1)
-	suite.localFeature, suite.localServerFeature = createLocalFeatures(suite.localDevice, suite.localEntity, suite.featureType, "")
-	_, suite.localServerFeatureWrite = createLocalFeatures(suite.localDevice, suite.localEntity, suite.subFeatureType, suite.serverWriteFunction)
+	suite.localFeature, suite.localServerFeature = createLocalFeatures(suite.localEntity, suite.featureType, "")
+	_, suite.localServerFeatureWrite = createLocalFeatures(suite.localEntity, suite.subFeatureType, suite.serverWriteFunction)
 
 	remoteDevice := createRemoteDevice(suite.localDevice, suite.senderMock)
-	suite.remoteFeature, suite.remoteServerFeature = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 1, suite.featureType)
-	suite.remoteSubFeature, _ = createRemoteEntityAndFeature(suite.localDevice, remoteDevice, 2, suite.subFeatureType)
+	suite.remoteFeature, suite.remoteServerFeature = createRemoteEntityAndFeature(remoteDevice, 1, suite.featureType)
+	suite.remoteSubFeature, _ = createRemoteEntityAndFeature(remoteDevice, 2, suite.subFeatureType)
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Functions() {

@@ -27,7 +27,7 @@ func (r *NodeManagement) processReadDestinationListData(featureRemote api.Featur
 	return featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd)
 }
 
-func (r *NodeManagement) processReplyDestinationListData(message *api.Message, data model.NodeManagementDestinationListDataType) error {
+func (r *NodeManagement) processReplyDestinationListData(_ *api.Message, _ model.NodeManagementDestinationListDataType) error {
 	return errors.New("Not implemented")
 }
 
