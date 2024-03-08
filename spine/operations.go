@@ -43,7 +43,9 @@ func (r *Operations) Information() *model.PossibleOperationsType {
 		res.Read = &model.PossibleOperationsReadType{}
 	}
 	if r.write {
-		res.Write = &model.PossibleOperationsWriteType{}
+		res.Write = &model.PossibleOperationsWriteType{
+			Partial: &model.ElementTagType{},
+		}
 	}
 
 	return res
