@@ -30,7 +30,7 @@ type DeviceDiagnosisSuite struct {
 }
 
 func (s *DeviceDiagnosisSuite) BeforeTest(suiteName, testName string) {
-	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(suiteName, testName, 1, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(1, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
 
 	// f.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
 

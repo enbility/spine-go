@@ -35,7 +35,7 @@ func (s *MeasurementSuite) SetupSuite() {
 }
 
 func (s *MeasurementSuite) BeforeTest(suiteName, testName string) {
-	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(suiteName, testName, 2, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
+	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(2, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	initialCommunication(s.T(), s.remoteDevice, s.writeHandler)
 }
 

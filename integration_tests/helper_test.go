@@ -98,7 +98,7 @@ func (t *WriteMessageHandler) ResultWithReference(msgCounterReference *model.Msg
 }
 
 func beforeTest(
-	suiteName, testName string, fId uint, ftype model.FeatureTypeType,
+	fId uint, ftype model.FeatureTypeType,
 	frole model.RoleType) (api.DeviceLocalInterface, string, api.DeviceRemoteInterface, *WriteMessageHandler) {
 	sut := spine.NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
 		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)

@@ -35,7 +35,7 @@ func (s *ElectricalConnectionSuite) SetupSuite() {
 }
 
 func (s *ElectricalConnectionSuite) BeforeTest(suiteName, testName string) {
-	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(suiteName, testName, 1, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
+	s.sut, s.remoteSki, s.remoteDevice, s.writeHandler = beforeTest(1, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
 	initialCommunication(s.T(), s.remoteDevice, s.writeHandler)
 }
 
