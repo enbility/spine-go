@@ -16,7 +16,7 @@ type SetpointDataType struct {
 	ValueMax                 *ScaledNumberType `json:"valueMax,omitempty"`
 	ValueToleranceAbsolute   *ScaledNumberType `json:"valueToleranceAbsolute,omitempty"`
 	ValueTolerancePercentage *ScaledNumberType `json:"valueTolerancePercentage,omitempty"`
-	IsSetpointChangeable     *bool             `json:"isSetpointChangeable,omitempty"`
+	IsSetpointChangeable     *bool             `json:"isSetpointChangeable,omitempty" eebus:"writecheck"`
 	IsSetpointActive         *bool             `json:"isSetpointActive,omitempty"`
 	TimePeriod               *TimePeriodType   `json:"timePeriod,omitempty"`
 }
