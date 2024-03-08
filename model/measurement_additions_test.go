@@ -34,7 +34,7 @@ func TestMeasurementListDataType_Update_Add(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementData
 	// check the non changing items
@@ -76,7 +76,7 @@ func TestMeasurementListDataType_Update_Replace(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementData
 	// check the non changing items
@@ -119,7 +119,7 @@ func TestMeasurementSeriesListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementSeriesData
 	// check the non changing items
@@ -157,7 +157,7 @@ func TestMeasurementConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementConstraintsData
 	// check the non changing items
@@ -195,7 +195,7 @@ func TestMeasurementDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementDescriptionData
 	// check the non changing items
@@ -233,7 +233,7 @@ func TestMeasurementThresholdRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.MeasurementThresholdRelationData
 	// check the non changing items

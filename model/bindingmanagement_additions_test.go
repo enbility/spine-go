@@ -31,7 +31,7 @@ func TestBindingManagementEntryListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.BindingManagementEntryData
 	// check the non changing items

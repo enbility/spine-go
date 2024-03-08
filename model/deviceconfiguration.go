@@ -89,7 +89,7 @@ type DeviceConfigurationKeyValueValueElementsType struct {
 type DeviceConfigurationKeyValueDataType struct {
 	KeyId             *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key"`
 	Value             *DeviceConfigurationKeyValueValueType `json:"value,omitempty"`
-	IsValueChangeable *bool                                 `json:"isValueChangeable,omitempty"`
+	IsValueChangeable *bool                                 `json:"isValueChangeable,omitempty" eebus:"writecheck"`
 }
 
 type DeviceConfigurationKeyValueDataElementsType struct {

@@ -4,63 +4,63 @@ package model
 
 var _ Updater = (*MeasurementListDataType)(nil)
 
-func (r *MeasurementListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *MeasurementListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []MeasurementDataType
 	if newList != nil {
 		newData = newList.(*MeasurementListDataType).MeasurementData
 	}
 
-	r.MeasurementData = UpdateList(r.MeasurementData, newData, filterPartial, filterDelete)
+	r.MeasurementData = UpdateList(remoteWrite, r.MeasurementData, newData, filterPartial, filterDelete)
 }
 
 // MeasurementSeriesListDataType
 
 var _ Updater = (*MeasurementSeriesListDataType)(nil)
 
-func (r *MeasurementSeriesListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *MeasurementSeriesListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []MeasurementSeriesDataType
 	if newList != nil {
 		newData = newList.(*MeasurementSeriesListDataType).MeasurementSeriesData
 	}
 
-	r.MeasurementSeriesData = UpdateList(r.MeasurementSeriesData, newData, filterPartial, filterDelete)
+	r.MeasurementSeriesData = UpdateList(remoteWrite, r.MeasurementSeriesData, newData, filterPartial, filterDelete)
 }
 
 // MeasurementConstraintsListDataType
 
 var _ Updater = (*MeasurementConstraintsListDataType)(nil)
 
-func (r *MeasurementConstraintsListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *MeasurementConstraintsListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []MeasurementConstraintsDataType
 	if newList != nil {
 		newData = newList.(*MeasurementConstraintsListDataType).MeasurementConstraintsData
 	}
 
-	r.MeasurementConstraintsData = UpdateList(r.MeasurementConstraintsData, newData, filterPartial, filterDelete)
+	r.MeasurementConstraintsData = UpdateList(remoteWrite, r.MeasurementConstraintsData, newData, filterPartial, filterDelete)
 }
 
 // MeasurementDescriptionListDataType
 
 var _ Updater = (*MeasurementDescriptionListDataType)(nil)
 
-func (r *MeasurementDescriptionListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *MeasurementDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []MeasurementDescriptionDataType
 	if newList != nil {
 		newData = newList.(*MeasurementDescriptionListDataType).MeasurementDescriptionData
 	}
 
-	r.MeasurementDescriptionData = UpdateList(r.MeasurementDescriptionData, newData, filterPartial, filterDelete)
+	r.MeasurementDescriptionData = UpdateList(remoteWrite, r.MeasurementDescriptionData, newData, filterPartial, filterDelete)
 }
 
 // MeasurementThresholdRelationListDataType
 
 var _ Updater = (*MeasurementThresholdRelationListDataType)(nil)
 
-func (r *MeasurementThresholdRelationListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *MeasurementThresholdRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []MeasurementThresholdRelationDataType
 	if newList != nil {
 		newData = newList.(*MeasurementThresholdRelationListDataType).MeasurementThresholdRelationData
 	}
 
-	r.MeasurementThresholdRelationData = UpdateList(r.MeasurementThresholdRelationData, newData, filterPartial, filterDelete)
+	r.MeasurementThresholdRelationData = UpdateList(remoteWrite, r.MeasurementThresholdRelationData, newData, filterPartial, filterDelete)
 }

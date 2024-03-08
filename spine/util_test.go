@@ -46,7 +46,7 @@ func (s *UtilsSuite) Test_DataCopyOfType() {
 	data := &model.ElectricalConnectionDescriptionListDataType{
 		ElectricalConnectionDescriptionData: []model.ElectricalConnectionDescriptionDataType{},
 	}
-	localFeature.updateData(model.FunctionTypeElectricalConnectionDescriptionListData, data, nil, nil)
+	localFeature.updateData(false, model.FunctionTypeElectricalConnectionDescriptionListData, data, nil, nil)
 
 	_, err = LocalFeatureDataCopyOfType[*model.ElectricalConnectionDescriptionListDataType](
 		localFeature,

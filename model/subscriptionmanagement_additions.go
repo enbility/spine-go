@@ -4,11 +4,11 @@ package model
 
 var _ Updater = (*SubscriptionManagementEntryListDataType)(nil)
 
-func (r *SubscriptionManagementEntryListDataType) UpdateList(newList any, filterPartial, filterDelete *FilterType) {
+func (r *SubscriptionManagementEntryListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []SubscriptionManagementEntryDataType
 	if newList != nil {
 		newData = newList.(*SubscriptionManagementEntryListDataType).SubscriptionManagementEntryData
 	}
 
-	r.SubscriptionManagementEntryData = UpdateList(r.SubscriptionManagementEntryData, newData, filterPartial, filterDelete)
+	r.SubscriptionManagementEntryData = UpdateList(remoteWrite, r.SubscriptionManagementEntryData, newData, filterPartial, filterDelete)
 }

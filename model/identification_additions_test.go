@@ -31,7 +31,7 @@ func TestIdentificationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.IdentificationData
 	// check the non changing items
@@ -72,7 +72,7 @@ func TestSessionIdentificationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.SessionIdentificationData
 	// check the non changing items
@@ -116,7 +116,7 @@ func TestSessionMeasurementRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.SessionMeasurementRelationData
 	// check the non changing items

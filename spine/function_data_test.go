@@ -14,7 +14,7 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	}
 	functionType := model.FunctionTypeDeviceClassificationManufacturerData
 	sut := NewFunctionData[model.DeviceClassificationManufacturerDataType](functionType)
-	sut.UpdateData(newData, nil, nil)
+	sut.UpdateData(false, newData, nil, nil)
 	getData := sut.DataCopy()
 
 	assert.Equal(t, newData.DeviceName, getData.DeviceName)
@@ -24,7 +24,7 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	newData = &model.DeviceClassificationManufacturerDataType{
 		DeviceName: util.Ptr(model.DeviceClassificationStringType("new device name")),
 	}
-	sut.UpdateData(newData, nil, nil)
+	sut.UpdateData(false, newData, nil, nil)
 	getNewData := sut.DataCopy()
 
 	assert.Equal(t, newData.DeviceName, getNewData.DeviceName)
@@ -56,7 +56,7 @@ func TestFunctionData_UpdateDataPartial(t *testing.T) {
 	functionType := model.FunctionTypeElectricalConnectionPermittedValueSetListData
 	sut := NewFunctionData[model.ElectricalConnectionPermittedValueSetListDataType](functionType)
 
-	err := sut.UpdateData(newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
+	err := sut.UpdateData(false, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
 	if assert.Nil(t, err) {
 		getData := sut.DataCopy()
 		assert.Equal(t, 1, len(getData.ElectricalConnectionPermittedValueSetData))
@@ -74,6 +74,6 @@ func TestFunctionData_UpdateDataPartial_Supported(t *testing.T) {
 	functionType := model.FunctionTypeHvacOverrunListData
 	sut := NewFunctionData[model.HvacOverrunListDataType](functionType)
 
-	err := sut.UpdateData(newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
+	err := sut.UpdateData(false, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
 	assert.Nil(t, err)
 }

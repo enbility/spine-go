@@ -37,7 +37,7 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeTableData
 	// check the non changing items
@@ -75,7 +75,7 @@ func TestTimeTableConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeTableConstraintsData
 	// check the non changing items
@@ -113,7 +113,7 @@ func TestTimeTableDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeTableDescriptionData
 	// check the non changing items

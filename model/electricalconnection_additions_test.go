@@ -32,7 +32,7 @@ func TestElectricalConnectionStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionStateData
 	// check the non changing items
@@ -156,7 +156,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Modify(t *test
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the non changing items
@@ -279,7 +279,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Modify_Selecto
 	}
 
 	// Act
-	sut.UpdateList(&newData, partial, nil)
+	sut.UpdateList(false, &newData, partial, nil)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the non changing items
@@ -442,7 +442,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Modify(
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), deleteFilter)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is gone
@@ -538,7 +538,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete(t *test
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, deleteFilter)
+	sut.UpdateList(false, nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is added again
@@ -637,7 +637,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Element
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, deleteFilter)
+	sut.UpdateList(false, nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check no items are deleted
@@ -739,7 +739,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_OnlyEle
 	}
 
 	// Act
-	sut.UpdateList(nil, nil, deleteFilter)
+	sut.UpdateList(false, nil, nil, deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check no items are deleted
@@ -913,7 +913,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Add(t *
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), deleteFilter)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), deleteFilter)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// check the deleted item is added again
@@ -995,7 +995,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_NewItem(t *tes
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// new item should be added
@@ -1077,7 +1077,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_UpdateWithoutIdenifie
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
 	// the new item should not be added
@@ -1131,7 +1131,7 @@ func TestElectricalConnectionDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionDescriptionData
 	// check the non changing items
@@ -1175,7 +1175,7 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionCharacteristicListData
 	// check the non changing items
@@ -1217,7 +1217,7 @@ func TestElectricalConnectionParameterDescriptionListDataType_Update(t *testing.
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.ElectricalConnectionParameterDescriptionData
 	// check the non changing items

@@ -17,7 +17,8 @@ func TestDeviceConfigurationKeyValueListDataType_Update(t *testing.T) {
 				},
 			},
 			{
-				KeyId: util.Ptr(DeviceConfigurationKeyIdType(1)),
+				KeyId:             util.Ptr(DeviceConfigurationKeyIdType(1)),
+				IsValueChangeable: util.Ptr(true),
 				Value: &DeviceConfigurationKeyValueValueType{
 					Boolean: util.Ptr(true),
 				},
@@ -37,7 +38,7 @@ func TestDeviceConfigurationKeyValueListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.DeviceConfigurationKeyValueData
 	// check the non changing items
@@ -75,7 +76,7 @@ func TestDeviceConfigurationKeyValueDescriptionListDataType_Update(t *testing.T)
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.DeviceConfigurationKeyValueDescriptionData
 	// check the non changing items
@@ -119,7 +120,7 @@ func TestDeviceConfigurationKeyValueConstraintsListDataType_Update(t *testing.T)
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.DeviceConfigurationKeyValueConstraintsData
 	// check the non changing items

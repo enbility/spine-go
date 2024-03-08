@@ -31,7 +31,7 @@ func TestHvacSystemFunctionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacSystemFunctionData
 	// check the non changing items
@@ -69,7 +69,7 @@ func TestHvacSystemFunctionOperationModeRelationListDataType_Update(t *testing.T
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacSystemFunctionOperationModeRelationData
 	// check the non changing items
@@ -107,7 +107,7 @@ func TestHvacSystemFunctionSetpointRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacSystemFunctionSetpointRelationData
 	// check the non changing items
@@ -145,7 +145,7 @@ func TestHvacSystemFunctionPowerSequenceRelationListDataType_Update(t *testing.T
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacSystemFunctionPowerSequenceRelationData
 	// check the non changing items
@@ -183,7 +183,7 @@ func TestHvacSystemFunctionDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacSystemFunctionDescriptionData
 	// check the non changing items
@@ -221,7 +221,7 @@ func TestHvacOperationModeDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacOperationModeDescriptionData
 	// check the non changing items
@@ -259,7 +259,7 @@ func TestHvacOverrunListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacOverrunData
 	// check the non changing items
@@ -297,7 +297,7 @@ func TestHvacOverrunDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.HvacOverrunDescriptionData
 	// check the non changing items

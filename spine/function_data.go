@@ -48,7 +48,7 @@ func (r *FunctionData[T]) DataCopy() *T {
 	return &copiedData
 }
 
-func (r *FunctionData[T]) UpdateData(newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+func (r *FunctionData[T]) UpdateData(remoteWrite bool, newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -68,7 +68,7 @@ func (r *FunctionData[T]) UpdateData(newData *T, filterPartial *model.FilterType
 	}
 
 	updater := any(r.data).(model.Updater)
-	updater.UpdateList(newData, filterPartial, filterDelete)
+	updater.UpdateList(remoteWrite, newData, filterPartial, filterDelete)
 
 	return nil
 }
@@ -77,8 +77,8 @@ func (r *FunctionData[T]) DataCopyAny() any {
 	return r.DataCopy()
 }
 
-func (r *FunctionData[T]) UpdateDataAny(newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
-	err := r.UpdateData(newData.(*T), filterPartial, filterDelete)
+func (r *FunctionData[T]) UpdateDataAny(remoteWrite bool, newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	err := r.UpdateData(remoteWrite, newData.(*T), filterPartial, filterDelete)
 	if err != nil {
 		logging.Log().Debug(err.String())
 	}

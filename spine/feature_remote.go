@@ -73,7 +73,7 @@ func (r *FeatureRemote) UpdateData(function model.FunctionType, data any, filter
 		return model.NewErrorTypeFromString("function data not found")
 	}
 
-	return fd.UpdateDataAny(data, filterPartial, filterDelete)
+	return fd.UpdateDataAny(false, data, filterPartial, filterDelete)
 }
 
 func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {

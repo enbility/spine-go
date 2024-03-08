@@ -43,7 +43,7 @@ func TestTimeSeriesListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeSeriesData
 	// check the non changing items
@@ -147,7 +147,7 @@ func TestTimeSeriesListDataType_Update_02(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeSeriesData
 	// check the non changing items
@@ -186,7 +186,7 @@ func TestTimeSeriesDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeSeriesDescriptionData
 	// check the non changing items
@@ -224,7 +224,7 @@ func TestTimeSeriesConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TimeSeriesConstraintsData
 	// check the non changing items

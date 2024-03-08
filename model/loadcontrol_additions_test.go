@@ -31,7 +31,7 @@ func TestLoadControlEventListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.LoadControlEventData
 	// check the non changing items
@@ -69,7 +69,7 @@ func TestLoadControlStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.LoadControlStateData
 	// check the non changing items
@@ -92,7 +92,7 @@ func TestLoadControlLimitListDataType_Update(t *testing.T) {
 			},
 			{
 				LimitId:           util.Ptr(LoadControlLimitIdType(1)),
-				IsLimitChangeable: util.Ptr(false),
+				IsLimitChangeable: util.Ptr(true),
 			},
 		},
 	}
@@ -102,12 +102,13 @@ func TestLoadControlLimitListDataType_Update(t *testing.T) {
 			{
 				LimitId:           util.Ptr(LoadControlLimitIdType(1)),
 				IsLimitChangeable: util.Ptr(true),
+				Value:             NewScaledNumberType(10),
 			},
 		},
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.LoadControlLimitData
 	// check the non changing items
@@ -119,6 +120,7 @@ func TestLoadControlLimitListDataType_Update(t *testing.T) {
 	item2 := data[1]
 	assert.Equal(t, 1, int(*item2.LimitId))
 	assert.Equal(t, true, *item2.IsLimitChangeable)
+	assert.Equal(t, 10.0, item2.Value.GetValue())
 }
 
 func TestLoadControlLimitConstraintsListDataType_Update(t *testing.T) {
@@ -145,7 +147,7 @@ func TestLoadControlLimitConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.LoadControlLimitConstraintsData
 	// check the non changing items
@@ -183,7 +185,7 @@ func TestLoadControlLimitDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.LoadControlLimitDescriptionData
 	// check the non changing items

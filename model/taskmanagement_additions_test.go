@@ -31,7 +31,7 @@ func TestTaskManagementJobListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TaskManagementJobData
 	// check the non changing items
@@ -75,7 +75,7 @@ func TestTaskManagementJobRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TaskManagementJobRelationData
 	// check the non changing items
@@ -113,7 +113,7 @@ func TestTaskManagementJobDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data := sut.TaskManagementJobDescriptionData
 	// check the non changing items

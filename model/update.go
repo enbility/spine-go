@@ -8,13 +8,13 @@ import (
 )
 
 type Updater interface {
-	UpdateList(newList any, filterPartial, filterDelete *FilterType)
+	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType)
 }
 
 // Generates a new list of function items by applying the rules mentioned in the spec
 // (EEBus_SPINE_TS_ProtocolSpecification.pdf; chapter "5.3.4 Restricted function exchange with cmdOptions").
 // The given data provider is used the get the current items and the items and the filters in the payload.
-func UpdateList[T any](existingData []T, newData []T, filterPartial, filterDelete *FilterType) []T {
+func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) []T {
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
 		if filterData, err := filterDelete.Data(); err == nil {
@@ -38,15 +38,15 @@ func UpdateList[T any](existingData []T, newData []T, filterPartial, filterDelet
 		return copyToAllData(existingData, &newData[0])
 	}
 
-	result := Merge(existingData, newData)
+	result := Merge(remoteWrite, existingData, newData)
 
 	result = SortData(result)
 
 	return result
 }
 
-// return a list of field names that have the eebus tag "key"
-func keyFieldNames(item any) []string {
+// return a list of field names that have the eebus tag
+func fieldNamesWithEEBusTag(tag EEBusTag, item any) []string {
 	var result []string
 
 	v := reflect.ValueOf(item)
@@ -64,7 +64,7 @@ func keyFieldNames(item any) []string {
 
 		sf := v.Type().Field(i)
 		eebusTags := EEBusTags(sf)
-		_, exists := eebusTags[EEBusTagKey]
+		_, exists := eebusTags[tag]
 		if !exists {
 			continue
 		}
@@ -77,7 +77,7 @@ func keyFieldNames(item any) []string {
 }
 
 func HasIdentifiers(data any) bool {
-	keys := keyFieldNames(data)
+	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
 
 	v := reflect.ValueOf(data)
 
@@ -98,7 +98,7 @@ func SortData[T any](data []T) []T {
 		return data
 	}
 
-	keys := keyFieldNames(data[0])
+	keys := fieldNamesWithEEBusTag(EEBusTagKey, data[0])
 
 	if len(keys) == 0 {
 		return data

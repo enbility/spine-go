@@ -10,9 +10,10 @@ import (
 type EEBusTag string
 
 const (
-	EEBusTagFunction EEBusTag = "fct"
-	EEBusTagType     EEBusTag = "typ"
-	EEBusTagKey      EEBusTag = "key"
+	EEBusTagFunction   EEBusTag = "fct"
+	EEBusTagType       EEBusTag = "typ"
+	EEBusTagKey        EEBusTag = "key"
+	EEBusTagWriteCheck EEBusTag = "writecheck"
 )
 
 type EEBusTagTypeType string

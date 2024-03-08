@@ -127,7 +127,7 @@ func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
 }
 
 func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
-	fctData := r.updateData(function, data, nil, nil)
+	fctData := r.updateData(false, function, data, nil, nil)
 
 	if fctData == nil {
 		return
@@ -136,7 +136,7 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
 }
 
-func (r *FeatureLocal) updateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) api.FunctionDataCmdInterface {
+func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) api.FunctionDataCmdInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -145,7 +145,7 @@ func (r *FeatureLocal) updateData(function model.FunctionType, data any, filterP
 		return nil
 	}
 
-	fctData.UpdateDataAny(data, filterPartial, filterDelete)
+	fctData.UpdateDataAny(remoteWrite, data, filterPartial, filterDelete)
 
 	return fctData
 }
@@ -501,7 +501,7 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 }
 
 func (r *FeatureLocal) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	fctData := r.updateData(function, data, filterPartial, filterDelete)
+	fctData := r.updateData(true, function, data, filterPartial, filterDelete)
 	if fctData == nil {
 		model.NewErrorTypeFromString("function not found")
 	}

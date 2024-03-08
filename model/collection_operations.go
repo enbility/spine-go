@@ -3,13 +3,14 @@ package model
 import (
 	"fmt"
 	"reflect"
+	"slices"
 )
 
 // creates an hash key by using fields that have eebus tag "key"
 func hashKey(data any) string {
 	result := ""
 
-	keys := keyFieldNames(data)
+	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
 
 	if len(keys) == 0 {
 		return result
@@ -68,9 +69,72 @@ func hashKey(data any) string {
 	return result
 }
 
+// check the eebus tag if is has a "writecheck" item
+// and if so, if the value of that field is true
+func writeAllowed(data any) bool {
+	fields := fieldNamesWithEEBusTag(EEBusTagWriteCheck, data)
+	// only one field in a struct may have this tag
+	if len(fields) != 1 {
+		return true
+	}
+
+	fieldName := fields[0]
+	v := reflect.ValueOf(data)
+	f := v.FieldByName(fieldName)
+
+	if f.IsNil() || !f.IsValid() {
+		return false
+	}
+
+	// if this is not a boolean, the tag is wrong which shouldn't happen
+	// and we allow overwriting
+	if f.Elem().Kind() != reflect.Bool {
+		return true
+	}
+
+	value := f.Elem().Bool()
+	return value
+}
+
+// update missing fields in destination with values from source
+func updateFields[T any](remoteWrite bool, source T, destination *T) {
+	if destination == nil {
+		return
+	}
+
+	writeCheckFields := fieldNamesWithEEBusTag(EEBusTagWriteCheck, source)
+
+	sV := reflect.ValueOf(source)
+	sT := reflect.TypeOf(source)
+	dV := reflect.ValueOf(destination).Elem()
+
+	// if the fields don't match, don't do anything
+	if sV.Kind() != reflect.Struct || sV.NumField() != dV.NumField() {
+		return
+	}
+
+	for i := 0; i < sV.NumField(); i++ {
+		value := sV.Field(i)
+		fieldName := sT.Field(i).Name
+		f := dV.FieldByName(fieldName)
+
+		if !f.IsValid() ||
+			!f.CanSet() {
+			continue
+		}
+
+		// on local merge set all nil values
+		// on remote writes only set nil values if it is not a "writecheck" tagged field
+		if f.IsNil() ||
+			(remoteWrite && len(writeCheckFields) > 0 && slices.Contains(writeCheckFields, fieldName)) {
+			f.Set(value)
+		}
+	}
+}
+
 // Merges two slices into one. The item in the first slice will be replaced by the one in the second slice
 // if the hash key is the same. Items in the second slice which are not in the first will be added.
-func Merge[T any](s1 []T, s2 []T) []T {
+func Merge[T any](remoteWrite bool, s1 []T, s2 []T) []T {
 	result := []T{}
 
 	m2 := ToMap(s2)
@@ -79,10 +143,14 @@ func Merge[T any](s1 []T, s2 []T) []T {
 	m1 := make(map[string]T, len(s1))
 	for _, s1Item := range s1 {
 		s1ItemHash := hashKey(s1Item)
-		// s1ItemHash := s1Item.HashKey()
 		s2Item, exist := m2[s1ItemHash]
-		if exist {
-			// the item in the first slice will be replaces by the one of the second slice
+		// if exists and overwriting is allowed
+		if exist && (!remoteWrite || writeAllowed(s1Item)) {
+			// add values from s1Item that don't exist in s2Item or shouldn't be
+			// set in s2Item
+			updateFields(remoteWrite, s1Item, &s2Item)
+
+			// the item in the first slice will be replaced by the one of the second slice
 			result = append(result, s2Item)
 		} else {
 			result = append(result, s1Item)
@@ -94,7 +162,6 @@ func Merge[T any](s1 []T, s2 []T) []T {
 	// append items which were not in the first slice
 	for _, s2Item := range s2 {
 		s2ItemHash := hashKey(s2Item)
-		// s2ItemHash := s2Item.HashKey()
 		_, exist := m1[s2ItemHash]
 		if !exist {
 			result = append(result, s2Item)
@@ -111,31 +178,3 @@ func ToMap[T any](s []T) map[string]T {
 	}
 	return result
 }
-
-/*
-func FindFirst[T any](s []T, predicate func(i T) bool) *T {
-	for _, item := range s {
-		if predicate(item) {
-			return &item
-		}
-	}
-	return nil
-}
-
-func Values[K comparable, V any](m map[K]V) []V {
-	ret := make([]V, 0, len(m))
-	for _, v := range m {
-		ret = append(ret, v)
-	}
-	return ret
-}
-
-// casts all elements in slice s to type D
-func CastElements[S any, D any](s []S) []D {
-	result := make([]D, len(s))
-	for i, item := range s {
-		result[i] = any(item).(D)
-	}
-	return result
-}
-*/

@@ -77,7 +77,7 @@ func (s *UsecaseInformationSuite) Test_UpdateList() {
 	assert.NotNil(s.T(), item1)
 
 	// Act
-	sut.UpdateList(&newData, NewFilterTypePartial(), nil)
+	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
 	data = sut.UseCaseInformationData
 	// check properties of updated item

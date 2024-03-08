@@ -104,7 +104,7 @@ type LoadControlStateListDataSelectorsType struct {
 
 type LoadControlLimitDataType struct {
 	LimitId           *LoadControlLimitIdType `json:"limitId,omitempty" eebus:"key"`
-	IsLimitChangeable *bool                   `json:"isLimitChangeable,omitempty"`
+	IsLimitChangeable *bool                   `json:"isLimitChangeable,omitempty" eebus:"writecheck"`
 	IsLimitActive     *bool                   `json:"isLimitActive,omitempty"`
 	TimePeriod        *TimePeriodType         `json:"timePeriod,omitempty"`
 	Value             *ScaledNumberType       `json:"value,omitempty"`
