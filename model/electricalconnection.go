@@ -57,8 +57,6 @@ const (
 	ElectricalConnectionConnectionPointTypeOther ElectricalConnectionConnectionPointType = "other"
 )
 
-type ElectricalConnectionCharacteristicIdType uint
-
 type ElectricalConnectionCharacteristicContextType string
 
 const (
