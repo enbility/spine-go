@@ -1151,13 +1151,13 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 			{
 				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(0)),
 				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
-				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(0)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharacteristicIdType(0)),
 				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypeApparentPowerConsumptionNominalMax),
 			},
 			{
 				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
 				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
-				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(1)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharacteristicIdType(1)),
 				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypePowerConsumptionMax),
 			},
 		},
@@ -1168,7 +1168,7 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 			{
 				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
 				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
-				CharacteristicId:       util.Ptr(ElectricalConnectionCharaceteristicIdType(1)),
+				CharacteristicId:       util.Ptr(ElectricalConnectionCharacteristicIdType(1)),
 				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeTypeEnergyCapacityNominalMax),
 			},
 		},
