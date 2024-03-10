@@ -89,7 +89,7 @@ func filtersForSelectorsElements(functionType model.FunctionType, filters []mode
 
 // simple helper for adding a single filterType without any selectors
 func filterEmptyPartial() []model.FilterType {
-	return []model.FilterType{{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}}
+	return []model.FilterType{*model.NewFilterTypePartial()}
 }
 
 func addSelectorToFilter[T any](filter model.FilterType, function model.FunctionType, data *T) model.FilterType {

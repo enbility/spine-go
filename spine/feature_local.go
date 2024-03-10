@@ -133,7 +133,7 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 		return
 	}
 
-	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, true, nil))
 }
 
 func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) api.FunctionDataCmdInterface {
