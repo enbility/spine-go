@@ -28,7 +28,9 @@ func (u *UseCaseInformationDataType) Add(useCase UseCaseSupportType) {
 	}
 
 	// only add it if it does not exist yet
-	if _, ok := u.useCaseSupportIndex(*useCase.UseCaseName); ok {
+	if index, ok := u.useCaseSupportIndex(*useCase.UseCaseName); ok {
+		// overwrite it instead
+		u.UseCaseSupport[index] = useCase
 		return
 	}
 
