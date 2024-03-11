@@ -53,6 +53,16 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Functions()
 	assert.Equal(suite.T(), suite.serverWriteFunction, fcts[0])
 }
 
+func (suite *DeviceClassificationTestSuite) TestDeviceClassification_ResponseCB() {
+	testFct := func(msg api.ResponseMessage) {}
+	msgCounter := model.MsgCounterType(100)
+	err := suite.localFeature.AddResponseCallback(msgCounter, testFct)
+	assert.Nil(suite.T(), err)
+
+	err = suite.localFeature.AddResponseCallback(msgCounter, testFct)
+	assert.NotNil(suite.T(), err)
+}
+
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Reply() {
 	dummyAddress := &model.FeatureAddressType{
 		Device:  util.Ptr(model.AddressDeviceType("")),
@@ -111,19 +121,6 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Rep
 		remoteData := suite.remoteFeature.DataCopy(suite.function)
 		assert.IsType(suite.T(), &model.DeviceClassificationManufacturerDataType{}, remoteData, "Data has wrong type")
 	}
-
-	// Act
-	result, err := suite.localFeature.FetchRequestRemoteData(*msgCounter, suite.remoteFeature)
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), result)
-	assert.IsType(suite.T(), &model.DeviceClassificationManufacturerDataType{}, result, "Data has wrong type")
-	receivedData := result.(*model.DeviceClassificationManufacturerDataType)
-
-	assert.Equal(suite.T(), manufacturerData.BrandName, receivedData.BrandName)
-	assert.Equal(suite.T(), manufacturerData.VendorName, receivedData.VendorName)
-	assert.Equal(suite.T(), manufacturerData.DeviceName, receivedData.DeviceName)
-	assert.Equal(suite.T(), manufacturerData.DeviceCode, receivedData.DeviceCode)
-	assert.Equal(suite.T(), manufacturerData.SerialNumber, receivedData.SerialNumber)
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Error() {
@@ -134,6 +131,7 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Err
 
 	// send data request
 	msgCounter, err := suite.localFeature.RequestRemoteData(suite.function, nil, nil, suite.remoteFeature)
+	assert.NotNil(suite.T(), msgCounter)
 	assert.Nil(suite.T(), err)
 
 	replyMsg := api.Message{
@@ -159,13 +157,6 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Err
 		remoteData := suite.remoteFeature.DataCopy(suite.function)
 		assert.Nil(suite.T(), remoteData)
 	}
-
-	// Act
-	result, err := suite.localFeature.FetchRequestRemoteData(*msgCounter, suite.remoteFeature)
-	assert.Nil(suite.T(), result)
-	assert.NotNil(suite.T(), err)
-	assert.Equal(suite.T(), errorNumber, err.ErrorNumber)
-	assert.Equal(suite.T(), errorDescription, string(*err.Description))
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Subscriptions() {
@@ -252,6 +243,82 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Bindings() 
 	assert.NotNil(suite.T(), msgCounter)
 
 	suite.localFeature.RemoveAllRemoteBindings()
+}
+
+func (suite *DeviceClassificationTestSuite) Test_HandleMessage() {
+	msg := &api.Message{
+		FeatureRemote: suite.remoteServerFeature,
+		CmdClassifier: model.CmdClassifierType("buggy"),
+		Cmd:           model.CmdType{},
+	}
+
+	err := suite.localFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	msg = &api.Message{
+		FeatureRemote: suite.remoteServerFeature,
+		CmdClassifier: model.CmdClassifierType("buggy"),
+		Cmd: model.CmdType{
+			ResultData: &model.ResultDataType{},
+		},
+	}
+
+	err = suite.localFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Result() {
+	msg := &api.Message{
+		FeatureRemote: suite.remoteServerFeature,
+		CmdClassifier: model.CmdClassifierTypeResult,
+		Cmd: model.CmdType{
+			ResultData: &model.ResultDataType{},
+		},
+	}
+
+	err := suite.localFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	msg.RequestHeader = &model.HeaderType{
+		MsgCounterReference: util.Ptr(model.MsgCounterType(100)),
+	}
+	msg.Cmd.ResultData = &model.ResultDataType{
+		ErrorNumber: util.Ptr(model.ErrorNumberType(1)),
+		Description: util.Ptr(model.DescriptionType("test")),
+	}
+	err = suite.localFeature.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Read() {
+	msg := &api.Message{
+		FeatureRemote: suite.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	err := suite.localFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	suite.senderMock.EXPECT().Reply(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("test")).Once()
+	err = suite.localServerFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	msg = &api.Message{
+		FeatureRemote: suite.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		Cmd: model.CmdType{
+			DeviceClassificationManufacturerData: &model.DeviceClassificationManufacturerDataType{},
+		},
+	}
+	err = suite.localFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
+
+	suite.senderMock.EXPECT().Reply(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("test"))
+	err = suite.localServerFeature.HandleMessage(msg)
+	assert.NotNil(suite.T(), err)
 }
 
 func (suite *DeviceClassificationTestSuite) Test_Reply() {

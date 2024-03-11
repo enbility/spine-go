@@ -13,9 +13,9 @@ type Message struct {
 	DeviceRemote  DeviceRemoteInterface
 }
 
-type ResultMessage struct {
+type ResponseMessage struct {
 	MsgCounterReference model.MsgCounterType   // required
-	Result              *model.ResultDataType  // required, may not be nil
+	Data                any                    // required, may not be nil
 	FeatureLocal        FeatureLocalInterface  // required, may not be nil
 	FeatureRemote       FeatureRemoteInterface // required, may not be nil
 	EntityRemote        EntityRemoteInterface  // required, may not be nil

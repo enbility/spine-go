@@ -249,9 +249,6 @@ func (r *NodeManagement) handleMsgDetailedDiscoveryData(message *api.Message, da
 		return r.processReadDetailedDiscoveryData(message.DeviceRemote, message.RequestHeader)
 
 	case model.CmdClassifierTypeReply:
-		if err := r.pendingRequests.Remove(message.DeviceRemote.Ski(), *message.RequestHeader.MsgCounterReference); err != nil {
-			return errors.New(err.String())
-		}
 		return r.processReplyDetailedDiscoveryData(message, data)
 
 	case model.CmdClassifierTypeNotify:

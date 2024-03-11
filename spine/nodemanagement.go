@@ -57,7 +57,6 @@ func (r *NodeManagement) HandleMessage(message *api.Message) *model.ErrorType {
 	switch {
 	case message.Cmd.ResultData != nil:
 		if err := r.processResult(message); err != nil {
-			_ = r.pendingRequests.Remove(message.DeviceRemote.Ski(), *message.RequestHeader.MsgCounterReference)
 			return err
 		}
 

@@ -39,10 +39,10 @@ type FeatureLocalInterface interface {
 
 	// Add a function type with
 	AddFunctionType(function model.FunctionType, read, write bool)
-	// Add a FeatureResultInterface implementation to be able to get incoming result messages for this feature
-	AddResultHandler(handler FeatureResultInterface)
 	// Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
-	AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg ResultMessage))
+	//
+	// Returns an error if there is already a callback for the msgCounter set
+	AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg ResponseMessage)) error
 
 	// return all functions
 	Functions() []model.FunctionType
@@ -65,10 +65,6 @@ type FeatureLocalInterface interface {
 		destinationSki string,
 		destinationAddress *model.FeatureAddressType,
 		maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType)
-	// Trigger a blocking read request message for a given FeatureRemoteInterface implementation
-	FetchRequestRemoteData(
-		msgCounter model.MsgCounterType,
-		destination FeatureRemoteInterface) (any, *model.ErrorType)
 
 	// Check if there already is a subscription to a given feature remote address
 	HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool
@@ -98,12 +94,6 @@ type FeatureLocalInterface interface {
 // Interface for local NodeManagement feature
 type NodeManagementInterface interface {
 	FeatureLocalInterface
-}
-
-// Interface for working with SPINE result messages
-type FeatureResultInterface interface {
-	// Handle a incoming SPINE result message
-	HandleResult(ResultMessage)
 }
 
 // This interface defines all the required functions need to implement a remote feature

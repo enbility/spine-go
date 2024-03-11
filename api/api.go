@@ -1,8 +1,6 @@
 package api
 
 import (
-	"time"
-
 	"github.com/enbility/spine-go/model"
 )
 
@@ -10,16 +8,6 @@ import (
 
 type EventHandlerInterface interface {
 	HandleEvent(EventPayload)
-}
-
-/* PendingRequests */
-
-type PendingRequestsInterface interface {
-	Add(ski string, counter model.MsgCounterType, maxDelay time.Duration)
-	SetData(ski string, counter model.MsgCounterType, data any) *model.ErrorType
-	SetResult(ski string, counter model.MsgCounterType, errorResult *model.ErrorType) *model.ErrorType
-	GetData(ski string, counter model.MsgCounterType) (any, *model.ErrorType)
-	Remove(ski string, counter model.MsgCounterType) *model.ErrorType
 }
 
 /* Binding Manager */

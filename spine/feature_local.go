@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sync"
@@ -15,12 +16,10 @@ import (
 type FeatureLocal struct {
 	*Feature
 
-	muxResultCB     sync.Mutex
-	entity          api.EntityLocalInterface
-	functionDataMap map[model.FunctionType]api.FunctionDataCmdInterface
-	pendingRequests api.PendingRequestsInterface
-	resultHandler   []api.FeatureResultInterface
-	resultCallback  map[model.MsgCounterType]func(result api.ResultMessage)
+	entity           api.EntityLocalInterface
+	functionDataMap  map[model.FunctionType]api.FunctionDataCmdInterface
+	muxResponseCB    sync.Mutex
+	responseCallback map[model.MsgCounterType]func(result api.ResponseMessage)
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
@@ -34,10 +33,9 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 			featureAddressType(id, entity.Address()),
 			ftype,
 			role),
-		entity:          entity,
-		functionDataMap: make(map[model.FunctionType]api.FunctionDataCmdInterface),
-		pendingRequests: NewPendingRequest(),
-		resultCallback:  make(map[model.MsgCounterType]func(result api.ResultMessage)),
+		entity:           entity,
+		functionDataMap:  make(map[model.FunctionType]api.FunctionDataCmdInterface),
+		responseCallback: make(map[model.MsgCounterType]func(result api.ResponseMessage)),
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
@@ -79,17 +77,6 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 
 }
 
-func (r *FeatureLocal) AddResultHandler(handler api.FeatureResultInterface) {
-	r.resultHandler = append(r.resultHandler, handler)
-}
-
-func (r *FeatureLocal) AddResultCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResultMessage)) {
-	r.muxResultCB.Lock()
-	defer r.muxResultCB.Unlock()
-
-	r.resultCallback[msgCounterReference] = function
-}
-
 func (r *FeatureLocal) Functions() []model.FunctionType {
 	var fcts []model.FunctionType
 
@@ -100,18 +87,35 @@ func (r *FeatureLocal) Functions() []model.FunctionType {
 	return fcts
 }
 
-func (r *FeatureLocal) processResultCallbacks(msgCounterReference model.MsgCounterType, msg api.ResultMessage) {
-	r.muxResultCB.Lock()
-	defer r.muxResultCB.Unlock()
+// Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
+//
+// Returns an error if there is already a callback for the msgCounter set
+func (r *FeatureLocal) AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResponseMessage)) error {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
 
-	cb, ok := r.resultCallback[msgCounterReference]
+	_, ok := r.responseCallback[msgCounterReference]
+	if ok {
+		return errors.New("callback already set")
+	}
+
+	r.responseCallback[msgCounterReference] = function
+
+	return nil
+}
+
+func (r *FeatureLocal) processResponseCallbacks(msgCounterReference model.MsgCounterType, msg api.ResponseMessage) {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	cb, ok := r.responseCallback[msgCounterReference]
 	if !ok {
 		return
 	}
 
 	go cb(msg)
 
-	delete(r.resultCallback, msgCounterReference)
+	delete(r.responseCallback, msgCounterReference)
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -174,20 +178,10 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 
 	msgCounter, err := sender.Request(model.CmdClassifierTypeRead, r.Address(), destinationAddress, false, []model.CmdType{cmd})
 	if err == nil {
-		r.pendingRequests.Add(deviceSki, *msgCounter, maxDelay)
 		return msgCounter, nil
 	}
 
 	return msgCounter, model.NewErrorType(model.ErrorNumberTypeGeneralError, err.Error())
-}
-
-// Wait and return the response from destination for a message with the msgCounter ID
-// this will block until the response is received
-func (r *FeatureLocal) FetchRequestRemoteData(
-	msgCounter model.MsgCounterType,
-	destination api.FeatureRemoteInterface) (any, *model.ErrorType) {
-
-	return r.pendingRequests.GetData(destination.Device().Ski(), msgCounter)
 }
 
 // check if there already is a subscription to a remote feature
@@ -351,10 +345,6 @@ func (r *FeatureLocal) RemoveAllRemoteBindings() {
 }
 
 func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
-	if message.Cmd.ResultData != nil {
-		return r.processResult(message)
-	}
-
 	cmdData, err := message.Cmd.Data()
 	if err != nil {
 		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, err.Error())
@@ -364,12 +354,16 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 	}
 
 	switch message.CmdClassifier {
+	case model.CmdClassifierTypeResult:
+		if err := r.processResult(message); err != nil {
+			return err
+		}
 	case model.CmdClassifierTypeRead:
 		if err := r.processRead(*cmdData.Function, message.RequestHeader, message.FeatureRemote); err != nil {
 			return err
 		}
 	case model.CmdClassifierTypeReply:
-		if err := r.processReply(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete, message.RequestHeader, message.FeatureRemote); err != nil {
+		if err := r.processReply(message); err != nil {
 			return err
 		}
 	case model.CmdClassifierTypeNotify:
@@ -388,48 +382,38 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 }
 
 func (r *FeatureLocal) processResult(message *api.Message) *model.ErrorType {
-	switch message.CmdClassifier {
-	case model.CmdClassifierTypeResult:
-		if *message.Cmd.ResultData.ErrorNumber != model.ErrorNumberTypeNoError {
-			// error numbers explained in Resource Spec 3.11
-			errorString := fmt.Sprintf("Error Result received %d", *message.Cmd.ResultData.ErrorNumber)
-			if message.Cmd.ResultData.Description != nil {
-				errorString += fmt.Sprintf(": %s", *message.Cmd.ResultData.Description)
-			}
-			logging.Log().Debug(errorString)
-		}
-
-		// we don't need to populate this error as requests don't require a pendingRequest entry
-		_ = r.pendingRequests.SetResult(message.DeviceRemote.Ski(), *message.RequestHeader.MsgCounterReference, model.NewErrorTypeFromResult(message.Cmd.ResultData))
-
-		if message.RequestHeader.MsgCounterReference == nil {
-			return nil
-		}
-
-		// call the Features Error Handler
-		errorMsg := api.ResultMessage{
-			MsgCounterReference: *message.RequestHeader.MsgCounterReference,
-			Result:              message.Cmd.ResultData,
-			FeatureLocal:        r,
-			FeatureRemote:       message.FeatureRemote,
-			DeviceRemote:        message.DeviceRemote,
-		}
-
-		if r.resultHandler != nil {
-			for _, item := range r.resultHandler {
-				go item.HandleResult(errorMsg)
-			}
-		}
-
-		r.processResultCallbacks(*message.RequestHeader.MsgCounterReference, errorMsg)
-
-		return nil
-
-	default:
+	if message.Cmd.ResultData == nil || message.Cmd.ResultData.ErrorNumber == nil {
 		return model.NewErrorType(
 			model.ErrorNumberTypeGeneralError,
 			fmt.Sprintf("ResultData CmdClassifierType %s not implemented", message.CmdClassifier))
 	}
+
+	if *message.Cmd.ResultData.ErrorNumber != model.ErrorNumberTypeNoError {
+		// error numbers explained in Resource Spec 3.11
+		errorString := fmt.Sprintf("Error Result received %d", *message.Cmd.ResultData.ErrorNumber)
+		if message.Cmd.ResultData.Description != nil {
+			errorString += fmt.Sprintf(": %s", *message.Cmd.ResultData.Description)
+		}
+		logging.Log().Debug(errorString)
+	}
+
+	// we don't need to populate this message if there is no MsgCounterReference
+	if message.RequestHeader == nil || message.RequestHeader.MsgCounterReference == nil {
+		return nil
+	}
+
+	responseMsg := api.ResponseMessage{
+		MsgCounterReference: *message.RequestHeader.MsgCounterReference,
+		Data:                message.Cmd.ResultData,
+		FeatureLocal:        r,
+		FeatureRemote:       message.FeatureRemote,
+		EntityRemote:        message.EntityRemote,
+		DeviceRemote:        message.DeviceRemote,
+	}
+
+	r.processResponseCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
+
+	return nil
 }
 
 func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
@@ -452,17 +436,16 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 	return nil
 }
 
-func (r *FeatureLocal) processReply(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	if err := featureRemote.UpdateData(function, data, filterPartial, filterDelete); err != nil {
+func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
+	// function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface)
+
+	// the error is handled already in the caller
+	cmdData, _ := message.Cmd.Data()
+	featureRemote := message.FeatureRemote
+
+	if err := featureRemote.UpdateData(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete); err != nil {
 		return err
 	}
-
-	if requestHeader != nil && requestHeader.MsgCounterReference != nil {
-		_ = r.pendingRequests.SetData(featureRemote.Device().Ski(), *requestHeader.MsgCounterReference, data)
-	}
-
-	// an error in SetData only means that there is no pendingRequest waiting for this dataset
-	// so this is nothing to consider as an error to return
 
 	// the data was updated, so send an event, other event handlers may watch out for this as well
 	payload := api.EventPayload{
@@ -473,9 +456,25 @@ func (r *FeatureLocal) processReply(function model.FunctionType, data any, filte
 		Device:        featureRemote.Device(),
 		Entity:        featureRemote.Entity(),
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeReply),
-		Data:          data,
+		Data:          cmdData.Value,
 	}
 	Events.Publish(payload)
+
+	// we don't need to populate this message if there is no MsgCounterReference
+	if message.RequestHeader == nil || message.RequestHeader.MsgCounterReference == nil {
+		return nil
+	}
+
+	responseMsg := api.ResponseMessage{
+		MsgCounterReference: *message.RequestHeader.MsgCounterReference,
+		Data:                cmdData,
+		FeatureLocal:        r,
+		FeatureRemote:       message.FeatureRemote,
+		EntityRemote:        message.EntityRemote,
+		DeviceRemote:        message.DeviceRemote,
+	}
+
+	r.processResponseCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
 
 	return nil
 }
