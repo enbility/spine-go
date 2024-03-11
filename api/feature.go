@@ -44,6 +44,9 @@ type FeatureLocalInterface interface {
 	// Returns an error if there is already a callback for the msgCounter set
 	AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg ResponseMessage)) error
 
+	// Add a callback function to be invoked when a result message comes in for this feature
+	AddResultCallback(function func(msg ResponseMessage))
+
 	// return all functions
 	Functions() []model.FunctionType
 

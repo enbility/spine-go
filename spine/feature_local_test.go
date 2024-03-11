@@ -61,6 +61,8 @@ func (suite *DeviceClassificationTestSuite) TestDeviceClassification_ResponseCB(
 
 	err = suite.localFeature.AddResponseCallback(msgCounter, testFct)
 	assert.NotNil(suite.T(), err)
+
+	suite.localFeature.AddResultCallback(testFct)
 }
 
 func (suite *DeviceClassificationTestSuite) TestDeviceClassification_Request_Reply() {

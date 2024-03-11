@@ -60,8 +60,21 @@ func (_c *FeatureLocalInterface_AddFunctionType_Call) RunAndReturn(run func(mode
 }
 
 // AddResponseCallback provides a mock function with given fields: msgCounterReference, function
-func (_m *FeatureLocalInterface) AddResponseCallback(msgCounterReference model.MsgCounterType, function func(api.ResponseMessage)) {
-	_m.Called(msgCounterReference, function)
+func (_m *FeatureLocalInterface) AddResponseCallback(msgCounterReference model.MsgCounterType, function func(api.ResponseMessage)) error {
+	ret := _m.Called(msgCounterReference, function)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddResponseCallback")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.MsgCounterType, func(api.ResponseMessage)) error); ok {
+		r0 = rf(msgCounterReference, function)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // FeatureLocalInterface_AddResponseCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddResponseCallback'
@@ -83,12 +96,45 @@ func (_c *FeatureLocalInterface_AddResponseCallback_Call) Run(run func(msgCounte
 	return _c
 }
 
-func (_c *FeatureLocalInterface_AddResponseCallback_Call) Return() *FeatureLocalInterface_AddResponseCallback_Call {
+func (_c *FeatureLocalInterface_AddResponseCallback_Call) Return(_a0 error) *FeatureLocalInterface_AddResponseCallback_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FeatureLocalInterface_AddResponseCallback_Call) RunAndReturn(run func(model.MsgCounterType, func(api.ResponseMessage)) error) *FeatureLocalInterface_AddResponseCallback_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddResultCallback provides a mock function with given fields: function
+func (_m *FeatureLocalInterface) AddResultCallback(function func(api.ResponseMessage)) {
+	_m.Called(function)
+}
+
+// FeatureLocalInterface_AddResultCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddResultCallback'
+type FeatureLocalInterface_AddResultCallback_Call struct {
+	*mock.Call
+}
+
+// AddResultCallback is a helper method to define mock.On call
+//   - function func(api.ResponseMessage)
+func (_e *FeatureLocalInterface_Expecter) AddResultCallback(function interface{}) *FeatureLocalInterface_AddResultCallback_Call {
+	return &FeatureLocalInterface_AddResultCallback_Call{Call: _e.mock.On("AddResultCallback", function)}
+}
+
+func (_c *FeatureLocalInterface_AddResultCallback_Call) Run(run func(function func(api.ResponseMessage))) *FeatureLocalInterface_AddResultCallback_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(func(api.ResponseMessage)))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_AddResultCallback_Call) Return() *FeatureLocalInterface_AddResultCallback_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_AddResponseCallback_Call) RunAndReturn(run func(model.MsgCounterType, func(api.ResponseMessage))) *FeatureLocalInterface_AddResponseCallback_Call {
+func (_c *FeatureLocalInterface_AddResultCallback_Call) RunAndReturn(run func(func(api.ResponseMessage))) *FeatureLocalInterface_AddResultCallback_Call {
 	_c.Call.Return(run)
 	return _c
 }

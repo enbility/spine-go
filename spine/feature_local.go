@@ -16,10 +16,11 @@ import (
 type FeatureLocal struct {
 	*Feature
 
-	entity           api.EntityLocalInterface
-	functionDataMap  map[model.FunctionType]api.FunctionDataCmdInterface
-	muxResponseCB    sync.Mutex
-	responseCallback map[model.MsgCounterType]func(result api.ResponseMessage)
+	entity              api.EntityLocalInterface
+	functionDataMap     map[model.FunctionType]api.FunctionDataCmdInterface
+	muxResponseCB       sync.Mutex
+	responseMsgCallback map[model.MsgCounterType]func(result api.ResponseMessage)
+	responseCallbacks   []func(result api.ResponseMessage)
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
@@ -33,9 +34,9 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 			featureAddressType(id, entity.Address()),
 			ftype,
 			role),
-		entity:           entity,
-		functionDataMap:  make(map[model.FunctionType]api.FunctionDataCmdInterface),
-		responseCallback: make(map[model.MsgCounterType]func(result api.ResponseMessage)),
+		entity:              entity,
+		functionDataMap:     make(map[model.FunctionType]api.FunctionDataCmdInterface),
+		responseMsgCallback: make(map[model.MsgCounterType]func(result api.ResponseMessage)),
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
@@ -94,28 +95,45 @@ func (r *FeatureLocal) AddResponseCallback(msgCounterReference model.MsgCounterT
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	_, ok := r.responseCallback[msgCounterReference]
+	_, ok := r.responseMsgCallback[msgCounterReference]
 	if ok {
 		return errors.New("callback already set")
 	}
 
-	r.responseCallback[msgCounterReference] = function
+	r.responseMsgCallback[msgCounterReference] = function
 
 	return nil
 }
 
-func (r *FeatureLocal) processResponseCallbacks(msgCounterReference model.MsgCounterType, msg api.ResponseMessage) {
+func (r *FeatureLocal) processResponseMsgCallbacks(msgCounterReference model.MsgCounterType, msg api.ResponseMessage) {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	cb, ok := r.responseCallback[msgCounterReference]
+	cb, ok := r.responseMsgCallback[msgCounterReference]
 	if !ok {
 		return
 	}
 
 	go cb(msg)
 
-	delete(r.responseCallback, msgCounterReference)
+	delete(r.responseMsgCallback, msgCounterReference)
+}
+
+// Add a callback function to be invoked when a result message comes in for this feature
+func (r *FeatureLocal) AddResultCallback(function func(msg api.ResponseMessage)) {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	r.responseCallbacks = append(r.responseCallbacks, function)
+}
+
+func (r *FeatureLocal) processResultCallbacks(msg api.ResponseMessage) {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	for _, cb := range r.responseCallbacks {
+		go cb(msg)
+	}
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -411,7 +429,8 @@ func (r *FeatureLocal) processResult(message *api.Message) *model.ErrorType {
 		DeviceRemote:        message.DeviceRemote,
 	}
 
-	r.processResponseCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
+	r.processResponseMsgCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
+	r.processResultCallbacks(responseMsg)
 
 	return nil
 }
@@ -474,7 +493,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 		DeviceRemote:        message.DeviceRemote,
 	}
 
-	r.processResponseCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
+	r.processResponseMsgCallbacks(*message.RequestHeader.MsgCounterReference, responseMsg)
 
 	return nil
 }
