@@ -420,11 +420,9 @@ func (r *FeatureLocal) processResult(message *api.Message) *model.ErrorType {
 		return nil
 	}
 
-	// the error is already handled in the caller
-	cmdData, _ := message.Cmd.Data()
 	responseMsg := api.ResponseMessage{
 		MsgCounterReference: *message.RequestHeader.MsgCounterReference,
-		Data:                *cmdData,
+		Data:                message.Cmd.ResultData,
 		FeatureLocal:        r,
 		FeatureRemote:       message.FeatureRemote,
 		EntityRemote:        message.EntityRemote,
@@ -488,7 +486,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 
 	responseMsg := api.ResponseMessage{
 		MsgCounterReference: *message.RequestHeader.MsgCounterReference,
-		Data:                *cmdData,
+		Data:                cmdData.Value,
 		FeatureLocal:        r,
 		FeatureRemote:       message.FeatureRemote,
 		EntityRemote:        message.EntityRemote,

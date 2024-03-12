@@ -15,7 +15,7 @@ type Message struct {
 
 type ResponseMessage struct {
 	MsgCounterReference model.MsgCounterType   // required
-	Data                model.CmdData          // required
+	Data                any                    // required
 	FeatureLocal        FeatureLocalInterface  // required
 	FeatureRemote       FeatureRemoteInterface // required
 	EntityRemote        EntityRemoteInterface  // required
