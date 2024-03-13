@@ -69,7 +69,7 @@ func NewDateTimeType(t string) *DateTimeType {
 }
 
 func NewDateTimeTypeFromTime(t time.Time) *DateTimeType {
-	s := t.Format(time.RFC3339)
+	s := t.Format("2006-01-02T15:04:05Z")
 	return NewDateTimeType(s)
 }
 
