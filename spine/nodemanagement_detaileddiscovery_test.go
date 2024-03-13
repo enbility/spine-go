@@ -15,7 +15,6 @@ const (
 	nm_detaileddiscoverydata_recv_read_file_path       = "./testdata/nm_detaileddiscoverydata_recv_read.json"
 	nm_detaileddiscoverydata_send_reply_file_prefix    = "./testdata/nm_detaileddiscoverydata_send_reply"
 	nm_detaileddiscoverydata_recv_read_ack_file_path   = "./testdata/nm_detaileddiscoverydata_recv_read_ack.json"
-	nm_detaileddiscoverydata_send_result_file_prefix   = "./testdata/nm_detaileddiscoverydata_send_result"
 	nm_subscriptionRequestCall_recv_call_file_path     = "./testdata/nm_subscriptionRequestCall_recv_call.json"
 	nm_subscriptionRequestCall_send_result_file_prefix = "./testdata/nm_subscriptionRequestCall_send_result"
 	nm_destinationListData_recv_read_file_path         = "./testdata/nm_destinationListData_recv_read.json"
@@ -164,8 +163,7 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_SendReplyWithAcknowledge() {
 	// Assert
 	sentReply := s.writeHandler.MessageWithReference(msgCounter)
 	checkSentData(s.T(), sentReply, nm_detaileddiscoverydata_send_reply_file_prefix)
-	sentResult := s.writeHandler.ResultWithReference(msgCounter)
-	checkSentData(s.T(), sentResult, nm_detaileddiscoverydata_send_result_file_prefix)
+	// on successful reply, no result should be sent
 }
 
 func (s *NodeManagementSuite) TestSubscriptionRequestCall_BeforeDetailedDiscovery() {
