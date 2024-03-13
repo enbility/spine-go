@@ -366,7 +366,8 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 
 		return errors.New(err.String())
 	}
-	if ackRequest != nil && *ackRequest {
+	readRequest := datagram.Header.CmdClassifier
+	if ackRequest != nil && *ackRequest && (readRequest == nil || *readRequest != model.CmdClassifierTypeRead) {
 		_ = remoteFeature.Device().Sender().ResultSuccess(message.RequestHeader, localFeature.Address())
 	}
 
