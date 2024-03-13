@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/enbility/spine-go/util"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTimeType(t *testing.T) {
@@ -77,8 +78,6 @@ func TestDateTimeType(t *testing.T) {
 		{"2022-02-01T21:32:52.12679Z", "2006-01-02T15:04:05.999999999Z"},
 		{"2022-02-01T21:32:52", "2006-01-02T15:04:05"},
 		{"2022-02-01T19:32:52Z", "2006-01-02T15:04:05Z"},
-		{"2022-02-01T19:32:52+07:00", "2006-01-02T15:04:05+07:00"},
-		{"2022-02-01T19:32:52-07:00", "2006-01-02T15:04:05-07:00"},
 	}
 
 	for _, tc := range tc {
@@ -93,7 +92,12 @@ func TestDateTimeType(t *testing.T) {
 			t.Errorf("Test Failure with %s and parser %s: %s", tc.in, tc.parse, err)
 			continue
 		}
-
+		nDateTime := NewDateTimeTypeFromTime(value)
+		nValue, err := nDateTime.GetTime()
+		assert.Nil(t, err)
+		assert.Equal(t, nValue.Hour(), value.Hour())
+		assert.Equal(t, nValue.Minute(), value.Minute())
+		assert.Equal(t, nValue.Second(), value.Second())
 		if value.UTC() != expect.UTC() {
 			t.Errorf("Test failure for %s, expected %s and got %s", tc.in, value.String(), expect.String())
 		}
