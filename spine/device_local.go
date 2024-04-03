@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"sync"
 	"time"
 
@@ -300,7 +301,6 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 
 	message := &api.Message{
 		RequestHeader: &datagram.Header,
-		CmdClassifier: *cmdClassifier,
 		Cmd:           cmd,
 		FilterPartial: filterPartial,
 		FilterDelete:  filterDelete,
@@ -309,7 +309,15 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 		DeviceRemote:  remoteDevice,
 	}
 
-	ackRequest := datagram.Header.AckRequest
+	if cmdClassifier != nil {
+		message.CmdClassifier = *cmdClassifier
+	} else {
+		errorMessage := "cmdClassifier may not be empty"
+
+		_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, destAddr, model.NewErrorType(model.ErrorNumberTypeDestinationUnknown, errorMessage))
+
+		return errors.New(errorMessage)
+	}
 
 	if localFeature == nil {
 		errorMessage := "invalid feature address"
@@ -343,7 +351,6 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
-
 	}
 
 	err := localFeature.HandleMessage(message)
@@ -366,8 +373,16 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 
 		return errors.New(err.String())
 	}
-	readRequest := datagram.Header.CmdClassifier
-	if ackRequest != nil && *ackRequest && (readRequest == nil || *readRequest != model.CmdClassifierTypeRead) {
+
+	ackRequest := message.RequestHeader.AckRequest
+	ackClassifiers := []model.CmdClassifierType{
+		model.CmdClassifierTypeCall,
+		model.CmdClassifierTypeWrite,
+		model.CmdClassifierTypeReply,
+		model.CmdClassifierTypeNotify}
+
+	if ackRequest != nil && *ackRequest && slices.Contains(ackClassifiers, message.CmdClassifier) {
+		// return success as defined in SPINE chapter 5.2.4
 		_ = remoteFeature.Device().Sender().ResultSuccess(message.RequestHeader, localFeature.Address())
 	}
 
