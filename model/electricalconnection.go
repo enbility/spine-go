@@ -227,7 +227,7 @@ type ElectricalConnectionCharacteristicDataElementsType struct {
 }
 
 type ElectricalConnectionCharacteristicListDataType struct {
-	ElectricalConnectionCharacteristicListData []ElectricalConnectionCharacteristicDataType `json:"electricalConnectionCharacteristicListData,omitempty"`
+	ElectricalConnectionCharacteristicData []ElectricalConnectionCharacteristicDataType `json:"electricalConnectionCharacteristicData,omitempty"`
 }
 
 type ElectricalConnectionCharacteristicListDataSelectorsType struct {

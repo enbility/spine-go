@@ -46,10 +46,10 @@ var _ Updater = (*ElectricalConnectionCharacteristicListDataType)(nil)
 func (r *ElectricalConnectionCharacteristicListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
 	var newData []ElectricalConnectionCharacteristicDataType
 	if newList != nil {
-		newData = newList.(*ElectricalConnectionCharacteristicListDataType).ElectricalConnectionCharacteristicListData
+		newData = newList.(*ElectricalConnectionCharacteristicListDataType).ElectricalConnectionCharacteristicData
 	}
 
-	r.ElectricalConnectionCharacteristicListData = UpdateList(remoteWrite, r.ElectricalConnectionCharacteristicListData, newData, filterPartial, filterDelete)
+	r.ElectricalConnectionCharacteristicData = UpdateList(remoteWrite, r.ElectricalConnectionCharacteristicData, newData, filterPartial, filterDelete)
 }
 
 // ElectricalConnectionParameterDescriptionListDataType

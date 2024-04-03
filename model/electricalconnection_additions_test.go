@@ -1147,7 +1147,7 @@ func TestElectricalConnectionDescriptionListDataType_Update(t *testing.T) {
 
 func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 	sut := ElectricalConnectionCharacteristicListDataType{
-		ElectricalConnectionCharacteristicListData: []ElectricalConnectionCharacteristicDataType{
+		ElectricalConnectionCharacteristicData: []ElectricalConnectionCharacteristicDataType{
 			{
 				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(0)),
 				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
@@ -1164,7 +1164,7 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 	}
 
 	newData := ElectricalConnectionCharacteristicListDataType{
-		ElectricalConnectionCharacteristicListData: []ElectricalConnectionCharacteristicDataType{
+		ElectricalConnectionCharacteristicData: []ElectricalConnectionCharacteristicDataType{
 			{
 				ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
 				ParameterId:            util.Ptr(ElectricalConnectionParameterIdType(0)),
@@ -1177,7 +1177,7 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 	// Act
 	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
 
-	data := sut.ElectricalConnectionCharacteristicListData
+	data := sut.ElectricalConnectionCharacteristicData
 	// check the non changing items
 	assert.Equal(t, 2, len(data))
 	item1 := data[0]
