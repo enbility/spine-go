@@ -37,7 +37,8 @@ func TestNetworkManagementDeviceDescriptionListDataType(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.NetworkManagementDeviceDescriptionData
 	// check the non changing items
@@ -82,7 +83,8 @@ func TestNetworkManagementEntityDescriptionListDataType(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.NetworkManagementEntityDescriptionData
 	// check the non changing items
@@ -130,7 +132,8 @@ func TestNetworkManagementFeatureDescriptionListDataType(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.NetworkManagementFeatureDescriptionData
 	// check the non changing items

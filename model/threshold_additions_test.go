@@ -31,7 +31,8 @@ func TestThresholdListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.ThresholdData
 	// check the non changing items
@@ -69,7 +70,8 @@ func TestThresholdConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.ThresholdConstraintsData
 	// check the non changing items
@@ -107,7 +109,8 @@ func TestThresholdDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.ThresholdDescriptionData
 	// check the non changing items

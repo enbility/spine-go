@@ -134,8 +134,13 @@ func updateFields[T any](remoteWrite bool, source T, destination *T) {
 
 // Merges two slices into one. The item in the first slice will be replaced by the one in the second slice
 // if the hash key is the same. Items in the second slice which are not in the first will be added.
-func Merge[T any](remoteWrite bool, s1 []T, s2 []T) []T {
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func Merge[T any](remoteWrite bool, s1 []T, s2 []T) ([]T, bool) {
 	result := []T{}
+	noErrors := true
 
 	m2 := ToMap(s2)
 
@@ -144,8 +149,12 @@ func Merge[T any](remoteWrite bool, s1 []T, s2 []T) []T {
 	for _, s1Item := range s1 {
 		s1ItemHash := hashKey(s1Item)
 		s2Item, exist := m2[s1ItemHash]
+		writeAllowed := writeAllowed(s1Item)
+		if !writeAllowed && remoteWrite {
+			noErrors = false
+		}
 		// if exists and overwriting is allowed
-		if exist && (!remoteWrite || writeAllowed(s1Item)) {
+		if exist && (!remoteWrite || writeAllowed) {
 			// add values from s1Item that don't exist in s2Item or shouldn't be
 			// set in s2Item
 			updateFields(remoteWrite, s1Item, &s2Item)
@@ -168,7 +177,7 @@ func Merge[T any](remoteWrite bool, s1 []T, s2 []T) []T {
 		}
 	}
 
-	return result
+	return result, noErrors
 }
 
 func ToMap[T any](s []T) map[string]T {

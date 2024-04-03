@@ -68,7 +68,9 @@ func (r *FunctionData[T]) UpdateData(remoteWrite bool, newData *T, filterPartial
 	}
 
 	updater := any(r.data).(model.Updater)
-	updater.UpdateList(remoteWrite, newData, filterPartial, filterDelete)
+	if !updater.UpdateList(remoteWrite, newData, filterPartial, filterDelete) {
+		return model.NewErrorTypeFromString("update failed, likely not allowed to write")
+	}
 
 	return nil
 }

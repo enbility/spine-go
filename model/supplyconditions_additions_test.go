@@ -31,7 +31,8 @@ func TestSupplyConditionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SupplyConditionData
 	// check the non changing items
@@ -69,7 +70,8 @@ func TestSupplyConditionDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SupplyConditionDescriptionData
 	// check the non changing items
@@ -107,7 +109,8 @@ func TestSupplyConditionThresholdRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SupplyConditionThresholdRelationData
 	// check the non changing items

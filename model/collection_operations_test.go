@@ -35,7 +35,8 @@ func TestUnion_NewData(t *testing.T) {
 	}
 
 	// Act
-	result := Merge(false, existingData, newData)
+	result, boolV := Merge(false, existingData, newData)
+	assert.True(t, boolV)
 
 	if assert.Equal(t, 2, len(result)) {
 		assert.Equal(t, 1, int(*result[0].Id))
@@ -60,7 +61,8 @@ func TestUnion_NewAndUpdateData(t *testing.T) {
 	}
 
 	// Act
-	result := Merge(false, existingData, newData)
+	result, boolV := Merge(false, existingData, newData)
+	assert.True(t, boolV)
 
 	if assert.Equal(t, 4, len(result)) {
 		assert.Equal(t, 0, int(*result[0].Id))
@@ -94,7 +96,8 @@ func TestUnion_NewAndUpdateDataRemoteWrite(t *testing.T) {
 	}
 
 	// Act
-	result := Merge(true, existingData, newData)
+	result, boolV := Merge(true, existingData, newData)
+	assert.False(t, boolV)
 
 	if assert.Equal(t, 4, len(result)) {
 		assert.Equal(t, 0, int(*result[0].Id))
@@ -128,7 +131,8 @@ func TestUnion_InvalidData(t *testing.T) {
 	}
 
 	// Act
-	result := Merge(true, existingData, newData)
+	result, boolV := Merge(true, existingData, newData)
+	assert.False(t, boolV)
 
 	if assert.Equal(t, 4, len(result)) {
 		assert.Equal(t, 0, int(*result[0].Id))

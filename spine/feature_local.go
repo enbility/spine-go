@@ -149,27 +149,29 @@ func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
 }
 
 func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
-	fctData := r.updateData(false, function, data, nil, nil)
+	fctData, err := r.updateData(false, function, data, nil, nil)
 
-	if fctData == nil {
-		return
+	if err != nil {
+		logging.Log().Debug(err.String())
 	}
 
-	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+	if fctData != nil && err == nil {
+		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+	}
 }
 
-func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) api.FunctionDataCmdInterface {
+func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (api.FunctionDataCmdInterface, *model.ErrorType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	fctData := r.functionData(function)
 	if fctData == nil {
-		return nil
+		return nil, model.NewErrorTypeFromString("data not found")
 	}
 
-	fctData.UpdateDataAny(remoteWrite, data, filterPartial, filterDelete)
+	err := fctData.UpdateDataAny(remoteWrite, data, filterPartial, filterDelete)
 
-	return fctData
+	return fctData, err
 }
 
 func (r *FeatureLocal) RequestRemoteData(
@@ -519,9 +521,11 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 }
 
 func (r *FeatureLocal) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	fctData := r.updateData(true, function, data, filterPartial, filterDelete)
-	if fctData == nil {
-		model.NewErrorTypeFromString("function not found")
+	fctData, err := r.updateData(true, function, data, filterPartial, filterDelete)
+	if err != nil {
+		return err
+	} else if fctData == nil {
+		return model.NewErrorTypeFromString("function not found")
 	}
 
 	payload := api.EventPayload{

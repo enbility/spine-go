@@ -8,13 +8,18 @@ import (
 )
 
 type Updater interface {
-	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType)
+	// returns true if no errors occured
+	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool
 }
 
 // Generates a new list of function items by applying the rules mentioned in the spec
 // (EEBus_SPINE_TS_ProtocolSpecification.pdf; chapter "5.3.4 Restricted function exchange with cmdOptions").
 // The given data provider is used the get the current items and the items and the filters in the payload.
-func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) []T {
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
 		if filterData, err := filterDelete.Data(); err == nil {
@@ -25,7 +30,7 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	// process update filter (with selectors and elements)
 	if filterPartial != nil {
 		if filterData, err := filterPartial.Data(); err == nil {
-			return copyToSelectedData(existingData, filterData, &newData[0])
+			return copyToSelectedData(existingData, filterData, &newData[0]), true
 		}
 	}
 
@@ -35,14 +40,14 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	if len(newData) > 0 && !HasIdentifiers(newData[0]) {
 		// no identifiers specified --> copy data to all existing items
 		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
-		return copyToAllData(existingData, &newData[0])
+		return copyToAllData(existingData, &newData[0]), true
 	}
 
-	result := Merge(remoteWrite, existingData, newData)
+	result, noErrors := Merge(remoteWrite, existingData, newData)
 
 	result = SortData(result)
 
-	return result
+	return result, noErrors
 }
 
 // return a list of field names that have the eebus tag

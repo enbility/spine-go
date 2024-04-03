@@ -15,11 +15,6 @@ type VersionSuite struct {
 	suite.Suite
 }
 
-func (s *VersionSuite) SetupSuite()   {}
-func (s *VersionSuite) TearDownTest() {}
-
-func (s *VersionSuite) BeforeTest(suiteName, testName string) {}
-
 func (s *VersionSuite) Test_UpdateList() {
 	sut := SpecificationVersionListDataType{
 		SpecificationVersionData: []SpecificationVersionDataType{
@@ -39,7 +34,8 @@ func (s *VersionSuite) Test_UpdateList() {
 	assert.Equal(s.T(), "1.0.0", string(item1))
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(s.T(), success)
 
 	data = sut.SpecificationVersionData
 	// check properties of updated item

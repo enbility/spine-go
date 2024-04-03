@@ -31,7 +31,8 @@ func TestLoadControlEventListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.LoadControlEventData
 	// check the non changing items
@@ -69,7 +70,8 @@ func TestLoadControlStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.LoadControlStateData
 	// check the non changing items
@@ -108,18 +110,19 @@ func TestLoadControlLimitListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.LoadControlLimitData
 	// check the non changing items
 	assert.Equal(t, 2, len(data))
 	item1 := data[0]
 	assert.Equal(t, 0, int(*item1.LimitId))
-	assert.Equal(t, false, *item1.IsLimitChangeable)
+	assert.False(t, *item1.IsLimitChangeable)
 	// check properties of updated item
 	item2 := data[1]
 	assert.Equal(t, 1, int(*item2.LimitId))
-	assert.Equal(t, true, *item2.IsLimitChangeable)
+	assert.True(t, *item2.IsLimitChangeable)
 	assert.Equal(t, 10.0, item2.Value.GetValue())
 }
 
@@ -147,7 +150,8 @@ func TestLoadControlLimitConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.LoadControlLimitConstraintsData
 	// check the non changing items
@@ -185,7 +189,8 @@ func TestLoadControlLimitDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.LoadControlLimitDescriptionData
 	// check the non changing items

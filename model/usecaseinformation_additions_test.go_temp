@@ -16,11 +16,6 @@ type UsecaseInformationSuite struct {
 	suite.Suite
 }
 
-func (s *UsecaseInformationSuite) SetupSuite()   {}
-func (s *UsecaseInformationSuite) TearDownTest() {}
-
-func (s *UsecaseInformationSuite) BeforeTest(suiteName, testName string) {}
-
 func (s *UsecaseInformationSuite) Test_UpdateList() {
 	sut := UseCaseInformationListDataType{
 		UseCaseInformationData: []UseCaseInformationDataType{

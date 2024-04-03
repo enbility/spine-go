@@ -32,7 +32,8 @@ func TestOperatingConstraintsInterruptListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsInterruptData
 	// check the non changing items
@@ -70,7 +71,8 @@ func TestOperatingConstraintsDurationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsDurationData
 	// check the non changing items
@@ -110,7 +112,8 @@ func TestOperatingConstraintsPowerDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerDescriptionData
 	// check the non changing items
@@ -148,7 +151,8 @@ func TestOperatingConstraintsPowerRangeListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerRangeData
 	// check the non changing items
@@ -186,7 +190,8 @@ func TestOperatingConstraintsPowerLevelListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerLevelData
 	// check the non changing items
@@ -224,7 +229,8 @@ func TestOperatingConstraintsResumeImplicationListDataType_Update(t *testing.T) 
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.OperatingConstraintsResumeImplicationData
 	// check the non changing items

@@ -31,7 +31,8 @@ func TestSubscriptionManagementEntryListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SubscriptionManagementEntryData
 	// check the non changing items

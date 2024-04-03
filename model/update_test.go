@@ -24,8 +24,9 @@ func TestUpdateList_NewItem(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
@@ -36,8 +37,9 @@ func TestUpdateList_ChangedItem(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
@@ -48,8 +50,9 @@ func TestUpdateList_NewAndChangedItem(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(3)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
@@ -60,8 +63,9 @@ func TestUpdateList_ItemWithNoIdentifier(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(3))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 

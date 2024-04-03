@@ -38,18 +38,19 @@ func TestDeviceConfigurationKeyValueListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.DeviceConfigurationKeyValueData
 	// check the non changing items
 	assert.Equal(t, 2, len(data))
 	item1 := data[0]
 	assert.Equal(t, 0, int(*item1.KeyId))
-	assert.Equal(t, true, *item1.Value.Boolean)
+	assert.True(t, *item1.Value.Boolean)
 	// check properties of updated item
 	item2 := data[1]
 	assert.Equal(t, 1, int(*item2.KeyId))
-	assert.Equal(t, false, *item2.Value.Boolean)
+	assert.False(t, *item2.Value.Boolean)
 }
 
 func TestDeviceConfigurationKeyValueDescriptionListDataType_Update(t *testing.T) {
@@ -76,7 +77,8 @@ func TestDeviceConfigurationKeyValueDescriptionListDataType_Update(t *testing.T)
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.DeviceConfigurationKeyValueDescriptionData
 	// check the non changing items
@@ -120,7 +122,8 @@ func TestDeviceConfigurationKeyValueConstraintsListDataType_Update(t *testing.T)
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.DeviceConfigurationKeyValueConstraintsData
 	// check the non changing items

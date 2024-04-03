@@ -16,11 +16,6 @@ type UseCaseInformationDataTypeSuite struct {
 	suite.Suite
 }
 
-func (s *UseCaseInformationDataTypeSuite) SetupSuite()   {}
-func (s *UseCaseInformationDataTypeSuite) TearDownTest() {}
-
-func (s *UseCaseInformationDataTypeSuite) BeforeTest(suiteName, testName string) {}
-
 func (s *UseCaseInformationDataTypeSuite) Test_AdditionsAndRemovals() {
 	ucs := &UseCaseInformationDataType{}
 	assert.NotNil(s.T(), ucs)

@@ -32,7 +32,8 @@ func TestPowerTimeSlotScheduleListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerTimeSlotScheduleData
 	// check the non changing items
@@ -70,7 +71,8 @@ func TestPowerTimeSlotValueListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerTimeSlotValueData
 	// check the non changing items
@@ -108,7 +110,8 @@ func TestPowerTimeSlotScheduleConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerTimeSlotScheduleConstraintsData
 	// check the non changing items
@@ -148,7 +151,8 @@ func TestPowerSequenceAlternativesRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceAlternativesRelationData
 	// check the non changing items
@@ -186,7 +190,8 @@ func TestPowerSequenceDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceDescriptionData
 	// check the non changing items
@@ -224,7 +229,8 @@ func TestPowerSequenceStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceStateData
 	// check the non changing items
@@ -262,7 +268,8 @@ func TestPowerSequenceScheduleListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceScheduleData
 	// check the non changing items
@@ -300,7 +307,8 @@ func TestPowerSequenceScheduleConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceScheduleConstraintsData
 	// check the non changing items
@@ -338,7 +346,8 @@ func TestPowerSequencePriceListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequencePriceData
 	// check the non changing items
@@ -376,7 +385,8 @@ func TestPowerSequenceSchedulePreferenceListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.PowerSequenceSchedulePreferenceData
 	// check the non changing items
