@@ -8,8 +8,9 @@ import (
 )
 
 type TestUpdateData struct {
-	Id       *uint `eebus:"key"`
-	DataItem *int
+	Id           *uint `eebus:"key"`
+	IsChangeable *bool `eebus:"writecheck"`
+	DataItem     *int
 }
 
 type TestUpdater struct {
@@ -24,20 +25,38 @@ func TestUpdateList_NewItem(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
+
+	// Act
+	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+
+	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
 func TestUpdateList_ChangedItem(t *testing.T) {
-	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
+	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(1))}}
 	newData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}}
 
-	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}}
+	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(1))}}
+
+	// Act
+	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+
+	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
@@ -48,8 +67,17 @@ func TestUpdateList_NewAndChangedItem(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(3)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
+
+	// Act
+	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+
+	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
@@ -60,8 +88,83 @@ func TestUpdateList_ItemWithNoIdentifier(t *testing.T) {
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(3))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, nil, nil)
 
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(3))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
+
+	// Act
+	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+
+	assert.False(t, boolV)
+	assert.Equal(t, expectedResult, result)
+}
+
+func TestUpdateList_FilterDelete(t *testing.T) {
+	existingData := []LoadControlLimitDataType{
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(0)),
+			Value:   NewScaledNumberType(0),
+		},
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(1)),
+			Value:   NewScaledNumberType(0),
+		},
+	}
+	newData := []LoadControlLimitDataType{
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(1)),
+			Value:   NewScaledNumberType(10),
+		},
+	}
+
+	expectedResult := []LoadControlLimitDataType{
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(1)),
+			Value:   NewScaledNumberType(10),
+		},
+	}
+
+	filterDelete := &FilterType{CmdControl: &CmdControlType{Delete: &ElementTagType{}}}
+	filterDelete.CmdControl.Delete = new(ElementTagType)
+	filterDelete.LoadControlLimitListDataSelectors = &LoadControlLimitListDataSelectorsType{
+		LimitId: util.Ptr(LoadControlLimitIdType(0)),
+	}
+
+	filterPartial := NewFilterTypePartial()
+	filterPartial.LoadControlLimitListDataSelectors = &LoadControlLimitListDataSelectorsType{
+		LimitId: util.Ptr(LoadControlLimitIdType(1)),
+	}
+
+	// Act
+	result, boolV := UpdateList(false, existingData, newData, filterPartial, filterDelete)
+
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	newData = []LoadControlLimitDataType{
+		{
+			Value: NewScaledNumberType(10),
+		},
+	}
+
+	expectedResult = []LoadControlLimitDataType{
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(0)),
+			Value:   NewScaledNumberType(0),
+		},
+		{
+			LimitId: util.Ptr(LoadControlLimitIdType(1)),
+			Value:   NewScaledNumberType(0),
+		},
+	}
+
+	// Act
+	result, boolV = UpdateList(true, existingData, newData, filterPartial, filterDelete)
+
+	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 

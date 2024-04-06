@@ -4,11 +4,17 @@ package model
 
 var _ Updater = (*AlarmListDataType)(nil)
 
-func (r *AlarmListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) {
+func (r *AlarmListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
 	var newData []AlarmDataType
 	if newList != nil {
 		newData = newList.(*AlarmListDataType).AlarmListData
 	}
 
-	r.AlarmListData = UpdateList(remoteWrite, r.AlarmListData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.AlarmListData, newData, filterPartial, filterDelete)
+
+	if success {
+		r.AlarmListData = data
+	}
+
+	return success
 }

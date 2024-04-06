@@ -336,8 +336,7 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 				Entity:  []model.AddressEntityType{1},
 				Feature: util.Ptr(model.AddressFeatureType(3)),
 			},
-			MsgCounter:    util.Ptr(model.MsgCounterType(1)),
-			CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
 		},
 		Payload: model.PayloadType{
 			Cmd: []model.CmdType{
@@ -345,6 +344,11 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 			},
 		},
 	}
+
+	err = sut.ProcessCmd(datagram, remote)
+	assert.NotNil(d.T(), err)
+
+	datagram.Header.CmdClassifier = util.Ptr(model.CmdClassifierTypeWrite)
 
 	err = sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)

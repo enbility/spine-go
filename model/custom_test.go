@@ -16,11 +16,6 @@ type ErrorTypeSuite struct {
 	suite.Suite
 }
 
-func (s *ErrorTypeSuite) SetupSuite()   {}
-func (s *ErrorTypeSuite) TearDownTest() {}
-
-func (s *ErrorTypeSuite) BeforeTest(suiteName, testName string) {}
-
 func (s *ErrorTypeSuite) Test_NewErrorType() {
 	result := NewErrorType(ErrorNumberTypeNoError, "")
 	assert.NotNil(s.T(), result)

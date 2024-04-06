@@ -31,7 +31,8 @@ func TestSetpointListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SetpointData
 	// check the non changing items
@@ -69,7 +70,8 @@ func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	assert.True(t, success)
 
 	data := sut.SetpointDescriptionData
 	// check the non changing items

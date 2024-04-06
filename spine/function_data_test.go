@@ -30,6 +30,14 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	assert.Equal(t, newData.DeviceName, getNewData.DeviceName)
 	assert.NotEqual(t, getData.DeviceName, getNewData.DeviceName)
 	assert.Equal(t, functionType, sut.FunctionType())
+
+	sut.UpdateDataAny(false, newData, nil, nil)
+	getNewDataAny := sut.DataCopyAny()
+	newDataAny := getNewDataAny.(*model.DeviceClassificationManufacturerDataType)
+
+	assert.Equal(t, newData.DeviceName, newDataAny.DeviceName)
+	assert.NotEqual(t, getData.DeviceName, newDataAny.DeviceName)
+	assert.Equal(t, functionType, sut.FunctionType())
 }
 
 func TestFunctionData_UpdateDataPartial(t *testing.T) {

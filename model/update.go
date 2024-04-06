@@ -8,24 +8,40 @@ import (
 )
 
 type Updater interface {
-	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType)
+	// returns true if no errors occured
+	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool
 }
 
 // Generates a new list of function items by applying the rules mentioned in the spec
 // (EEBus_SPINE_TS_ProtocolSpecification.pdf; chapter "5.3.4 Restricted function exchange with cmdOptions").
 // The given data provider is used the get the current items and the items and the filters in the payload.
-func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) []T {
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
+	success := true
+
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
 		if filterData, err := filterDelete.Data(); err == nil {
-			existingData = deleteFilteredData(existingData, filterData)
+			updatedData, noErrors := deleteFilteredData(remoteWrite, existingData, filterData)
+			if noErrors {
+				existingData = updatedData
+			} else {
+				success = false
+			}
 		}
 	}
 
 	// process update filter (with selectors and elements)
 	if filterPartial != nil {
 		if filterData, err := filterPartial.Data(); err == nil {
-			return copyToSelectedData(existingData, filterData, &newData[0])
+			newData, noErrors := copyToSelectedData(remoteWrite, existingData, filterData, &newData[0])
+			if !noErrors {
+				success = false
+			}
+			return newData, success
 		}
 	}
 
@@ -35,14 +51,21 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	if len(newData) > 0 && !HasIdentifiers(newData[0]) {
 		// no identifiers specified --> copy data to all existing items
 		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
-		return copyToAllData(existingData, &newData[0])
+		newData, noErrors := copyToAllData(remoteWrite, existingData, &newData[0])
+		if !noErrors {
+			success = false
+		}
+		return newData, success
 	}
 
-	result := Merge(remoteWrite, existingData, newData)
+	result, noErrors := Merge(remoteWrite, existingData, newData)
+	if !noErrors {
+		success = false
+	}
 
 	result = SortData(result)
 
-	return result
+	return result, success
 }
 
 // return a list of field names that have the eebus tag
@@ -145,34 +168,86 @@ func SortData[T any](data []T) []T {
 	return data
 }
 
-func copyToSelectedData[T any](existingData []T, filterData *FilterData, newData *T) []T {
+// Copy data t elements matching the selected items
+//
+// Parameter remoteWrite defines if this data came on from a remote service, as that is then to
+// ignore the "writecheck" tagges fields and should only be allowed to write if the "writecheck" tagged field
+// boolean is set to true
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func copyToSelectedData[T any](remoteWrite bool, existingData []T, filterData *FilterData, newData *T) ([]T, bool) {
 	if filterData.Selector == nil {
-		return existingData
+		return existingData, true
 	}
+
+	success := true
 
 	for i := range existingData {
 		if filterData.SelectorMatch(util.Ptr(existingData[i])) {
+			writeAllowed := writeAllowed(existingData[i])
+			if !writeAllowed && remoteWrite {
+				success = false
+				continue
+			}
+
 			CopyNonNilDataFromItemToItem(newData, &existingData[i])
 			break
 		}
 	}
-	return existingData
+	return existingData, success
 }
 
-func copyToAllData[T any](existingData []T, newData *T) []T {
+// Copy data to all elements
+//
+// Parameter remoteWrite defines if this data came on from a remote service, as that is then to
+// ignore the "writecheck" tagges fields and should only be allowed to write if the "writecheck" tagged field
+// boolean is set to true
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func copyToAllData[T any](remoteWrite bool, existingData []T, newData *T) ([]T, bool) {
+	success := true
+
 	for i := range existingData {
+		writeAllowed := writeAllowed(existingData[i])
+		if !writeAllowed && remoteWrite {
+			success = false
+			continue
+		}
+
 		CopyNonNilDataFromItemToItem(newData, &existingData[i])
 	}
-	return existingData
+
+	return existingData, success
 }
 
-func deleteFilteredData[T any](existingData []T, filterData *FilterData) []T {
+// Execute a partial delete filter
+//
+// Parameter remoteWrite defines if this data came on from a remote service, as that is then to
+// ignore the "writecheck" tagges fields and should only be allowed to write if the "writecheck" tagged field
+// boolean is set to true
+//
+// returns:
+//   - the new data set
+//   - true if everything was successful, false if not
+func deleteFilteredData[T any](remoteWrite bool, existingData []T, filterData *FilterData) ([]T, bool) {
+	success := true
+
 	if filterData.Elements == nil && filterData.Selector == nil {
-		return existingData
+		return existingData, true
 	}
 
 	result := []T{}
 	for i := range existingData {
+		writeAllowed := writeAllowed(existingData[i])
+		if !writeAllowed && remoteWrite {
+			success = false
+			continue
+		}
+
 		if filterData.Selector != nil && filterData.Elements != nil {
 			// selector and elements filter
 
@@ -198,7 +273,8 @@ func deleteFilteredData[T any](existingData []T, filterData *FilterData) []T {
 			result = append(result, existingData[i])
 		}
 	}
-	return result
+
+	return result, success
 }
 
 func isFieldValueNil(field interface{}) bool {
