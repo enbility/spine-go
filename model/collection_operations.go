@@ -143,7 +143,7 @@ func updateFields[T any](remoteWrite bool, source T, destination *T) {
 //   - the new data set
 //   - true if everything was successful, false if not
 func Merge[T any](remoteWrite bool, s1 []T, s2 []T) ([]T, bool) {
-	result := []T{}
+	var result []T
 	success := true
 
 	m2 := ToMap(s2)

@@ -240,7 +240,7 @@ func deleteFilteredData[T any](remoteWrite bool, existingData []T, filterData *F
 		return existingData, true
 	}
 
-	result := []T{}
+	var result []T
 	for i := range existingData {
 		writeAllowed := writeAllowed(existingData[i])
 		if !writeAllowed && remoteWrite {
