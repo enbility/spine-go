@@ -285,8 +285,9 @@ func isFieldValueNil(field interface{}) bool {
 	switch reflect.TypeOf(field).Kind() {
 	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
 		return reflect.ValueOf(field).IsNil()
+	default:
+		return false
 	}
-	return false
 }
 
 func nonNilElementNames(element any) []string {
