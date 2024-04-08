@@ -24,11 +24,11 @@ type Entity struct {
 
 var _ api.EntityInterface = (*Entity)(nil)
 
-func NewEntity(eType model.EntityTypeType, deviceAdress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *Entity {
+func NewEntity(eType model.EntityTypeType, deviceAddress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *Entity {
 	entity := &Entity{
 		eType: eType,
 		address: &model.EntityAddressType{
-			Device: deviceAdress,
+			Device: deviceAddress,
 			Entity: entityAddress,
 		},
 	}
@@ -66,9 +66,9 @@ func (r *Entity) NextFeatureId() uint {
 	return r.fIdGenerator()
 }
 
-func EntityAddressType(deviceAdress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *model.EntityAddressType {
+func EntityAddressType(deviceAddress *model.AddressDeviceType, entityAddress []model.AddressEntityType) *model.EntityAddressType {
 	return &model.EntityAddressType{
-		Device: deviceAdress,
+		Device: deviceAddress,
 		Entity: entityAddress,
 	}
 }

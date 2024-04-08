@@ -10,11 +10,11 @@ import (
 
 const NodeManagementFeatureId uint = 0
 
-func NodeManagementAddress(deviceAdress *model.AddressDeviceType) *model.FeatureAddressType {
+func NodeManagementAddress(deviceAddress *model.AddressDeviceType) *model.FeatureAddressType {
 	return &model.FeatureAddressType{
 		Entity:  []model.AddressEntityType{0},
 		Feature: util.Ptr(model.AddressFeatureType(NodeManagementFeatureId)),
-		Device:  deviceAdress,
+		Device:  deviceAddress,
 	}
 }
 

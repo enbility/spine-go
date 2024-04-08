@@ -10,11 +10,11 @@ import (
 
 // request detailed discovery data from a remote device
 func (r *NodeManagement) RequestDetailedDiscovery(remoteDeviceSki string, remoteDeviceAddress *model.AddressDeviceType, sender api.SenderInterface) (*model.MsgCounterType, *model.ErrorType) {
-	rfAdress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDeviceAddress, DeviceInformationAddressEntity))
+	rfAddress := featureAddressType(NodeManagementFeatureId, EntityAddressType(remoteDeviceAddress, DeviceInformationAddressEntity))
 	cmd := model.CmdType{
 		NodeManagementDetailedDiscoveryData: &model.NodeManagementDetailedDiscoveryDataType{},
 	}
-	return r.RequestRemoteDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAdress, defaultMaxResponseDelay)
+	return r.RequestRemoteDataBySenderAddress(cmd, sender, remoteDeviceSki, rfAddress, defaultMaxResponseDelay)
 }
 
 // handle incoming detailed discovery read call

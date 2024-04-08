@@ -96,7 +96,7 @@ func (c *HeartbeatManager) StartHeartbeat() error {
 
 	c.stopHeartbeatC = make(chan struct{})
 
-	go c.updateHearbeatData(c.stopHeartbeatC, timeout)
+	go c.updateHeartbeatData(c.stopHeartbeatC, timeout)
 
 	return nil
 }
@@ -119,7 +119,7 @@ func (c *HeartbeatManager) heartbeatData(t time.Time, counter *uint64) *model.De
 	}
 }
 
-func (c *HeartbeatManager) updateHearbeatData(stopC chan struct{}, d time.Duration) {
+func (c *HeartbeatManager) updateHeartbeatData(stopC chan struct{}, d time.Duration) {
 	ticker := time.NewTicker(d)
 	for {
 		select {
