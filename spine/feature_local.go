@@ -557,7 +557,7 @@ func (r *FeatureLocal) functionData(function model.FunctionType) api.FunctionDat
 func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
 	var funs []model.FunctionPropertyType
 	for fun, operations := range r.operations {
-		var functionType model.FunctionType = model.FunctionType(fun)
+		var functionType = model.FunctionType(fun)
 		sf := model.FunctionPropertyType{
 			Function:           &functionType,
 			PossibleOperations: operations.Information(),
