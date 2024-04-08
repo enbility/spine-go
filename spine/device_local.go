@@ -73,7 +73,7 @@ var _ api.EventHandlerInterface = (*DeviceLocal)(nil)
 
 // React to some specific events
 func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
-	// Subscribe to NodeManagment after DetailedDiscovery is received
+	// Subscribe to NodeManagement after DetailedDiscovery is received
 	if payload.EventType != api.EventTypeDeviceChange || payload.ChangeType != api.ElementChangeAdd {
 		return
 	}
