@@ -117,7 +117,6 @@ func TestCmdType_ExtractFilter_NoFilter(t *testing.T) {
 }
 
 func TestCmdType_ExtractFilter_FilterPartialDelete(t *testing.T) {
-
 	filterP := FilterType{
 		CmdControl: &CmdControlType{Partial: &ElementTagType{}},
 		NodeManagementDetailedDiscoveryDataSelectors: &NodeManagementDetailedDiscoveryDataSelectorsType{},

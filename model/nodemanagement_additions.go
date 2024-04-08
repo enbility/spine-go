@@ -40,7 +40,6 @@ func (n *NodeManagementUseCaseDataType) useCaseInformationIndex(
 	actor UseCaseActorType,
 	useCaseName UseCaseNameType,
 ) (int, bool) {
-
 	// get the element with the same entity
 	for index, item := range n.UseCaseInformation {
 		if item.Address.Device == nil ||
@@ -58,7 +57,6 @@ func (n *NodeManagementUseCaseDataType) useCaseInformationIndex(
 			if item.Actor == nil || *item.Actor != actor {
 				continue
 			}
-
 		}
 
 		if len(useCaseName) == 0 {

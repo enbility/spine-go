@@ -48,7 +48,6 @@ func (u *UseCaseInformationDataType) Remove(useCaseName UseCaseNameType) {
 		if item.UseCaseName != nil && *item.UseCaseName != useCaseName {
 			usecases = append(usecases, item)
 		}
-
 	}
 
 	u.UseCaseSupport = usecases

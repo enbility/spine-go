@@ -215,7 +215,6 @@ func (c *Sender) Write(senderAddress, destinationAddress *model.FeatureAddressTy
 
 // Send a subscription request to a remote server feature
 func (c *Sender) Subscribe(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
-
 	cmd := model.CmdType{
 		NodeManagementSubscriptionRequestCall: NewNodeManagementSubscriptionRequestCallType(senderAddress, destinationAddress, serverFeatureType),
 	}
@@ -229,7 +228,6 @@ func (c *Sender) Subscribe(senderAddress, destinationAddress *model.FeatureAddre
 
 // Send a subscription deletion request to a remote server feature
 func (c *Sender) Unsubscribe(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
-
 	cmd := model.CmdType{
 		NodeManagementSubscriptionDeleteCall: NewNodeManagementSubscriptionDeleteCallType(senderAddress, destinationAddress),
 	}

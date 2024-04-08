@@ -30,7 +30,6 @@ func NewNodeManagementSubscriptionDeleteCallType(clientAddress *model.FeatureAdd
 
 // route subscription request calls to the appropriate feature implementation and add the subscription to the current list
 func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error {
-
 	var remoteDeviceSubscriptions []model.SubscriptionManagementEntryDataType
 	remoteDeviceSubscriptionEntries := r.Device().SubscriptionManager().Subscriptions(message.FeatureRemote.Device())
 	linq.From(remoteDeviceSubscriptionEntries).SelectT(func(s *api.SubscriptionEntry) model.SubscriptionManagementEntryDataType {
