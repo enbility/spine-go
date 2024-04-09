@@ -18,7 +18,7 @@ type DirectControlActivityDataType struct {
 	IsPowerChangeable         *bool                           `json:"isPowerChangeable,omitempty"`
 	Energy                    *ScaledNumberType               `json:"energy,omitempty"`
 	IsEnergyChangeable        *bool                           `json:"isEnergyChangeable,omitempty"`
-	Sequence_id               *PowerSequenceIdType            `json:"sequence_id,omitempty"`
+	SequenceId                *PowerSequenceIdType            `json:"sequence_id,omitempty"`
 }
 
 type DirectControlActivityDataElementsType struct {
@@ -31,7 +31,7 @@ type DirectControlActivityDataElementsType struct {
 	IsPowerChangeable         *ElementTagType           `json:"isPowerChangeable,omitempty"`
 	Energy                    *ScaledNumberElementsType `json:"energy,omitempty"`
 	IsEnergyChangeable        *ElementTagType           `json:"isEnergyChangeable,omitempty"`
-	Sequence_id               *ElementTagType           `json:"sequence_id,omitempty"`
+	SequenceId                *ElementTagType           `json:"sequence_id,omitempty"`
 }
 
 type DirectControlActivityListDataType struct {

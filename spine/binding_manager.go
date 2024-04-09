@@ -34,7 +34,6 @@ func NewBindingManager(localDevice api.DeviceLocalInterface) *BindingManager {
 
 // is sent from the client (remote device) to the server (local device)
 func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementRequestCallType) error {
-
 	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
 	if serverFeature == nil {
 		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())

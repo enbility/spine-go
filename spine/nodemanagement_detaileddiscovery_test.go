@@ -117,7 +117,6 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_RecvReply() {
 	assert.Equal(s.T(), model.FeatureTypeTypeElectricalConnection, evseec.Type())
 	assert.Equal(s.T(), model.RoleTypeServer, evseec.Role())
 	assert.Equal(s.T(), 0, len(evseec.Operations()))
-
 }
 
 func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyAdded() {

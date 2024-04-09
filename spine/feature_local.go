@@ -75,7 +75,6 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 		// Update HeartbeatManager
 		r.Device().HeartbeatManager().SetLocalFeature(r.Entity(), r)
 	}
-
 }
 
 func (r *FeatureLocal) Functions() []model.FunctionType {
@@ -195,7 +194,6 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 	deviceSki string,
 	destinationAddress *model.FeatureAddressType,
 	maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
-
 	msgCounter, err := sender.Request(model.CmdClassifierTypeRead, r.Address(), destinationAddress, false, []model.CmdType{cmd})
 	if err == nil {
 		return msgCounter, nil
@@ -557,7 +555,7 @@ func (r *FeatureLocal) functionData(function model.FunctionType) api.FunctionDat
 func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatureInformationType {
 	var funs []model.FunctionPropertyType
 	for fun, operations := range r.operations {
-		var functionType model.FunctionType = model.FunctionType(fun)
+		var functionType = model.FunctionType(fun)
 		sf := model.FunctionPropertyType{
 			Function:           &functionType,
 			PossibleOperations: operations.Information(),

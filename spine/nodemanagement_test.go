@@ -44,7 +44,6 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 	// Act
 	err := sut.HandleMessage(&requestMsg)
 	if assert.Nil(t, err) {
-
 		dataMsg := api.Message{
 			Cmd: model.CmdType{
 				NodeManagementBindingData: &model.NodeManagementBindingDataType{},
@@ -73,7 +72,6 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 	// Act
 	err = sut.HandleMessage(&deleteMsg)
 	if assert.Nil(t, err) {
-
 		dataMsg := api.Message{
 			Cmd: model.CmdType{
 				NodeManagementBindingData: &model.NodeManagementBindingDataType{},
@@ -119,7 +117,6 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 	// Act
 	err := sut.HandleMessage(&requestMsg)
 	if assert.Nil(t, err) {
-
 		dataMsg := api.Message{
 			Cmd: model.CmdType{
 				NodeManagementSubscriptionData: &model.NodeManagementSubscriptionDataType{},
@@ -148,7 +145,6 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 	// Act
 	err = sut.HandleMessage(&deleteMsg)
 	if assert.Nil(t, err) {
-
 		dataMsg := api.Message{
 			Cmd: model.CmdType{
 				NodeManagementSubscriptionData: &model.NodeManagementSubscriptionDataType{},

@@ -175,7 +175,6 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
 
 	err := sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)
-
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_Errors() {
@@ -356,5 +355,4 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	f3.AddFunctionType(model.FunctionTypeElectricalConnectionParameterDescriptionListData, true, true)
 	err = sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)
-
 }

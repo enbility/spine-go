@@ -28,7 +28,7 @@ type DeviceLocalInterface interface {
 	// Add a DeviceRemoteInterface implementation (used in SetupRemoteDevice and in tests)
 	AddRemoteDeviceForSki(ski string, rDevice DeviceRemoteInterface)
 
-	// Request NodeManagmentDetailedDiscovery Data from a remote device
+	// Request NodeManagementDetailedDiscovery Data from a remote device
 	RequestRemoteDetailedDiscoveryData(rDevice DeviceRemoteInterface) (*model.MsgCounterType, *model.ErrorType)
 
 	// Remove a remote device and its connection

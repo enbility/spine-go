@@ -30,7 +30,6 @@ func NewNodeManagementBindingDeleteCallType(clientAddress *model.FeatureAddressT
 
 // route bindings request calls to the appropriate feature implementation and add the bindings to the current list
 func (r *NodeManagement) processReadBindingData(message *api.Message) error {
-
 	var remoteDeviceBindings []model.BindingManagementEntryDataType
 	remoteDeviceBindingEntries := r.Device().BindingManager().Bindings(message.FeatureRemote.Device())
 	linq.From(remoteDeviceBindingEntries).SelectT(func(s *api.BindingEntry) model.BindingManagementEntryDataType {

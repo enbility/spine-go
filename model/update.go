@@ -240,7 +240,7 @@ func deleteFilteredData[T any](remoteWrite bool, existingData []T, filterData *F
 		return existingData, true
 	}
 
-	result := []T{}
+	var result []T
 	for i := range existingData {
 		writeAllowed := writeAllowed(existingData[i])
 		if !writeAllowed && remoteWrite {
@@ -285,8 +285,9 @@ func isFieldValueNil(field interface{}) bool {
 	switch reflect.TypeOf(field).Kind() {
 	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
 		return reflect.ValueOf(field).IsNil()
+	default:
+		return false
 	}
-	return false
 }
 
 func nonNilElementNames(element any) []string {

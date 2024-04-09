@@ -215,12 +215,11 @@ func (c *Sender) Write(senderAddress, destinationAddress *model.FeatureAddressTy
 
 // Send a subscription request to a remote server feature
 func (c *Sender) Subscribe(senderAddress, destinationAddress *model.FeatureAddressType, serverFeatureType model.FeatureTypeType) (*model.MsgCounterType, error) {
-
 	cmd := model.CmdType{
 		NodeManagementSubscriptionRequestCall: NewNodeManagementSubscriptionRequestCallType(senderAddress, destinationAddress, serverFeatureType),
 	}
 
-	// we always send it to the remote NodeManagment feature, which always is at entity:[0],feature:0
+	// we always send it to the remote NodeManagement feature, which always is at entity:[0],feature:0
 	localAddress := NodeManagementAddress(senderAddress.Device)
 	remoteAddress := NodeManagementAddress(destinationAddress.Device)
 
@@ -229,12 +228,11 @@ func (c *Sender) Subscribe(senderAddress, destinationAddress *model.FeatureAddre
 
 // Send a subscription deletion request to a remote server feature
 func (c *Sender) Unsubscribe(senderAddress, destinationAddress *model.FeatureAddressType) (*model.MsgCounterType, error) {
-
 	cmd := model.CmdType{
 		NodeManagementSubscriptionDeleteCall: NewNodeManagementSubscriptionDeleteCallType(senderAddress, destinationAddress),
 	}
 
-	// we always send it to the remote NodeManagment feature, which always is at entity:[0],feature:0
+	// we always send it to the remote NodeManagement feature, which always is at entity:[0],feature:0
 	localAddress := NodeManagementAddress(senderAddress.Device)
 	remoteAddress := NodeManagementAddress(destinationAddress.Device)
 
@@ -247,7 +245,7 @@ func (c *Sender) Bind(senderAddress, destinationAddress *model.FeatureAddressTyp
 		NodeManagementBindingRequestCall: NewNodeManagementBindingRequestCallType(senderAddress, destinationAddress, serverFeatureType),
 	}
 
-	// we always send it to the remote NodeManagment feature, which always is at entity:[0],feature:0
+	// we always send it to the remote NodeManagement feature, which always is at entity:[0],feature:0
 	localAddress := NodeManagementAddress(senderAddress.Device)
 	remoteAddress := NodeManagementAddress(destinationAddress.Device)
 
@@ -260,7 +258,7 @@ func (c *Sender) Unbind(senderAddress, destinationAddress *model.FeatureAddressT
 		NodeManagementBindingDeleteCall: NewNodeManagementBindingDeleteCallType(senderAddress, destinationAddress),
 	}
 
-	// we always send it to the remote NodeManagment feature, which always is at entity:[0],feature:0
+	// we always send it to the remote NodeManagement feature, which always is at entity:[0],feature:0
 	localAddress := NodeManagementAddress(senderAddress.Device)
 	remoteAddress := NodeManagementAddress(destinationAddress.Device)
 

@@ -34,7 +34,6 @@ func NewSubscriptionManager(localDevice api.DeviceLocalInterface) *SubscriptionM
 
 // is sent from the client (remote device) to the server (local device)
 func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementRequestCallType) error {
-
 	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
 	if serverFeature == nil {
 		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())

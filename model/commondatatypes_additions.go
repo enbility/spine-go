@@ -214,7 +214,7 @@ func (r *DeviceAddressType) String() string {
 		return ""
 	}
 
-	var result string = ""
+	var result = ""
 	if r.Device != nil {
 		result += string(*r.Device)
 	}
@@ -231,7 +231,7 @@ func (r *EntityAddressType) String() string {
 		return ""
 	}
 
-	var result string = ""
+	var result = ""
 	if r.Device != nil {
 		result += string(*r.Device)
 	}
@@ -255,7 +255,7 @@ func (r *FeatureAddressType) String() string {
 		return ""
 	}
 
-	var result string = ""
+	var result = ""
 	if r.Device != nil {
 		result += string(*r.Device)
 	}
