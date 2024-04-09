@@ -76,6 +76,8 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		EventType:    api.EventTypeBindingChange,
 		ChangeType:   api.ElementChangeAdd,
 		Data:         data,
+		Device:       remoteDevice,
+		Entity:       clientFeature.Entity(),
 		Feature:      clientFeature,
 		LocalFeature: serverFeature,
 	}
