@@ -72,11 +72,12 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 	c.bindingEntries = append(c.bindingEntries, bindingEntry)
 
 	payload := api.EventPayload{
-		Ski:        remoteDevice.Ski(),
-		EventType:  api.EventTypeBindingChange,
-		ChangeType: api.ElementChangeAdd,
-		Data:       data,
-		Feature:    clientFeature,
+		Ski:          remoteDevice.Ski(),
+		EventType:    api.EventTypeBindingChange,
+		ChangeType:   api.ElementChangeAdd,
+		Data:         data,
+		Feature:      clientFeature,
+		LocalFeature: serverFeature,
 	}
 	Events.Publish(payload)
 
