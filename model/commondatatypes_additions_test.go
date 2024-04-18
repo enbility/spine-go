@@ -23,7 +23,7 @@ func TestTimeType(t *testing.T) {
 
 	for _, tc := range tc {
 		got := NewTimeType(tc.in)
-		expect, err := time.Parse(tc.parse, tc.in)
+		expect, err := time.ParseInLocation(tc.parse, tc.in, time.UTC)
 		if err != nil {
 			t.Errorf("Parsing failure with %s and parser %s: %s", tc.in, tc.parse, err)
 			continue
@@ -52,7 +52,7 @@ func TestDateType(t *testing.T) {
 
 	for _, tc := range tc {
 		got := NewDateType(tc.in)
-		expect, err := time.Parse(tc.parse, tc.in)
+		expect, err := time.ParseInLocation(tc.parse, tc.in, time.UTC)
 		if err != nil {
 			t.Errorf("Parsing failure with %s and parser %s: %s", tc.in, tc.parse, err)
 			continue

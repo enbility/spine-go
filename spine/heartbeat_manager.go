@@ -70,7 +70,7 @@ func (c *HeartbeatManager) SetLocalFeature(entity api.EntityLocalInterface, feat
 	c.localFeature = feature
 
 	// initialise heartbeat data
-	heartbeatData := c.heartbeatData(time.Now(), c.heartBeatCounter())
+	heartbeatData := c.heartbeatData(time.Now().UTC(), c.heartBeatCounter())
 
 	// updating the data will automatically notify all subscribed remote features
 	feature.SetData(model.FunctionTypeDeviceDiagnosisHeartbeatData, heartbeatData)
@@ -125,7 +125,7 @@ func (c *HeartbeatManager) updateHeartbeatData(stopC chan struct{}, d time.Durat
 		select {
 		case <-ticker.C:
 
-			heartbeatData := c.heartbeatData(time.Now(), c.heartBeatCounter())
+			heartbeatData := c.heartbeatData(time.Now().UTC(), c.heartBeatCounter())
 
 			c.mux.Lock()
 			// updating the data will automatically notify all subscribed remote features

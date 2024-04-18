@@ -29,7 +29,7 @@ func (s *TimeType) GetTime() (time.Time, error) {
 	}
 
 	for _, format := range allowedFormats {
-		if value, err := time.Parse(format, string(*s)); err == nil {
+		if value, err := time.ParseInLocation(format, string(*s), time.UTC); err == nil {
 			return value, nil
 		}
 	}
@@ -53,7 +53,7 @@ func (d *DateType) GetTime() (time.Time, error) {
 	}
 
 	for _, format := range allowedFormats {
-		if value, err := time.Parse(format, string(*d)); err == nil {
+		if value, err := time.ParseInLocation(format, string(*d), time.UTC); err == nil {
 			return value, nil
 		}
 	}
@@ -69,7 +69,7 @@ func NewDateTimeType(t string) *DateTimeType {
 }
 
 func NewDateTimeTypeFromTime(t time.Time) *DateTimeType {
-	s := t.Format("2006-01-02T15:04:05Z")
+	s := t.UTC().Format("2006-01-02T15:04:05Z")
 	return NewDateTimeType(s)
 }
 
@@ -82,7 +82,7 @@ func (d *DateTimeType) GetTime() (time.Time, error) {
 	}
 
 	for _, format := range allowedFormats {
-		if value, err := time.Parse(format, string(*d)); err == nil {
+		if value, err := time.ParseInLocation(format, string(*d), time.UTC); err == nil {
 			return value, nil
 		}
 	}
