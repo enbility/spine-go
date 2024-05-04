@@ -25,21 +25,17 @@ func (r *events) subscribe(level api.EventHandlerLevel, handler api.EventHandler
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	exists := false
 	for _, item := range r.handlers {
 		if item.Level == level && item.Handler == handler {
-			exists = true
-			break
+			return nil
 		}
 	}
 
-	if !exists {
-		newHandlerItem := eventHandlerItem{
-			Level:   level,
-			Handler: handler,
-		}
-		r.handlers = append(r.handlers, newHandlerItem)
+	newHandlerItem := eventHandlerItem{
+		Level:   level,
+		Handler: handler,
 	}
+	r.handlers = append(r.handlers, newHandlerItem)
 
 	return nil
 }
@@ -60,7 +56,7 @@ func (r *events) unsubscribe(level api.EventHandlerLevel, handler api.EventHandl
 
 	var newHandlers []eventHandlerItem
 	for _, item := range r.handlers {
-		if item.Level != level && item.Handler != handler {
+		if item.Level != level || item.Handler != handler {
 			newHandlers = append(newHandlers, item)
 		}
 	}
@@ -96,9 +92,13 @@ func (r *events) Publish(payload api.EventPayload) {
 				continue
 			}
 
-			// do not run this asynchronously, to make sure all required
-			// and expected actions are taken
-			item.Handler.HandleEvent(payload)
+			if level == api.EventHandlerLevelCore {
+				// do not run this asynchronously, to make sure all required
+				// and expected actions are taken
+				item.Handler.HandleEvent(payload)
+			} else {
+				go item.Handler.HandleEvent(payload)
+			}
 		}
 	}
 	r.muHandle.Unlock()
