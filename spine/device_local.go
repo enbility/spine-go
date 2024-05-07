@@ -377,7 +377,6 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	ackRequest := message.RequestHeader.AckRequest
 	ackClassifiers := []model.CmdClassifierType{
 		model.CmdClassifierTypeCall,
-		model.CmdClassifierTypeWrite,
 		model.CmdClassifierTypeReply,
 		model.CmdClassifierTypeNotify}
 

@@ -3,6 +3,7 @@ package spine
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/mocks"
@@ -356,6 +357,36 @@ func (suite *DeviceClassificationTestSuite) Test_Notify() {
 }
 
 func (suite *DeviceClassificationTestSuite) Test_Write() {
+	suite.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Once()
+
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_SetWriteApprovalCallback_Invalid() {
+	cb := func(msg *api.Message) {}
+	err := suite.localFeature.SetWriteApprovalCallback(cb)
+	assert.NotNil(suite.T(), err)
+	suite.localFeature.ApproveOrDenyWrite(&api.Message{}, true, "")
+}
+
+func (suite *DeviceClassificationTestSuite) Test_AddPendingApproval_Invalid() {
+	cb := func(msg *api.Message) {}
+	err := suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	assert.Nil(suite.T(), err)
+
 	msg := &api.Message{
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: suite.remoteSubFeature,
@@ -364,6 +395,63 @@ func (suite *DeviceClassificationTestSuite) Test_Write() {
 		},
 	}
 
+	err1 := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err1)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	cb := func(msg *api.Message) {
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
+	}
+
+	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+
+	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+
+	cb = func(msg *api.Message) {
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, false, "not allowed by application")
+	}
+
+	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Timeout() {
+	suite.localServerFeatureWrite.SetWriteApprovalTimeout(time.Second * 1)
+
+	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	cb := func(msg *api.Message) {
+		time.Sleep(time.Second * 2)
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
+	}
+
+	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
 	err := suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
 }
