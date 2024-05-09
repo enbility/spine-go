@@ -22,6 +22,10 @@ type FeatureLocal struct {
 	responseMsgCallback map[model.MsgCounterType]func(result api.ResponseMessage)
 	responseCallbacks   []func(result api.ResponseMessage)
 
+	writeTimeout          time.Duration
+	writeApprovalCallback api.WriteApprovalCallbackFunc
+	pendingWriteApprovals map[model.MsgCounterType]*time.Timer
+
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
 
@@ -34,9 +38,11 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 			featureAddressType(id, entity.Address()),
 			ftype,
 			role),
-		entity:              entity,
-		functionDataMap:     make(map[model.FunctionType]api.FunctionDataCmdInterface),
-		responseMsgCallback: make(map[model.MsgCounterType]func(result api.ResponseMessage)),
+		entity:                entity,
+		functionDataMap:       make(map[model.FunctionType]api.FunctionDataCmdInterface),
+		responseMsgCallback:   make(map[model.MsgCounterType]func(result api.ResponseMessage)),
+		pendingWriteApprovals: make(map[model.MsgCounterType]*time.Timer),
+		writeTimeout:          time.Minute * 1,
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
@@ -133,6 +139,67 @@ func (r *FeatureLocal) processResultCallbacks(msg api.ResponseMessage) {
 	for _, cb := range r.responseCallbacks {
 		go cb(msg)
 	}
+}
+
+func (r *FeatureLocal) SetWriteApprovalCallback(function api.WriteApprovalCallbackFunc) error {
+	if r.Role() != model.RoleTypeServer {
+		return errors.New("only allowed on a server feature")
+	}
+
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	r.writeApprovalCallback = function
+
+	return nil
+}
+
+func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
+	if r.Role() != model.RoleTypeServer || msg.RequestHeader == nil || msg.RequestHeader.MsgCounter == nil {
+		return
+	}
+
+	newTimer := time.AfterFunc(r.writeTimeout, func() {
+		r.muxResponseCB.Lock()
+		delete(r.pendingWriteApprovals, *msg.RequestHeader.MsgCounter)
+		r.muxResponseCB.Unlock()
+
+		err := model.NewErrorTypeFromString("write not approved in time by application")
+		_ = msg.FeatureRemote.Device().Sender().ResultError(msg.RequestHeader, r.Address(), err)
+	})
+
+	r.muxResponseCB.Lock()
+	r.pendingWriteApprovals[*msg.RequestHeader.MsgCounter] = newTimer
+	r.muxResponseCB.Unlock()
+}
+
+func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, allow bool, reason string) {
+	if r.Role() != model.RoleTypeServer {
+		return
+	}
+
+	r.muxResponseCB.Lock()
+	timer, ok := r.pendingWriteApprovals[*msg.RequestHeader.MsgCounter]
+	r.muxResponseCB.Unlock()
+
+	// if there is no timer running, we are too late and error has already been sent
+	if !ok || timer == nil {
+		return
+	}
+
+	timer.Stop()
+
+	if allow {
+		r.processWrite(msg)
+		return
+	}
+
+	err := model.NewErrorTypeFromString(reason)
+	_ = msg.FeatureRemote.Device().Sender().ResultError(msg.RequestHeader, r.Address(), err)
+}
+
+func (r *FeatureLocal) SetWriteApprovalTimeout(duration time.Duration) {
+	r.writeTimeout = duration
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -389,8 +456,13 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 			return err
 		}
 	case model.CmdClassifierTypeWrite:
-		if err := r.processWrite(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete, message.FeatureRemote); err != nil {
-			return err
+		// if there is a write permission check callback set, invoke this instead of directly allowing the write
+		if r.writeApprovalCallback != nil {
+			r.addPendingApproval(message)
+			r.writeApprovalCallback(message)
+		} else {
+			// this method handles ack and error results, so no need to return an error
+			r.processWrite(message)
 		}
 	default:
 		return model.NewErrorTypeFromString(fmt.Sprintf("CmdClassifier not implemented: %s", message.CmdClassifier))
@@ -518,25 +590,44 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 	return nil
 }
 
-func (r *FeatureLocal) processWrite(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	fctData, err := r.updateData(true, function, data, filterPartial, filterDelete)
+func (r *FeatureLocal) processWrite(msg *api.Message) {
+	if err := r.executeWrite(msg); err != nil {
+		_ = msg.FeatureRemote.Device().Sender().ResultError(msg.RequestHeader, r.Address(), err)
+	} else if msg.RequestHeader != nil {
+		ackRequest := msg.RequestHeader.AckRequest
+		if ackRequest != nil && *ackRequest {
+			_ = msg.FeatureRemote.Device().Sender().ResultSuccess(msg.RequestHeader, r.Address())
+		}
+	}
+}
+
+func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
+	cmdData, err := msg.Cmd.Data()
 	if err != nil {
-		return err
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, err.Error())
+	}
+	if cmdData.Function == nil {
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "No function found for cmd data")
+	}
+
+	fctData, err1 := r.updateData(true, *cmdData.Function, cmdData.Value, msg.FilterPartial, msg.FilterDelete)
+	if err1 != nil {
+		return err1
 	} else if fctData == nil {
 		return model.NewErrorTypeFromString("function not found")
 	}
 
 	payload := api.EventPayload{
-		Ski:           featureRemote.Device().Ski(),
+		Ski:           msg.FeatureRemote.Device().Ski(),
 		EventType:     api.EventTypeDataChange,
 		ChangeType:    api.ElementChangeUpdate,
-		Feature:       featureRemote,
-		Device:        featureRemote.Device(),
-		Entity:        featureRemote.Entity(),
+		Feature:       msg.FeatureRemote,
+		Device:        msg.FeatureRemote.Device(),
+		Entity:        msg.FeatureRemote.Entity(),
 		LocalFeature:  r,
-		Function:      function,
+		Function:      *cmdData.Function,
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
-		Data:          data,
+		Data:          cmdData.Value,
 	}
 	Events.Publish(payload)
 

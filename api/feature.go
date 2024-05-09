@@ -29,6 +29,11 @@ type FeatureInterface interface {
 	String() string
 }
 
+// Callback function used to verify if an incoming SPINE write message should be allowed or not
+// The cb function has to be invoked within 1 minute, otherwise the stack will
+// deny the write command
+type WriteApprovalCallbackFunc func(msg *Message)
+
 // This interface defines all the required functions need to implement a local feature
 type FeatureLocalInterface interface {
 	FeatureInterface
@@ -37,15 +42,25 @@ type FeatureLocalInterface interface {
 	// Get the associated EntityLocalInterface implementation
 	Entity() EntityLocalInterface
 
-	// Add a function type with
+	// Add a function type with allowed operations
 	AddFunctionType(function model.FunctionType, read, write bool)
 	// Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
 	//
 	// Returns an error if there is already a callback for the msgCounter set
 	AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg ResponseMessage)) error
-
 	// Add a callback function to be invoked when a result message comes in for this feature
 	AddResultCallback(function func(msg ResponseMessage))
+	// Sets the callback method for a server feature which is invoked to
+	// check wether an incoming write message shall be permitted or declined
+	SetWriteApprovalCallback(function WriteApprovalCallbackFunc) error
+	// Needs to be invoked within 1 minute of WritePermissionCheckCallbackFunc of
+	// SetWritePermissionCheckCallback being invoked by the stack returning wether
+	// the remote requested write command shall be allowed or not
+	//
+	// reason contains the error string reported back when write is not allwed
+	ApproveOrDenyWrite(msg *Message, allow bool, reason string)
+	// Overwrite the default 1 minute timeout for write approvals
+	SetWriteApprovalTimeout(duration time.Duration)
 
 	// return all functions
 	Functions() []model.FunctionType
