@@ -1,12 +1,54 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestTimePeriodType(t *testing.T) {
+	tc := &TimePeriodType{}
+	duration, err := tc.GetDuration()
+	assert.NotNil(t, err)
+	assert.Equal(t, time.Duration(0), duration)
+
+	tc = &TimePeriodType{
+		EndTime: NewAbsoluteOrRelativeTimeTypeFromDuration(time.Minute * 1),
+	}
+	duration, err = tc.GetDuration()
+	assert.Nil(t, err)
+	assert.Equal(t, time.Minute*1, duration)
+
+	tc = NewTimePeriodTypeWithRelativeEndTime(time.Minute * 1)
+
+	duration, err = tc.GetDuration()
+	assert.Nil(t, err)
+	assert.Equal(t, time.Minute*1, duration)
+
+	data, err := json.Marshal(tc)
+	assert.Nil(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, "{\"endTime\":\"PT1M\"}", string(data))
+
+	var tp1 TimePeriodType
+	err = json.Unmarshal(data, &tp1)
+	assert.Nil(t, err)
+	assert.Equal(t, *tc.EndTime, *tp1.EndTime)
+
+	time.Sleep(time.Second * 1)
+
+	duration, err = tc.GetDuration()
+	assert.Nil(t, err)
+	assert.Equal(t, time.Second*59, duration)
+
+	data, err = json.Marshal(tc)
+	assert.Nil(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, "{\"endTime\":\"PT59S\"}", string(data))
+}
 
 func TestTimeType(t *testing.T) {
 	tc := []struct {

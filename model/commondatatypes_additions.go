@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -10,6 +11,95 @@ import (
 
 	"github.com/rickb777/date/period"
 )
+
+// TimePeriodType
+
+func NewTimePeriodTypeWithRelativeEndTime(duration time.Duration) *TimePeriodType {
+	now := time.Now().UTC()
+	endTime := now.Add(duration)
+	value := &TimePeriodType{
+		EndTime: NewAbsoluteOrRelativeTimeTypeFromTime(endTime),
+	}
+	return value
+}
+
+// helper type to modify EndTime field value in json.Marshal and
+// json.Unmarshal to allow provide accurate relative durations
+//
+// If only EndTime is provided and it is a duration, it has to
+// decrease over time. To do this without actually changing
+// the data, it will always be transformed into an absolute time
+// in Marshal and returned as an up to date relative duration
+// in Unmarshal
+type tempTimePeriodType TimePeriodType
+
+func setTimePeriodTypeEndTime(t *tempTimePeriodType) {
+	if t.StartTime != nil || t.EndTime == nil {
+		return
+	}
+
+	duration, err := t.EndTime.GetTimeDuration()
+	if err != nil {
+		return
+	}
+
+	time := time.Now().UTC().Add(duration)
+	t.EndTime = NewAbsoluteOrRelativeTimeTypeFromTime(time)
+}
+
+func getTimePeriodTypeDuration(t *TimePeriodType) (time.Duration, error) {
+	if t.StartTime != nil || t.EndTime == nil {
+		return 0, errors.New("invalid data format")
+	}
+
+	if t.EndTime.IsRelativeTime() {
+		return getTimeDurationFromString(string(*t.EndTime))
+	}
+
+	endTime, err := t.EndTime.GetTime()
+	if err != nil {
+		return 0, err
+	}
+
+	now := time.Now().UTC()
+	duration := endTime.Sub(now)
+	duration = duration.Round(time.Second)
+
+	return duration, nil
+}
+
+// when startTime is empty and endTime is an absolute time,
+// then endTime should be returned as an relative timestamp
+func (t TimePeriodType) MarshalJSON() ([]byte, error) {
+	temp := tempTimePeriodType(t)
+
+	if duration, err := getTimePeriodTypeDuration(&t); err == nil {
+		temp.EndTime = NewAbsoluteOrRelativeTimeTypeFromDuration(duration)
+	}
+
+	return json.Marshal(temp)
+}
+
+// when startTime is empty and endTime is a relative time,
+// then endTime should be written as an absolute timestamp
+func (t *TimePeriodType) UnmarshalJSON(data []byte) error {
+	var temp tempTimePeriodType
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	setTimePeriodTypeEndTime(&temp)
+
+	*t = TimePeriodType(temp)
+
+	return nil
+}
+
+// Return the current duration if StartTime is nil and EndTime is not
+// otherwise returns an error
+func (t *TimePeriodType) GetDuration() (time.Duration, error) {
+	return getTimePeriodTypeDuration(t)
+}
 
 // TimeType xs:time
 
@@ -69,7 +159,7 @@ func NewDateTimeType(t string) *DateTimeType {
 }
 
 func NewDateTimeTypeFromTime(t time.Time) *DateTimeType {
-	s := t.UTC().Format("2006-01-02T15:04:05Z")
+	s := t.Round(time.Second).UTC().Format("2006-01-02T15:04:05Z")
 	return NewDateTimeType(s)
 }
 
@@ -151,6 +241,11 @@ func (a *AbsoluteOrRelativeTimeType) GetTime() (time.Time, error) {
 	}
 	r := time.Now().Add(d)
 	return r, nil
+}
+
+func (a *AbsoluteOrRelativeTimeType) IsRelativeTime() bool {
+	_, err := getTimeDurationFromString(string(*a))
+	return err == nil
 }
 
 func (a *AbsoluteOrRelativeTimeType) GetDurationType() (*DurationType, error) {
