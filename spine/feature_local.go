@@ -617,6 +617,8 @@ func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
 		return model.NewErrorTypeFromString("function not found")
 	}
 
+	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+
 	payload := api.EventPayload{
 		Ski:           msg.FeatureRemote.Device().Ski(),
 		EventType:     api.EventTypeDataChange,
