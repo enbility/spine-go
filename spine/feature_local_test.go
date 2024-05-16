@@ -379,7 +379,10 @@ func (suite *DeviceClassificationTestSuite) Test_SetWriteApprovalCallback_Invali
 	cb := func(msg *api.Message) {}
 	err := suite.localFeature.AddWriteApprovalCallback(cb)
 	assert.NotNil(suite.T(), err)
-	suite.localFeature.ApproveOrDenyWrite(&api.Message{}, true, "")
+	result := model.ErrorType{
+		ErrorNumber: 0,
+	}
+	suite.localFeature.ApproveOrDenyWrite(&api.Message{}, result)
 }
 
 func (suite *DeviceClassificationTestSuite) Test_AddPendingApproval_Invalid() {
@@ -412,7 +415,10 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
 	}
 
 	cb := func(msg *api.Message) {
-		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
 	}
 
 	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
@@ -422,7 +428,11 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
 	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 	cb = func(msg *api.Message) {
-		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, false, "not allowed by application")
+		result := model.ErrorType{
+			ErrorNumber: 7,
+			Description: util.Ptr(model.DescriptionType("not allowed by application")),
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
 	}
 
 	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
@@ -451,7 +461,10 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Timeout() {
 
 	cb := func(msg *api.Message) {
 		time.Sleep(time.Second * 1)
-		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
 	}
 
 	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)

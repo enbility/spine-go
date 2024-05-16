@@ -182,7 +182,7 @@ func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
 	r.muxResponseCB.Unlock()
 }
 
-func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, allow bool, reason string) {
+func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType) {
 	if r.Role() != model.RoleTypeServer {
 		return
 	}
@@ -198,13 +198,12 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, allow bool, reason s
 
 	timer.Stop()
 
-	if allow {
+	if err.ErrorNumber == 0 {
 		r.processWrite(msg)
 		return
 	}
 
-	err := model.NewErrorTypeFromString(reason)
-	_ = msg.FeatureRemote.Device().Sender().ResultError(msg.RequestHeader, r.Address(), err)
+	_ = msg.FeatureRemote.Device().Sender().ResultError(msg.RequestHeader, r.Address(), &err)
 }
 
 func (r *FeatureLocal) SetWriteApprovalTimeout(duration time.Duration) {

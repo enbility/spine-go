@@ -57,8 +57,8 @@ type FeatureLocalInterface interface {
 	// SetWritePermissionCheckCallback being invoked by the stack returning wether
 	// the remote requested write command shall be allowed or not
 	//
-	// reason contains the error string reported back when write is not allwed
-	ApproveOrDenyWrite(msg *Message, allow bool, reason string)
+	// ErrorType.ErrorNumber should be 0 if write is allowed
+	ApproveOrDenyWrite(msg *Message, err model.ErrorType)
 	// Overwrite the default 1 minute timeout for write approvals
 	SetWriteApprovalTimeout(duration time.Duration)
 
