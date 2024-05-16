@@ -23,7 +23,7 @@ type FeatureLocal struct {
 	responseCallbacks   []func(result api.ResponseMessage)
 
 	writeTimeout          time.Duration
-	writeApprovalCallback api.WriteApprovalCallbackFunc
+	writeApprovalCallback []api.WriteApprovalCallbackFunc
 	pendingWriteApprovals map[model.MsgCounterType]*time.Timer
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
@@ -141,7 +141,7 @@ func (r *FeatureLocal) processResultCallbacks(msg api.ResponseMessage) {
 	}
 }
 
-func (r *FeatureLocal) SetWriteApprovalCallback(function api.WriteApprovalCallbackFunc) error {
+func (r *FeatureLocal) AddWriteApprovalCallback(function api.WriteApprovalCallbackFunc) error {
 	if r.Role() != model.RoleTypeServer {
 		return errors.New("only allowed on a server feature")
 	}
@@ -149,9 +149,18 @@ func (r *FeatureLocal) SetWriteApprovalCallback(function api.WriteApprovalCallba
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	r.writeApprovalCallback = function
+	r.writeApprovalCallback = append(r.writeApprovalCallback, function)
 
 	return nil
+}
+
+func (r *FeatureLocal) processWriteApprovalCallbacks(msg *api.Message) {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	for _, cb := range r.writeApprovalCallback {
+		go cb(msg)
+	}
 }
 
 func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
@@ -459,7 +468,7 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 		// if there is a write permission check callback set, invoke this instead of directly allowing the write
 		if r.writeApprovalCallback != nil {
 			r.addPendingApproval(message)
-			r.writeApprovalCallback(message)
+			r.processWriteApprovalCallbacks(message)
 		} else {
 			// this method handles ack and error results, so no need to return an error
 			r.processWrite(message)

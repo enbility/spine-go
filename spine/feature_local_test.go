@@ -377,14 +377,14 @@ func (suite *DeviceClassificationTestSuite) Test_Write() {
 
 func (suite *DeviceClassificationTestSuite) Test_SetWriteApprovalCallback_Invalid() {
 	cb := func(msg *api.Message) {}
-	err := suite.localFeature.SetWriteApprovalCallback(cb)
+	err := suite.localFeature.AddWriteApprovalCallback(cb)
 	assert.NotNil(suite.T(), err)
 	suite.localFeature.ApproveOrDenyWrite(&api.Message{}, true, "")
 }
 
 func (suite *DeviceClassificationTestSuite) Test_AddPendingApproval_Invalid() {
 	cb := func(msg *api.Message) {}
-	err := suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	err := suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
 	assert.Nil(suite.T(), err)
 
 	msg := &api.Message{
@@ -415,7 +415,7 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
 		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
 	}
 
-	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
 	err := suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
 
@@ -425,13 +425,16 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
 		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, false, "not allowed by application")
 	}
 
-	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
 	err = suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
+
+	// callback is called asynchronously
+	time.Sleep(time.Millisecond * 200)
 }
 
 func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Timeout() {
-	suite.localServerFeatureWrite.SetWriteApprovalTimeout(time.Second * 1)
+	suite.localServerFeatureWrite.SetWriteApprovalTimeout(time.Millisecond * 500)
 
 	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
@@ -447,11 +450,14 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Timeout() {
 	}
 
 	cb := func(msg *api.Message) {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 1)
 		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, true, "")
 	}
 
-	suite.localServerFeatureWrite.SetWriteApprovalCallback(cb)
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
 	err := suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
+
+	// callback is called asynchronously
+	time.Sleep(time.Second * 1)
 }
