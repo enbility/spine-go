@@ -42,7 +42,7 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 		functionDataMap:       make(map[model.FunctionType]api.FunctionDataCmdInterface),
 		responseMsgCallback:   make(map[model.MsgCounterType]func(result api.ResponseMessage)),
 		pendingWriteApprovals: make(map[model.MsgCounterType]*time.Timer),
-		writeTimeout:          time.Minute * 1,
+		writeTimeout:          defaultMaxResponseDelay,
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
