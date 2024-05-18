@@ -22,9 +22,11 @@ type FeatureLocal struct {
 	responseMsgCallback map[model.MsgCounterType]func(result api.ResponseMessage)
 	responseCallbacks   []func(result api.ResponseMessage)
 
-	writeTimeout          time.Duration
-	writeApprovalCallback []api.WriteApprovalCallbackFunc
-	pendingWriteApprovals map[model.MsgCounterType]*time.Timer
+	writeTimeout           time.Duration
+	writeApprovalCallbacks []api.WriteApprovalCallbackFunc
+	muxWriteReceived       sync.Mutex
+	writeApprovalReceived  map[model.MsgCounterType]int
+	pendingWriteApprovals  map[model.MsgCounterType]*time.Timer
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
@@ -41,6 +43,7 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 		entity:                entity,
 		functionDataMap:       make(map[model.FunctionType]api.FunctionDataCmdInterface),
 		responseMsgCallback:   make(map[model.MsgCounterType]func(result api.ResponseMessage)),
+		writeApprovalReceived: make(map[model.MsgCounterType]int),
 		pendingWriteApprovals: make(map[model.MsgCounterType]*time.Timer),
 		writeTimeout:          defaultMaxResponseDelay,
 	}
@@ -149,7 +152,7 @@ func (r *FeatureLocal) AddWriteApprovalCallback(function api.WriteApprovalCallba
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	r.writeApprovalCallback = append(r.writeApprovalCallback, function)
+	r.writeApprovalCallbacks = append(r.writeApprovalCallbacks, function)
 
 	return nil
 }
@@ -158,7 +161,7 @@ func (r *FeatureLocal) processWriteApprovalCallbacks(msg *api.Message) {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	for _, cb := range r.writeApprovalCallback {
+	for _, cb := range r.writeApprovalCallbacks {
 		go cb(msg)
 	}
 }
@@ -189,6 +192,7 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 
 	r.muxResponseCB.Lock()
 	timer, ok := r.pendingWriteApprovals[*msg.RequestHeader.MsgCounter]
+	count := len(r.writeApprovalCallbacks)
 	r.muxResponseCB.Unlock()
 
 	// if there is no timer running, we are too late and error has already been sent
@@ -196,7 +200,29 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 		return
 	}
 
+	// do we have enough approvals?
+	r.muxWriteReceived.Lock()
+	defer r.muxWriteReceived.Unlock()
+	if count > 1 && err.ErrorNumber == 0 {
+		amount, ok := r.writeApprovalReceived[*msg.RequestHeader.MsgCounter]
+		if ok {
+			r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] = amount + 1
+		} else {
+			r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] = 1
+		}
+		// do we have enough approve messages, if not exit
+		if r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] < count {
+			return
+		}
+	}
+
 	timer.Stop()
+
+	delete(r.writeApprovalReceived, *msg.RequestHeader.MsgCounter)
+
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+	delete(r.pendingWriteApprovals, *msg.RequestHeader.MsgCounter)
 
 	if err.ErrorNumber == 0 {
 		r.processWrite(msg)
@@ -465,7 +491,7 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 		}
 	case model.CmdClassifierTypeWrite:
 		// if there is a write permission check callback set, invoke this instead of directly allowing the write
-		if r.writeApprovalCallback != nil {
+		if len(r.writeApprovalCallbacks) > 0 {
 			r.addPendingApproval(message)
 			r.processWriteApprovalCallbacks(message)
 		} else {

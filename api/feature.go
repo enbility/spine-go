@@ -50,14 +50,16 @@ type FeatureLocalInterface interface {
 	AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg ResponseMessage)) error
 	// Add a callback function to be invoked when a result message comes in for this feature
 	AddResultCallback(function func(msg ResponseMessage))
+
 	// Add a callback method for a server feature which is invoked to
-	// check wether an incoming write message shall be permitted or declined
+	// check wether an incoming write message shall be approved or denied
 	AddWriteApprovalCallback(function WriteApprovalCallbackFunc) error
-	// Needs to be invoked within 1 minute of WritePermissionCheckCallbackFunc of
-	// SetWritePermissionCheckCallback being invoked by the stack returning wether
-	// the remote requested write command shall be allowed or not
+	// This function needs to be invoked within (default) 10 seconds after the via
+	// AddWriteApprovalCallback defined callback is being invoked.
 	//
-	// ErrorType.ErrorNumber should be 0 if write is allowed
+	// NOTE: To approve a write, ALL callbacks need to approve the write!
+	//
+	// ErrorType.ErrorNumber should be 0 if write is approved
 	ApproveOrDenyWrite(msg *Message, err model.ErrorType)
 	// Overwrite the default 1 minute timeout for write approvals
 	SetWriteApprovalTimeout(duration time.Duration)

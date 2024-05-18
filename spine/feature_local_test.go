@@ -402,7 +402,35 @@ func (suite *DeviceClassificationTestSuite) Test_AddPendingApproval_Invalid() {
 	assert.Nil(suite.T(), err1)
 }
 
-func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback_One() {
+	counter := model.MsgCounterType(1)
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(counter),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	cb1 := func(msg *api.Message) {
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+
+	// callback is called asynchronously
+	time.Sleep(time.Millisecond * 200)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback_One_Fail() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
@@ -414,29 +442,90 @@ func (suite *DeviceClassificationTestSuite) Test_Write_Callback() {
 		},
 	}
 
-	cb := func(msg *api.Message) {
-		result := model.ErrorType{
-			ErrorNumber: 0,
-		}
-		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
-	}
-
-	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
-	err := suite.localServerFeatureWrite.HandleMessage(msg)
-	assert.Nil(suite.T(), err)
-
-	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
-
-	cb = func(msg *api.Message) {
+	cb1 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 7,
 			Description: util.Ptr(model.DescriptionType("not allowed by application")),
 		}
 		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
 	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
 
-	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb)
-	err = suite.localServerFeatureWrite.HandleMessage(msg)
+	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+
+	// callback is called asynchronously
+	time.Sleep(time.Millisecond * 200)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Two() {
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	cb1 := func(msg *api.Message) {
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+
+	cb2 := func(msg *api.Message) {
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb2)
+
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(suite.T(), err)
+
+	// callback is called asynchronously
+	time.Sleep(time.Millisecond * 200)
+}
+
+func (suite *DeviceClassificationTestSuite) Test_Write_Callback_Two_Fail() {
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+		},
+		CmdClassifier: model.CmdClassifierTypeWrite,
+		FeatureRemote: suite.remoteSubFeature,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+		},
+	}
+
+	cb1 := func(msg *api.Message) {
+		result := model.ErrorType{
+			ErrorNumber: 0,
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+
+	cb2 := func(msg *api.Message) {
+		result := model.ErrorType{
+			ErrorNumber: 7,
+			Description: util.Ptr(model.DescriptionType("not allowed by application")),
+		}
+		suite.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+	}
+	suite.localServerFeatureWrite.AddWriteApprovalCallback(cb2)
+
+	suite.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+
+	err := suite.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(suite.T(), err)
 
 	// callback is called asynchronously
