@@ -68,11 +68,14 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 	c.subscriptionEntries = append(c.subscriptionEntries, subscriptionEntry)
 
 	payload := api.EventPayload{
-		Ski:        remoteDevice.Ski(),
-		EventType:  api.EventTypeSubscriptionChange,
-		ChangeType: api.ElementChangeAdd,
-		Data:       data,
-		Feature:    clientFeature,
+		Ski:          remoteDevice.Ski(),
+		EventType:    api.EventTypeSubscriptionChange,
+		ChangeType:   api.ElementChangeAdd,
+		Data:         data,
+		Device:       remoteDevice,
+		Entity:       clientFeature.Entity(),
+		Feature:      clientFeature,
+		LocalFeature: serverFeature,
 	}
 	Events.Publish(payload)
 
@@ -124,12 +127,14 @@ func (c *SubscriptionManager) RemoveSubscription(data model.SubscriptionManageme
 	c.subscriptionEntries = newSubscriptionEntries
 
 	payload := api.EventPayload{
-		Ski:        remoteDevice.Ski(),
-		EventType:  api.EventTypeSubscriptionChange,
-		ChangeType: api.ElementChangeRemove,
-		Data:       data,
-		Device:     remoteDevice,
-		Feature:    clientFeature,
+		Ski:          remoteDevice.Ski(),
+		EventType:    api.EventTypeSubscriptionChange,
+		ChangeType:   api.ElementChangeRemove,
+		Data:         data,
+		Device:       remoteDevice,
+		Entity:       clientFeature.Entity(),
+		Feature:      clientFeature,
+		LocalFeature: serverFeature,
 	}
 	Events.Publish(payload)
 
@@ -163,13 +168,16 @@ func (c *SubscriptionManager) RemoveSubscriptionsForEntity(remoteEntity api.Enti
 			continue
 		}
 
+		serverFeature := c.localDevice.FeatureByAddress(item.ServerFeature.Address())
 		clientFeature := remoteEntity.FeatureOfAddress(item.ClientFeature.Address().Feature)
 		payload := api.EventPayload{
-			Ski:        remoteEntity.Device().Ski(),
-			EventType:  api.EventTypeSubscriptionChange,
-			ChangeType: api.ElementChangeRemove,
-			Entity:     remoteEntity,
-			Feature:    clientFeature,
+			Ski:          remoteEntity.Device().Ski(),
+			EventType:    api.EventTypeSubscriptionChange,
+			ChangeType:   api.ElementChangeRemove,
+			Device:       remoteEntity.Device(),
+			Entity:       remoteEntity,
+			Feature:      clientFeature,
+			LocalFeature: serverFeature,
 		}
 		Events.Publish(payload)
 	}

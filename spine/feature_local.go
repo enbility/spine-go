@@ -554,6 +554,8 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 		Feature:       featureRemote,
 		Device:        featureRemote.Device(),
 		Entity:        featureRemote.Entity(),
+		LocalFeature:  r,
+		Function:      *cmdData.Function,
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeReply),
 		Data:          cmdData.Value,
 	}
@@ -590,6 +592,8 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 		Feature:       featureRemote,
 		Device:        featureRemote.Device(),
 		Entity:        featureRemote.Entity(),
+		LocalFeature:  r,
+		Function:      function,
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeNotify),
 		Data:          data,
 	}

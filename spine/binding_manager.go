@@ -137,12 +137,14 @@ func (c *BindingManager) RemoveBinding(data model.BindingManagementDeleteCallTyp
 	c.bindingEntries = newBindingEntries
 
 	payload := api.EventPayload{
-		Ski:        remoteDevice.Ski(),
-		EventType:  api.EventTypeBindingChange,
-		ChangeType: api.ElementChangeRemove,
-		Data:       data,
-		Device:     remoteDevice,
-		Feature:    clientFeature,
+		Ski:          remoteDevice.Ski(),
+		EventType:    api.EventTypeBindingChange,
+		ChangeType:   api.ElementChangeRemove,
+		Data:         data,
+		Device:       remoteDevice,
+		Entity:       clientFeature.Entity(),
+		Feature:      clientFeature,
+		LocalFeature: serverFeature,
 	}
 	Events.Publish(payload)
 
@@ -176,13 +178,16 @@ func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteIn
 			continue
 		}
 
+		serverFeature := c.localDevice.FeatureByAddress(item.ServerFeature.Address())
 		clientFeature := remoteEntity.FeatureOfAddress(item.ClientFeature.Address().Feature)
 		payload := api.EventPayload{
-			Ski:        remoteEntity.Device().Ski(),
-			EventType:  api.EventTypeBindingChange,
-			ChangeType: api.ElementChangeRemove,
-			Entity:     remoteEntity,
-			Feature:    clientFeature,
+			Ski:          remoteEntity.Device().Ski(),
+			EventType:    api.EventTypeBindingChange,
+			ChangeType:   api.ElementChangeRemove,
+			Device:       remoteEntity.Device(),
+			Entity:       remoteEntity,
+			Feature:      clientFeature,
+			LocalFeature: serverFeature,
 		}
 		Events.Publish(payload)
 	}
