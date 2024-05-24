@@ -260,6 +260,39 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	}
 }
 
+func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	fctData, err := r.updateData(false, function, data, filterPartial, filterDelete)
+
+	if err != nil {
+		logging.Log().Debug(err.String())
+	}
+
+	if fctData != nil && err == nil {
+		var deleteSelector, deleteElements, partialSelector any
+
+		if filterDelete != nil {
+			if fDelete, err := filterDelete.Data(); err == nil {
+				if fDelete.Selector != nil {
+					deleteSelector = fDelete.Selector
+				}
+				if fDelete.Elements != nil {
+					deleteElements = fDelete.Elements
+				}
+			}
+		}
+
+		if filterPartial != nil {
+			if fPartial, err := filterPartial.Data(); err == nil && fPartial.Selector != nil {
+				partialSelector = fPartial.Selector
+			}
+		}
+
+		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(deleteSelector, partialSelector, partialSelector == nil, deleteElements))
+	}
+
+	return err
+}
+
 func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (api.FunctionDataCmdInterface, *model.ErrorType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
