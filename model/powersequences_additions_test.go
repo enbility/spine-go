@@ -131,12 +131,12 @@ func TestPowerSequenceAlternativesRelationListDataType_Update(t *testing.T) {
 	sut := PowerSequenceAlternativesRelationListDataType{
 		PowerSequenceAlternativesRelationData: []PowerSequenceAlternativesRelationDataType{
 			{
-				AlternativeId: util.Ptr(AlternativesIdType(0)),
-				SequenceId:    []PowerSequenceIdType{0},
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+				SequenceId:     []PowerSequenceIdType{0},
 			},
 			{
-				AlternativeId: util.Ptr(AlternativesIdType(1)),
-				SequenceId:    []PowerSequenceIdType{0},
+				AlternativesId: util.Ptr(AlternativesIdType(1)),
+				SequenceId:     []PowerSequenceIdType{0},
 			},
 		},
 	}
@@ -144,8 +144,8 @@ func TestPowerSequenceAlternativesRelationListDataType_Update(t *testing.T) {
 	newData := PowerSequenceAlternativesRelationListDataType{
 		PowerSequenceAlternativesRelationData: []PowerSequenceAlternativesRelationDataType{
 			{
-				AlternativeId: util.Ptr(AlternativesIdType(1)),
-				SequenceId:    []PowerSequenceIdType{1},
+				AlternativesId: util.Ptr(AlternativesIdType(1)),
+				SequenceId:     []PowerSequenceIdType{1},
 			},
 		},
 	}
@@ -158,11 +158,11 @@ func TestPowerSequenceAlternativesRelationListDataType_Update(t *testing.T) {
 	// check the non changing items
 	assert.Equal(t, 2, len(data))
 	item1 := data[0]
-	assert.Equal(t, 0, int(*item1.AlternativeId))
+	assert.Equal(t, 0, int(*item1.AlternativesId))
 	assert.Equal(t, 0, int(item1.SequenceId[0]))
 	// check properties of updated item
 	item2 := data[1]
-	assert.Equal(t, 1, int(*item2.AlternativeId))
+	assert.Equal(t, 1, int(*item2.AlternativesId))
 	assert.Equal(t, 1, int(item2.SequenceId[0]))
 }
 
