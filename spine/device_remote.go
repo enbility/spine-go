@@ -206,7 +206,8 @@ func (d *DeviceRemote) VerifyUseCaseScenariosAndFeaturesSupport(
 		}
 
 		for _, support := range usecase.UseCaseSupport {
-			if support.UseCaseName == nil || *support.UseCaseName != usecaseName {
+			if support.UseCaseName == nil || *support.UseCaseName != usecaseName ||
+				(support.UseCaseAvailable != nil && !*support.UseCaseAvailable) {
 				continue
 			}
 
