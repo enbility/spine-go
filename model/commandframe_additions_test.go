@@ -34,7 +34,9 @@ func TestFilterType_Selector_SetDataForFunction(t *testing.T) {
 	cmd.SetDataForFunction(EEBusTagTypeTypeSelector, FunctionTypeElectricalConnectionDescriptionListData, nil)
 	assert.Nil(t, cmd.ElectricalConnectionDescriptionListDataSelectors)
 
-	var test *ElectricalConnectionDescriptionListDataSelectorsType
+	test := &ElectricalConnectionDescriptionListDataSelectorsType{
+		ElectricalConnectionId: util.Ptr(ElectricalConnectionIdType(1)),
+	}
 	cmd = FilterType{}
 	cmd.SetDataForFunction(EEBusTagTypeTypeSelector, FunctionTypeElectricalConnectionDescriptionListData, test)
 	assert.NotNil(t, cmd.ElectricalConnectionDescriptionListDataSelectors)

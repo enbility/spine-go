@@ -45,7 +45,9 @@ type HeartbeatManagerInterface interface {
 
 type OperationsInterface interface {
 	Write() bool
+	WritePartial() bool
 	Read() bool
+	ReadPartial() bool
 	String() string
 	Information() *model.PossibleOperationsType
 }

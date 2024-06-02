@@ -7,10 +7,14 @@ import "github.com/enbility/spine-go/model"
 type FunctionDataCmdInterface interface {
 	FunctionDataInterface
 	// Get the CmdType data for a read command
+	//
+	// Note: partialSelector and elements have to be pointers!
 	ReadCmdType(partialSelector any, elements any) model.CmdType
 	// Get the CmdType data for a reply command
 	ReplyCmdType(partial bool) model.CmdType
 	// Get the CmdType data for a notify or write command
+	//
+	// Note: partialSelector and elements have to be pointers!
 	NotifyOrWriteCmdType(deleteSelector, partialSelector any, partialWithoutSelector bool, deleteElements any) model.CmdType
 }
 
