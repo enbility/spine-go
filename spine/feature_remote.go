@@ -82,7 +82,12 @@ func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {
 		if sf.PossibleOperations == nil {
 			continue
 		}
-		r.operations[*sf.Function] = NewOperations(sf.PossibleOperations.Read != nil, sf.PossibleOperations.Write != nil)
+		r.operations[*sf.Function] = NewOperations(
+			sf.PossibleOperations.Read != nil,
+			sf.PossibleOperations.Read != nil && sf.PossibleOperations.Read.Partial != nil,
+			sf.PossibleOperations.Write != nil,
+			sf.PossibleOperations.Write != nil && sf.PossibleOperations.Write.Partial != nil,
+		)
 	}
 }
 

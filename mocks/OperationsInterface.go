@@ -112,6 +112,51 @@ func (_c *OperationsInterface_Read_Call) RunAndReturn(run func() bool) *Operatio
 	return _c
 }
 
+// ReadPartial provides a mock function with given fields:
+func (_m *OperationsInterface) ReadPartial() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadPartial")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// OperationsInterface_ReadPartial_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadPartial'
+type OperationsInterface_ReadPartial_Call struct {
+	*mock.Call
+}
+
+// ReadPartial is a helper method to define mock.On call
+func (_e *OperationsInterface_Expecter) ReadPartial() *OperationsInterface_ReadPartial_Call {
+	return &OperationsInterface_ReadPartial_Call{Call: _e.mock.On("ReadPartial")}
+}
+
+func (_c *OperationsInterface_ReadPartial_Call) Run(run func()) *OperationsInterface_ReadPartial_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *OperationsInterface_ReadPartial_Call) Return(_a0 bool) *OperationsInterface_ReadPartial_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OperationsInterface_ReadPartial_Call) RunAndReturn(run func() bool) *OperationsInterface_ReadPartial_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // String provides a mock function with given fields:
 func (_m *OperationsInterface) String() string {
 	ret := _m.Called()
@@ -198,6 +243,51 @@ func (_c *OperationsInterface_Write_Call) Return(_a0 bool) *OperationsInterface_
 }
 
 func (_c *OperationsInterface_Write_Call) RunAndReturn(run func() bool) *OperationsInterface_Write_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WritePartial provides a mock function with given fields:
+func (_m *OperationsInterface) WritePartial() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WritePartial")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// OperationsInterface_WritePartial_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WritePartial'
+type OperationsInterface_WritePartial_Call struct {
+	*mock.Call
+}
+
+// WritePartial is a helper method to define mock.On call
+func (_e *OperationsInterface_Expecter) WritePartial() *OperationsInterface_WritePartial_Call {
+	return &OperationsInterface_WritePartial_Call{Call: _e.mock.On("WritePartial")}
+}
+
+func (_c *OperationsInterface_WritePartial_Call) Run(run func()) *OperationsInterface_WritePartial_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *OperationsInterface_WritePartial_Call) Return(_a0 bool) *OperationsInterface_WritePartial_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OperationsInterface_WritePartial_Call) RunAndReturn(run func() bool) *OperationsInterface_WritePartial_Call {
 	_c.Call.Return(run)
 	return _c
 }

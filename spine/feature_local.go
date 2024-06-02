@@ -76,7 +76,7 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 	if r.operations[function] != nil {
 		return
 	}
-	r.operations[function] = NewOperations(read, write)
+	r.operations[function] = NewOperations(read, false, write, write)
 
 	if r.role == model.RoleTypeServer &&
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&

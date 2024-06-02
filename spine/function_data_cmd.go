@@ -76,10 +76,10 @@ func filtersForSelectorsElements(functionType model.FunctionType, filters []mode
 	if partialSelector != nil || readElements != nil {
 		filter := model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}
 		if partialSelector != nil {
-			filter = addSelectorToFilter(filter, functionType, &partialSelector)
+			filter = addSelectorToFilter(filter, functionType, partialSelector)
 		}
 		if readElements != nil {
-			filter = addElementToFilter(filter, functionType, &readElements)
+			filter = addElementToFilter(filter, functionType, readElements)
 		}
 		filters = append(filters, filter)
 	}
@@ -92,7 +92,7 @@ func filterEmptyPartial() []model.FilterType {
 	return []model.FilterType{*model.NewFilterTypePartial()}
 }
 
-func addSelectorToFilter[T any](filter model.FilterType, function model.FunctionType, data *T) model.FilterType {
+func addSelectorToFilter(filter model.FilterType, function model.FunctionType, data any) model.FilterType {
 	result := filter
 
 	result.SetDataForFunction(model.EEBusTagTypeTypeSelector, function, data)
@@ -100,7 +100,7 @@ func addSelectorToFilter[T any](filter model.FilterType, function model.Function
 	return result
 }
 
-func addElementToFilter[T any](filter model.FilterType, function model.FunctionType, data *T) model.FilterType {
+func addElementToFilter(filter model.FilterType, function model.FunctionType, data any) model.FilterType {
 	result := filter
 
 	result.SetDataForFunction(model.EEbusTagTypeTypeElements, function, data)
