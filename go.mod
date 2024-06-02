@@ -5,8 +5,8 @@ go 1.21.1
 require (
 	github.com/ahmetb/go-linq/v3 v3.2.0
 	github.com/enbility/ship-go v0.5.0
+	github.com/golanguzb70/lrucache v1.2.0
 	github.com/google/go-cmp v0.6.0
-	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/rickb777/date v1.20.5
 	github.com/stretchr/testify v1.8.4
 )
