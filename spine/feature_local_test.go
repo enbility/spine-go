@@ -416,15 +416,17 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 		},
 	}
 
+	tempLSFWrite := s.localServerFeatureWrite
+
 	cb1 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 0,
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
-	err := s.localServerFeatureWrite.HandleMessage(msg)
+	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
 	// callback is called asynchronously
@@ -443,17 +445,19 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One_Fail() {
 		},
 	}
 
+	tempLSFWrite := s.localServerFeatureWrite
+
 	cb1 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 7,
 			Description: util.Ptr(model.DescriptionType("not allowed by application")),
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
 	s.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
-	err := s.localServerFeatureWrite.HandleMessage(msg)
+	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
 	// callback is called asynchronously
@@ -472,23 +476,25 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two() {
 		},
 	}
 
+	tempLSFWrite := s.localServerFeatureWrite
+
 	cb1 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 0,
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
 	cb2 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 0,
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb2)
+	tempLSFWrite.AddWriteApprovalCallback(cb2)
 
-	err := s.localServerFeatureWrite.HandleMessage(msg)
+	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
 	// callback is called asynchronously
@@ -507,26 +513,28 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two_Fail() {
 		},
 	}
 
+	tempLSFWrite := s.localServerFeatureWrite
+
 	cb1 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 0,
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb1)
+	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
 	cb2 := func(msg *api.Message) {
 		result := model.ErrorType{
 			ErrorNumber: 7,
 			Description: util.Ptr(model.DescriptionType("not allowed by application")),
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb2)
+	tempLSFWrite.AddWriteApprovalCallback(cb2)
 
 	s.senderMock.EXPECT().ResultError(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
-	err := s.localServerFeatureWrite.HandleMessage(msg)
+	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
 	// callback is called asynchronously
@@ -549,16 +557,18 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Timeout() {
 		},
 	}
 
+	tempLSFWrite := s.localServerFeatureWrite
+
 	cb := func(msg *api.Message) {
 		time.Sleep(time.Second * 1)
 		result := model.ErrorType{
 			ErrorNumber: 0,
 		}
-		s.localServerFeatureWrite.ApproveOrDenyWrite(msg, result)
+		tempLSFWrite.ApproveOrDenyWrite(msg, result)
 	}
 
-	s.localServerFeatureWrite.AddWriteApprovalCallback(cb)
-	err := s.localServerFeatureWrite.HandleMessage(msg)
+	tempLSFWrite.AddWriteApprovalCallback(cb)
+	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
 	// callback is called asynchronously
