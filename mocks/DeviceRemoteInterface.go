@@ -818,55 +818,6 @@ func (_c *DeviceRemoteInterface_UseCases_Call) RunAndReturn(run func() []model.U
 	return _c
 }
 
-// VerifyUseCaseScenariosAndFeaturesSupport provides a mock function with given fields: usecaseActor, usecaseName, scenarios, serverFeatures
-func (_m *DeviceRemoteInterface) VerifyUseCaseScenariosAndFeaturesSupport(usecaseActor model.UseCaseActorType, usecaseName model.UseCaseNameType, scenarios []model.UseCaseScenarioSupportType, serverFeatures []model.FeatureTypeType) bool {
-	ret := _m.Called(usecaseActor, usecaseName, scenarios, serverFeatures)
-
-	if len(ret) == 0 {
-		panic("no return value specified for VerifyUseCaseScenariosAndFeaturesSupport")
-	}
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(model.UseCaseActorType, model.UseCaseNameType, []model.UseCaseScenarioSupportType, []model.FeatureTypeType) bool); ok {
-		r0 = rf(usecaseActor, usecaseName, scenarios, serverFeatures)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
-// DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'VerifyUseCaseScenariosAndFeaturesSupport'
-type DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call struct {
-	*mock.Call
-}
-
-// VerifyUseCaseScenariosAndFeaturesSupport is a helper method to define mock.On call
-//   - usecaseActor model.UseCaseActorType
-//   - usecaseName model.UseCaseNameType
-//   - scenarios []model.UseCaseScenarioSupportType
-//   - serverFeatures []model.FeatureTypeType
-func (_e *DeviceRemoteInterface_Expecter) VerifyUseCaseScenariosAndFeaturesSupport(usecaseActor interface{}, usecaseName interface{}, scenarios interface{}, serverFeatures interface{}) *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call {
-	return &DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call{Call: _e.mock.On("VerifyUseCaseScenariosAndFeaturesSupport", usecaseActor, usecaseName, scenarios, serverFeatures)}
-}
-
-func (_c *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call) Run(run func(usecaseActor model.UseCaseActorType, usecaseName model.UseCaseNameType, scenarios []model.UseCaseScenarioSupportType, serverFeatures []model.FeatureTypeType)) *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.UseCaseActorType), args[1].(model.UseCaseNameType), args[2].([]model.UseCaseScenarioSupportType), args[3].([]model.FeatureTypeType))
-	})
-	return _c
-}
-
-func (_c *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call) Return(_a0 bool) *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call) RunAndReturn(run func(model.UseCaseActorType, model.UseCaseNameType, []model.UseCaseScenarioSupportType, []model.FeatureTypeType) bool) *DeviceRemoteInterface_VerifyUseCaseScenariosAndFeaturesSupport_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewDeviceRemoteInterface creates a new instance of DeviceRemoteInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewDeviceRemoteInterface(t interface {
