@@ -21,6 +21,8 @@ type FunctionDataCmdInterface interface {
 type FunctionDataInterface interface {
 	// Get the function type
 	FunctionType() model.FunctionType
+	// Return if this function supports partial writes
+	SupportsPartialWrite() bool
 	// Get a copy of the functions data
 	DataCopyAny() any
 	// Update the functions data

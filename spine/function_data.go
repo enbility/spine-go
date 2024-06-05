@@ -31,6 +31,10 @@ func (r *FunctionData[T]) FunctionType() model.FunctionType {
 	return r.functionType
 }
 
+func (r *FunctionData[T]) SupportsPartialWrite() bool {
+	return util.Implements[T, model.Updater]()
+}
+
 func (r *FunctionData[T]) DataCopy() *T {
 	r.mux.Lock()
 	defer r.mux.Unlock()
@@ -58,8 +62,7 @@ func (r *FunctionData[T]) UpdateData(remoteWrite bool, newData *T, filterPartial
 		return nil
 	}
 
-	supported := util.Implements[T, model.Updater]()
-	if !supported {
+	if !r.SupportsPartialWrite() {
 		return model.NewErrorTypeFromString(fmt.Sprintf("partial updates are not supported for type '%s'", util.Type[T]().Name()))
 	}
 

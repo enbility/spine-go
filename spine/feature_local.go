@@ -76,7 +76,15 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 	if r.operations[function] != nil {
 		return
 	}
-	r.operations[function] = NewOperations(read, false, write, write)
+	writePartial := false
+	if write {
+		// partials are not supported on all features and functions, so check if this function supports it
+		if fctData := r.functionData(function); fctData != nil {
+			writePartial = fctData.SupportsPartialWrite()
+		}
+	}
+	// partial reads are currently not supported!
+	r.operations[function] = NewOperations(read, false, write, writePartial)
 
 	if r.role == model.RoleTypeServer &&
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&
