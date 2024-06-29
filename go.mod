@@ -4,7 +4,7 @@ go 1.21.1
 
 require (
 	github.com/ahmetb/go-linq/v3 v3.2.0
-	github.com/enbility/ship-go v0.0.0-20240618201911-cb944855a4de
+	github.com/enbility/ship-go v0.5.1
 	github.com/golanguzb70/lrucache v1.2.0
 	github.com/google/go-cmp v0.6.0
 	github.com/rickb777/date v1.20.6
