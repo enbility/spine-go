@@ -139,6 +139,52 @@ func (_c *FeatureLocalInterface_AddResultCallback_Call) RunAndReturn(run func(fu
 	return _c
 }
 
+// AddWriteApprovalCallback provides a mock function with given fields: function
+func (_m *FeatureLocalInterface) AddWriteApprovalCallback(function api.WriteApprovalCallbackFunc) error {
+	ret := _m.Called(function)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddWriteApprovalCallback")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(api.WriteApprovalCallbackFunc) error); ok {
+		r0 = rf(function)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FeatureLocalInterface_AddWriteApprovalCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddWriteApprovalCallback'
+type FeatureLocalInterface_AddWriteApprovalCallback_Call struct {
+	*mock.Call
+}
+
+// AddWriteApprovalCallback is a helper method to define mock.On call
+//   - function api.WriteApprovalCallbackFunc
+func (_e *FeatureLocalInterface_Expecter) AddWriteApprovalCallback(function interface{}) *FeatureLocalInterface_AddWriteApprovalCallback_Call {
+	return &FeatureLocalInterface_AddWriteApprovalCallback_Call{Call: _e.mock.On("AddWriteApprovalCallback", function)}
+}
+
+func (_c *FeatureLocalInterface_AddWriteApprovalCallback_Call) Run(run func(function api.WriteApprovalCallbackFunc)) *FeatureLocalInterface_AddWriteApprovalCallback_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(api.WriteApprovalCallbackFunc))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_AddWriteApprovalCallback_Call) Return(_a0 error) *FeatureLocalInterface_AddWriteApprovalCallback_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FeatureLocalInterface_AddWriteApprovalCallback_Call) RunAndReturn(run func(api.WriteApprovalCallbackFunc) error) *FeatureLocalInterface_AddWriteApprovalCallback_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Address provides a mock function with given fields:
 func (_m *FeatureLocalInterface) Address() *model.FeatureAddressType {
 	ret := _m.Called()
@@ -186,9 +232,9 @@ func (_c *FeatureLocalInterface_Address_Call) RunAndReturn(run func() *model.Fea
 	return _c
 }
 
-// ApproveOrDenyWrite provides a mock function with given fields: msg, allow, reason
-func (_m *FeatureLocalInterface) ApproveOrDenyWrite(msg *api.Message, allow bool, reason string) {
-	_m.Called(msg, allow, reason)
+// ApproveOrDenyWrite provides a mock function with given fields: msg, err
+func (_m *FeatureLocalInterface) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType) {
+	_m.Called(msg, err)
 }
 
 // FeatureLocalInterface_ApproveOrDenyWrite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ApproveOrDenyWrite'
@@ -198,15 +244,14 @@ type FeatureLocalInterface_ApproveOrDenyWrite_Call struct {
 
 // ApproveOrDenyWrite is a helper method to define mock.On call
 //   - msg *api.Message
-//   - allow bool
-//   - reason string
-func (_e *FeatureLocalInterface_Expecter) ApproveOrDenyWrite(msg interface{}, allow interface{}, reason interface{}) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
-	return &FeatureLocalInterface_ApproveOrDenyWrite_Call{Call: _e.mock.On("ApproveOrDenyWrite", msg, allow, reason)}
+//   - err model.ErrorType
+func (_e *FeatureLocalInterface_Expecter) ApproveOrDenyWrite(msg interface{}, err interface{}) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
+	return &FeatureLocalInterface_ApproveOrDenyWrite_Call{Call: _e.mock.On("ApproveOrDenyWrite", msg, err)}
 }
 
-func (_c *FeatureLocalInterface_ApproveOrDenyWrite_Call) Run(run func(msg *api.Message, allow bool, reason string)) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
+func (_c *FeatureLocalInterface_ApproveOrDenyWrite_Call) Run(run func(msg *api.Message, err model.ErrorType)) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*api.Message), args[1].(bool), args[2].(string))
+		run(args[0].(*api.Message), args[1].(model.ErrorType))
 	})
 	return _c
 }
@@ -216,7 +261,7 @@ func (_c *FeatureLocalInterface_ApproveOrDenyWrite_Call) Return() *FeatureLocalI
 	return _c
 }
 
-func (_c *FeatureLocalInterface_ApproveOrDenyWrite_Call) RunAndReturn(run func(*api.Message, bool, string)) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
+func (_c *FeatureLocalInterface_ApproveOrDenyWrite_Call) RunAndReturn(run func(*api.Message, model.ErrorType)) *FeatureLocalInterface_ApproveOrDenyWrite_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1207,52 +1252,6 @@ func (_c *FeatureLocalInterface_SetDescriptionString_Call) RunAndReturn(run func
 	return _c
 }
 
-// SetWriteApprovalCallback provides a mock function with given fields: function
-func (_m *FeatureLocalInterface) SetWriteApprovalCallback(function api.WriteApprovalCallbackFunc) error {
-	ret := _m.Called(function)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetWriteApprovalCallback")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(api.WriteApprovalCallbackFunc) error); ok {
-		r0 = rf(function)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FeatureLocalInterface_SetWriteApprovalCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetWriteApprovalCallback'
-type FeatureLocalInterface_SetWriteApprovalCallback_Call struct {
-	*mock.Call
-}
-
-// SetWriteApprovalCallback is a helper method to define mock.On call
-//   - function api.WriteApprovalCallbackFunc
-func (_e *FeatureLocalInterface_Expecter) SetWriteApprovalCallback(function interface{}) *FeatureLocalInterface_SetWriteApprovalCallback_Call {
-	return &FeatureLocalInterface_SetWriteApprovalCallback_Call{Call: _e.mock.On("SetWriteApprovalCallback", function)}
-}
-
-func (_c *FeatureLocalInterface_SetWriteApprovalCallback_Call) Run(run func(function api.WriteApprovalCallbackFunc)) *FeatureLocalInterface_SetWriteApprovalCallback_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(api.WriteApprovalCallbackFunc))
-	})
-	return _c
-}
-
-func (_c *FeatureLocalInterface_SetWriteApprovalCallback_Call) Return(_a0 error) *FeatureLocalInterface_SetWriteApprovalCallback_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *FeatureLocalInterface_SetWriteApprovalCallback_Call) RunAndReturn(run func(api.WriteApprovalCallbackFunc) error) *FeatureLocalInterface_SetWriteApprovalCallback_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetWriteApprovalTimeout provides a mock function with given fields: duration
 func (_m *FeatureLocalInterface) SetWriteApprovalTimeout(duration time.Duration) {
 	_m.Called(duration)
@@ -1432,6 +1431,57 @@ func (_c *FeatureLocalInterface_Type_Call) Return(_a0 model.FeatureTypeType) *Fe
 }
 
 func (_c *FeatureLocalInterface_Type_Call) RunAndReturn(run func() model.FeatureTypeType) *FeatureLocalInterface_Type_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateData provides a mock function with given fields: function, data, filterPartial, filterDelete
+func (_m *FeatureLocalInterface) UpdateData(function model.FunctionType, data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	ret := _m.Called(function, data, filterPartial, filterDelete)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateData")
+	}
+
+	var r0 *model.ErrorType
+	if rf, ok := ret.Get(0).(func(model.FunctionType, interface{}, *model.FilterType, *model.FilterType) *model.ErrorType); ok {
+		r0 = rf(function, data, filterPartial, filterDelete)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ErrorType)
+		}
+	}
+
+	return r0
+}
+
+// FeatureLocalInterface_UpdateData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateData'
+type FeatureLocalInterface_UpdateData_Call struct {
+	*mock.Call
+}
+
+// UpdateData is a helper method to define mock.On call
+//   - function model.FunctionType
+//   - data interface{}
+//   - filterPartial *model.FilterType
+//   - filterDelete *model.FilterType
+func (_e *FeatureLocalInterface_Expecter) UpdateData(function interface{}, data interface{}, filterPartial interface{}, filterDelete interface{}) *FeatureLocalInterface_UpdateData_Call {
+	return &FeatureLocalInterface_UpdateData_Call{Call: _e.mock.On("UpdateData", function, data, filterPartial, filterDelete)}
+}
+
+func (_c *FeatureLocalInterface_UpdateData_Call) Run(run func(function model.FunctionType, data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType)) *FeatureLocalInterface_UpdateData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.FunctionType), args[1].(interface{}), args[2].(*model.FilterType), args[3].(*model.FilterType))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_UpdateData_Call) Return(_a0 *model.ErrorType) *FeatureLocalInterface_UpdateData_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FeatureLocalInterface_UpdateData_Call) RunAndReturn(run func(model.FunctionType, interface{}, *model.FilterType, *model.FilterType) *model.ErrorType) *FeatureLocalInterface_UpdateData_Call {
 	_c.Call.Return(run)
 	return _c
 }

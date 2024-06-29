@@ -127,13 +127,13 @@ type PowerTimeSlotScheduleConstraintsListDataSelectorsType struct {
 }
 
 type PowerSequenceAlternativesRelationDataType struct {
-	AlternativeId *AlternativesIdType   `json:"alternativeId,omitempty" eebus:"key"`
-	SequenceId    []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	AlternativesId *AlternativesIdType   `json:"alternativesId,omitempty" eebus:"key"`
+	SequenceId     []PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceAlternativesRelationDataElementsType struct {
-	AlternativeId *ElementTagType `json:"alternativeId,omitempty"`
-	SequenceId    *ElementTagType `json:"sequenceId,omitempty"`
+	AlternativesId *ElementTagType `json:"alternativesId,omitempty"`
+	SequenceId     *ElementTagType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceAlternativesRelationListDataType struct {
@@ -141,8 +141,8 @@ type PowerSequenceAlternativesRelationListDataType struct {
 }
 
 type PowerSequenceAlternativesRelationListDataSelectorsType struct {
-	AlternativeId *AlternativesIdType   `json:"alternativeId,omitempty"`
-	SequenceId    []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	AlternativesId *AlternativesIdType   `json:"alternativesId,omitempty"`
+	SequenceId     []PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceDescriptionDataType struct {

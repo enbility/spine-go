@@ -129,8 +129,8 @@ type DeviceConfigurationKeyValueDescriptionListDataType struct {
 }
 
 type DeviceConfigurationKeyValueDescriptionListDataSelectorsType struct {
-	KeyId   *DeviceConfigurationKeyIdType `json:"keyId,omitempty"`
-	KeyName *string                       `json:"keyName,omitempty"`
+	KeyId   *DeviceConfigurationKeyIdType   `json:"keyId,omitempty"`
+	KeyName *DeviceConfigurationKeyNameType `json:"keyName,omitempty"`
 }
 
 type DeviceConfigurationKeyValueConstraintsDataType struct {

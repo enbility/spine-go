@@ -36,7 +36,10 @@ func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReadCmd() {
 	assert.Nil(suite.T(), readCmd.Function)
 
 	partialS := model.NewFilterTypePartial()
-	readCmd = suite.sut.ReadCmdType(partialS, nil)
+	partialE := &model.DeviceClassificationManufacturerDataElementsType{
+		DeviceName: util.Ptr(model.ElementTagType{}),
+	}
+	readCmd = suite.sut.ReadCmdType(partialS, partialE)
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Nil(suite.T(), readCmd.DeviceClassificationManufacturerData.DeviceName)
 	assert.NotNil(suite.T(), readCmd.Function)

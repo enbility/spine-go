@@ -10,14 +10,14 @@ import (
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
-	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/golanguzb70/lrucache"
 )
 
 type Sender struct {
 	msgNum uint64 // 64bit values need to be defined on top of the struct to make atomic commands work on 32bit systems
 
 	// we cache the last 100 notify messages, so we can find the matching item for result errors being returned
-	datagramNotifyCache *lru.Cache[model.MsgCounterType, model.DatagramType]
+	datagramNotifyCache *lrucache.LRUCache[model.MsgCounterType, model.DatagramType]
 
 	writeHandler shipapi.ShipConnectionDataWriterInterface
 }
@@ -25,9 +25,9 @@ type Sender struct {
 var _ api.SenderInterface = (*Sender)(nil)
 
 func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInterface {
-	cache, _ := lru.New[model.MsgCounterType, model.DatagramType](100)
+	cache := lrucache.New[model.MsgCounterType, model.DatagramType](100, 0)
 	return &Sender{
-		datagramNotifyCache: cache,
+		datagramNotifyCache: &cache,
 		writeHandler:        writeI,
 	}
 }
@@ -184,7 +184,7 @@ func (c *Sender) Notify(senderAddress, destinationAddress *model.FeatureAddressT
 		},
 	}
 
-	c.datagramNotifyCache.Add(*msgCounter, datagram)
+	c.datagramNotifyCache.Put(*msgCounter, datagram)
 
 	return msgCounter, c.sendSpineMessage(datagram)
 }

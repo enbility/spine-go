@@ -82,6 +82,14 @@ func TestFunctionData_UpdateDataPartial_Supported(t *testing.T) {
 	functionType := model.FunctionTypeHvacOverrunListData
 	sut := NewFunctionData[model.HvacOverrunListDataType](functionType)
 
+	ok := sut.SupportsPartialWrite()
+	assert.True(t, ok)
+
 	err := sut.UpdateData(false, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
 	assert.Nil(t, err)
+
+	functionType = model.FunctionTypeNetworkManagementAddNodeCall
+	sut2 := NewFunctionData[model.NetworkManagementAddNodeCallType](functionType)
+	ok = sut2.SupportsPartialWrite()
+	assert.False(t, ok)
 }

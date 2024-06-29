@@ -110,13 +110,6 @@ type DeviceRemoteInterface interface {
 
 	// Get the devices usecase data
 	UseCases() []model.UseCaseInformationDataType
-	// Verify if the device supports a usecase depending on the usecase actor, name, scenarios and requires server features
-	VerifyUseCaseScenariosAndFeaturesSupport(
-		usecaseActor model.UseCaseActorType,
-		usecaseName model.UseCaseNameType,
-		scenarios []model.UseCaseScenarioSupportType,
-		serverFeatures []model.FeatureTypeType,
-	) bool
 
 	// Update the devices address, type and featureset based on NetworkManagementDeviceDescriptionData
 	UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType)

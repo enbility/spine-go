@@ -254,6 +254,51 @@ func (_c *FunctionDataCmdInterface_ReplyCmdType_Call) RunAndReturn(run func(bool
 	return _c
 }
 
+// SupportsPartialWrite provides a mock function with given fields:
+func (_m *FunctionDataCmdInterface) SupportsPartialWrite() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SupportsPartialWrite")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// FunctionDataCmdInterface_SupportsPartialWrite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SupportsPartialWrite'
+type FunctionDataCmdInterface_SupportsPartialWrite_Call struct {
+	*mock.Call
+}
+
+// SupportsPartialWrite is a helper method to define mock.On call
+func (_e *FunctionDataCmdInterface_Expecter) SupportsPartialWrite() *FunctionDataCmdInterface_SupportsPartialWrite_Call {
+	return &FunctionDataCmdInterface_SupportsPartialWrite_Call{Call: _e.mock.On("SupportsPartialWrite")}
+}
+
+func (_c *FunctionDataCmdInterface_SupportsPartialWrite_Call) Run(run func()) *FunctionDataCmdInterface_SupportsPartialWrite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *FunctionDataCmdInterface_SupportsPartialWrite_Call) Return(_a0 bool) *FunctionDataCmdInterface_SupportsPartialWrite_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FunctionDataCmdInterface_SupportsPartialWrite_Call) RunAndReturn(run func() bool) *FunctionDataCmdInterface_SupportsPartialWrite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateDataAny provides a mock function with given fields: remoteWrite, data, filterPartial, filterDelete
 func (_m *FunctionDataCmdInterface) UpdateDataAny(remoteWrite bool, data interface{}, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
 	ret := _m.Called(remoteWrite, data, filterPartial, filterDelete)

@@ -76,7 +76,15 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 	if r.operations[function] != nil {
 		return
 	}
-	r.operations[function] = NewOperations(read, write)
+	writePartial := false
+	if write {
+		// partials are not supported on all features and functions, so check if this function supports it
+		if fctData := r.functionData(function); fctData != nil {
+			writePartial = fctData.SupportsPartialWrite()
+		}
+	}
+	// partial reads are currently not supported!
+	r.operations[function] = NewOperations(read, false, write, writePartial)
 
 	if r.role == model.RoleTypeServer &&
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&
@@ -258,6 +266,39 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	if fctData != nil && err == nil {
 		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
 	}
+}
+
+func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+	fctData, err := r.updateData(false, function, data, filterPartial, filterDelete)
+
+	if err != nil {
+		logging.Log().Debug(err.String())
+	}
+
+	if fctData != nil && err == nil {
+		var deleteSelector, deleteElements, partialSelector any
+
+		if filterDelete != nil {
+			if fDelete, err := filterDelete.Data(); err == nil {
+				if fDelete.Selector != nil {
+					deleteSelector = fDelete.Selector
+				}
+				if fDelete.Elements != nil {
+					deleteElements = fDelete.Elements
+				}
+			}
+		}
+
+		if filterPartial != nil {
+			if fPartial, err := filterPartial.Data(); err == nil && fPartial.Selector != nil {
+				partialSelector = fPartial.Selector
+			}
+		}
+
+		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(deleteSelector, partialSelector, partialSelector == nil, deleteElements))
+	}
+
+	return err
 }
 
 func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (api.FunctionDataCmdInterface, *model.ErrorType) {

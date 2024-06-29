@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
-	"slices"
 	"sync"
 
 	shipapi "github.com/enbility/ship-go/api"
@@ -179,90 +178,6 @@ func (d *DeviceRemote) UseCases() []model.UseCaseInformationDataType {
 	}
 
 	return nil
-}
-
-// Checks if the given actor, usecasename and provided server features are available
-// Note: the server features are expected to be in a single entity and entity 0 is not checked!
-func (d *DeviceRemote) VerifyUseCaseScenariosAndFeaturesSupport(
-	usecaseActor model.UseCaseActorType,
-	usecaseName model.UseCaseNameType,
-	scenarios []model.UseCaseScenarioSupportType,
-	serverFeatures []model.FeatureTypeType,
-) bool {
-	entity := d.Entity(DeviceInformationAddressEntity)
-
-	nodemgmt := d.FeatureByEntityTypeAndRole(entity, model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
-
-	usecases, ok := nodemgmt.DataCopy(model.FunctionTypeNodeManagementUseCaseData).(*model.NodeManagementUseCaseDataType)
-
-	if !ok || usecases == nil || len(usecases.UseCaseInformation) == 0 {
-		return false
-	}
-
-	usecaseAndScenariosFound := false
-	for _, usecase := range usecases.UseCaseInformation {
-		if usecase.Actor == nil || *usecase.Actor != usecaseActor {
-			continue
-		}
-
-		for _, support := range usecase.UseCaseSupport {
-			if support.UseCaseName == nil || *support.UseCaseName != usecaseName {
-				continue
-			}
-
-			var foundScenarios []model.UseCaseScenarioSupportType
-			for _, scenario := range support.ScenarioSupport {
-				if slices.Contains(scenarios, scenario) {
-					foundScenarios = append(foundScenarios, scenario)
-				}
-			}
-
-			if len(foundScenarios) == len(scenarios) {
-				usecaseAndScenariosFound = true
-				break
-			}
-		}
-
-		if usecaseAndScenariosFound {
-			break
-		}
-	}
-
-	if !usecaseAndScenariosFound {
-		return false
-	}
-
-	entities := d.Entities()
-	if len(entities) < 2 {
-		return false
-	}
-
-	entityWithServerFeaturesFound := false
-
-	for index, entity := range entities {
-		// ignore NodeManagement entity
-		if index == 0 {
-			continue
-		}
-
-		var foundServerFeatures []model.FeatureTypeType
-		for _, feature := range entity.Features() {
-			if feature.Role() != model.RoleTypeServer {
-				continue
-			}
-
-			if slices.Contains(serverFeatures, feature.Type()) {
-				foundServerFeatures = append(foundServerFeatures, feature.Type())
-			}
-		}
-
-		if len(serverFeatures) == len(foundServerFeatures) {
-			entityWithServerFeaturesFound = true
-			break
-		}
-	}
-
-	return entityWithServerFeaturesFound
 }
 
 func (d *DeviceRemote) UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType) {
