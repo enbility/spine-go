@@ -197,12 +197,22 @@ func createRemoteDevice(localDevice *DeviceLocal, sender api.SenderInterface) *D
 	return remoteDevice
 }
 
-func createRemoteEntityAndFeature(remoteDevice *DeviceRemote, entityId uint, featureType model.FeatureTypeType) (api.FeatureRemoteInterface, api.FeatureRemoteInterface) {
+func createRemoteEntityAndFeature(remoteDevice *DeviceRemote, entityId uint, featureType model.FeatureTypeType, functionType model.FunctionType) (api.FeatureRemoteInterface, api.FeatureRemoteInterface) {
 	remoteEntity := NewEntityRemote(remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
 	remoteDevice.AddEntity(remoteEntity)
 	remoteFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeClient)
 	remoteEntity.AddFeature(remoteFeature)
 	remoteServerFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, featureType, model.RoleTypeServer)
+	remoteServerFeature.SetOperations([]model.FunctionPropertyType{
+		{
+			Function: util.Ptr(functionType),
+			PossibleOperations: &model.PossibleOperationsType{
+				Read: &model.PossibleOperationsReadType{
+					Partial: &model.ElementTagType{},
+				},
+			},
+		},
+	})
 	remoteEntity.AddFeature(remoteServerFeature)
 
 	return remoteFeature, remoteServerFeature

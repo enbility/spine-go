@@ -44,8 +44,8 @@ func (s *LocalFeatureTestSuite) BeforeTest(suiteName, testName string) {
 	_, s.localServerFeatureWrite = createLocalFeatures(s.localEntity, s.subFeatureType, s.serverWriteFunction)
 
 	remoteDevice := createRemoteDevice(s.localDevice, s.senderMock)
-	s.remoteFeature, s.remoteServerFeature = createRemoteEntityAndFeature(remoteDevice, 1, s.featureType)
-	s.remoteSubFeature, _ = createRemoteEntityAndFeature(remoteDevice, 2, s.subFeatureType)
+	s.remoteFeature, s.remoteServerFeature = createRemoteEntityAndFeature(remoteDevice, 1, s.featureType, s.function)
+	s.remoteSubFeature, _ = createRemoteEntityAndFeature(remoteDevice, 2, s.subFeatureType, s.serverWriteFunction)
 }
 
 func (s *LocalFeatureTestSuite) TestDeviceClassification_Functions() {

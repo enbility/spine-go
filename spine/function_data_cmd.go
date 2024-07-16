@@ -62,23 +62,23 @@ func (r *FunctionDataCmd[T]) NotifyOrWriteCmdType(deleteSelector, partialSelecto
 }
 
 func filtersForSelectorsElements(functionType model.FunctionType, filters []model.FilterType, deleteSelector, partialSelector any, deleteElements, readElements any) []model.FilterType {
-	if deleteSelector != nil || deleteElements != nil {
+	if !util.IsNil(deleteSelector) || !util.IsNil(deleteElements) {
 		filter := model.FilterType{CmdControl: &model.CmdControlType{Delete: &model.ElementTagType{}}}
-		if deleteSelector != nil {
+		if !util.IsNil(deleteSelector) {
 			filter = addSelectorToFilter(filter, functionType, &deleteSelector)
 		}
-		if deleteElements != nil {
+		if !util.IsNil(deleteElements) {
 			filter = addElementToFilter(filter, functionType, &deleteElements)
 		}
 		filters = append(filters, filter)
 	}
 
-	if partialSelector != nil || readElements != nil {
+	if !util.IsNil(partialSelector) || !util.IsNil(readElements) {
 		filter := model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}
-		if partialSelector != nil {
+		if !util.IsNil(partialSelector) {
 			filter = addSelectorToFilter(filter, functionType, partialSelector)
 		}
-		if readElements != nil {
+		if !util.IsNil(readElements != nil) {
 			filter = addElementToFilter(filter, functionType, readElements)
 		}
 		filters = append(filters, filter)
