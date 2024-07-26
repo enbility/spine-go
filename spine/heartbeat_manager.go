@@ -120,10 +120,14 @@ func (c *HeartbeatManager) heartbeatData(t time.Time, counter *uint64) *model.De
 }
 
 func (c *HeartbeatManager) updateHeartbeatData(stopC chan struct{}, d time.Duration) {
-	// substract one second, because some devices (like Elli Connect/Pro) seem to interpret the specification wrong and
-	// wait 2 intervals before considering a heartbeat missing and going into fallback mode
-	// this is a test for now to see if that really is the case
-	d -= time.Second
+	// Substract two seconds, because some devices (like Elli Connect/Pro) with OPEV/OSCEV interpret
+	// the heartbeat timeout (<= 4s) as the time within which a heartbeat should be received and otherwise
+	// will go into fallback mode.
+	// But other EVSE devices and in LPC (<= 60s), the heartbeat should be considered missing, if it is not
+	// received within twice the heartbeat timeout timeframe.
+	if d > 2*time.Second {
+		d -= 2 * time.Second
+	}
 	ticker := time.NewTicker(d)
 	for {
 		select {
