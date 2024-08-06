@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	wallbox_detaileddiscoverydata_recv_reply_file_path  = "./testdata/wallbox_detaileddiscoverydata_recv_reply.json"
-	wallbox_detaileddiscoverydata_recv_notify_file_path = "./testdata/wallbox_detaileddiscoverydata_recv_notify.json"
+	wallbox_detaileddiscoverydata_recv_reply_file_path         = "./testdata/wallbox_detaileddiscoverydata_recv_reply.json"
+	wallbox_detaileddiscoverydata_recv_notify_file_path        = "./testdata/wallbox_detaileddiscoverydata_recv_notify.json"
+	wallbox_detaileddiscoverydata_recv_notify_remove_file_path = "./testdata/wallbox_detaileddiscoverydata_recv_notify_remove.json"
 )
 
 type WriteMessageHandler struct {

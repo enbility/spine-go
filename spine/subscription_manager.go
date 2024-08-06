@@ -114,7 +114,9 @@ func (c *SubscriptionManager) RemoveSubscription(data model.SubscriptionManageme
 	for _, item := range c.subscriptionEntries {
 		itemAddress := item.ClientFeature.Address()
 
-		if !reflect.DeepEqual(*itemAddress, clientAddress) &&
+		if !reflect.DeepEqual(itemAddress.Device, clientAddress.Device) ||
+			!reflect.DeepEqual(itemAddress.Entity, clientAddress.Entity) ||
+			!reflect.DeepEqual(itemAddress.Feature, clientAddress.Feature) ||
 			!reflect.DeepEqual(item.ServerFeature, serverFeature) {
 			newSubscriptionEntries = append(newSubscriptionEntries, item)
 		}
@@ -163,7 +165,8 @@ func (c *SubscriptionManager) RemoveSubscriptionsForEntity(remoteEntity api.Enti
 
 	var newSubscriptionEntries []*api.SubscriptionEntry
 	for _, item := range c.subscriptionEntries {
-		if !reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
+		if !reflect.DeepEqual(item.ClientFeature.Address().Device, remoteEntity.Address().Device) ||
+			!reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
 			newSubscriptionEntries = append(newSubscriptionEntries, item)
 			continue
 		}
