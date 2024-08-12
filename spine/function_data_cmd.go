@@ -78,7 +78,7 @@ func filtersForSelectorsElements(functionType model.FunctionType, filters []mode
 		if !util.IsNil(partialSelector) {
 			filter = addSelectorToFilter(filter, functionType, partialSelector)
 		}
-		if !util.IsNil(readElements != nil) {
+		if !util.IsNil(readElements) {
 			filter = addElementToFilter(filter, functionType, readElements)
 		}
 		filters = append(filters, filter)

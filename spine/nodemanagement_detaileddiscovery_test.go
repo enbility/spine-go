@@ -153,6 +153,27 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyAdded() {
 			assert.Equal(s.T(), 10, len(ev.Features()))
 		}
 	}
+
+	// Act
+	msgCounter, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_notify_remove_file_path))
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	// Assert
+	rEntities = remoteDevice.Entities()
+	if assert.Equal(s.T(), 2, len(rEntities)) {
+		{
+			di := rEntities[DeviceInformationEntityId]
+			assert.NotNil(s.T(), di)
+			assert.Equal(s.T(), model.EntityTypeTypeDeviceInformation, di.EntityType())
+			assert.Equal(s.T(), 2, len(di.Features()))
+		}
+		{
+			evse := rEntities[1]
+			assert.NotNil(s.T(), evse)
+			assert.Equal(s.T(), model.EntityTypeTypeEVSE, evse.EntityType())
+			assert.Equal(s.T(), 3, len(evse.Features()))
+		}
+	}
 }
 
 func (s *NodeManagementSuite) TestDetailedDiscovery_SendReplyWithAcknowledge() {
