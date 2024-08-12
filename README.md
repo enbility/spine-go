@@ -1,8 +1,8 @@
 # spine-go
 
-[![Build Status](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=master)](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=master)
+[![Build Status](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=dev)](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=dev)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-5272B4)](https://godoc.org/github.com/enbility/spine-go)
-[![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=master)](https://coveralls.io/github/enbility/spine-go?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=dev)](https://coveralls.io/github/enbility/spine-go?branch=dev)
 [![Go report](https://goreportcard.com/badge/github.com/enbility/spine-go)](https://goreportcard.com/report/github.com/enbility/spine-go)
 [![CodeFactor](https://www.codefactor.io/repository/github/enbility/spine-go/badge)](https://www.codefactor.io/repository/github/enbility/spine-go)
 
