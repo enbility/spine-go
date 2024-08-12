@@ -2,8 +2,8 @@ github.com/ahmetb/go-linq/v3 v3.2.0 h1:BEuMfp+b59io8g5wYzNoFe9pWPalRklhlhbiU3hYZ
 github.com/ahmetb/go-linq/v3 v3.2.0/go.mod h1:haQ3JfOeWK8HpVxMtHHEMPVgBKiYyQ+f1/kLZh/cj9U=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/enbility/ship-go v0.5.2 h1:T9+YuP5ZpofKd463PLKq78fAaPAcGMnRAcv8c8aD5yU=
-github.com/enbility/ship-go v0.5.2/go.mod h1:jewJWYQ10jNhsnhS1C4jESx3CNmDa5HNWZjBhkTug5Y=
+github.com/enbility/ship-go v0.5.3 h1:P8eA/WDz3hq18zEKzqCB697OA1sVFiZkTF51Cx4tyGU=
+github.com/enbility/ship-go v0.5.3/go.mod h1:jewJWYQ10jNhsnhS1C4jESx3CNmDa5HNWZjBhkTug5Y=
 github.com/golanguzb70/lrucache v1.2.0 h1:VjpjmB4VTf9VXBtZTJGcgcN0CNFM5egDrrSjkGyQOlg=
 github.com/golanguzb70/lrucache v1.2.0/go.mod h1:zc2GD26KwGEDdTHsCCTcJorv/11HyKwQVS9gqg2bizc=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
