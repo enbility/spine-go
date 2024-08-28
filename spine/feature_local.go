@@ -1,9 +1,13 @@
 package spine
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 	"sync"
 	"time"
 
@@ -31,7 +35,10 @@ type FeatureLocal struct {
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
 
-	mux sync.Mutex
+	readMsgCache map[model.MsgCounterType]string // cache for unanswered read messages, so we can filter duplicates and not send them
+
+	mux          sync.Mutex
+	muxReadCache sync.RWMutex
 }
 
 func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.FeatureTypeType, role model.RoleType) *FeatureLocal {
@@ -46,6 +53,7 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 		writeApprovalReceived: make(map[model.MsgCounterType]int),
 		pendingWriteApprovals: make(map[model.MsgCounterType]*time.Timer),
 		writeTimeout:          defaultMaxResponseDelay,
+		readMsgCache:          make(map[model.MsgCounterType]string),
 	}
 
 	for _, fd := range CreateFunctionData[api.FunctionDataCmdInterface](ftype) {
@@ -57,6 +65,68 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 }
 
 var _ api.FeatureLocalInterface = (*FeatureLocal)(nil)
+
+/* Read Msg Cache */
+
+func (r *FeatureLocal) hashForMessage(destinationAddress *model.FeatureAddressType, cmd model.CmdType) string {
+	cmdString, err := json.Marshal(cmd)
+	if err != nil {
+		return ""
+	}
+
+	sig := fmt.Sprintf("%s-%s", destinationAddress.String(), cmdString)
+	shaBytes := sha256.Sum256([]byte(sig))
+	return hex.EncodeToString(shaBytes[:])
+}
+
+func (r *FeatureLocal) msgCounterForHashFromCache(hash string) *model.MsgCounterType {
+	r.muxReadCache.RLock()
+	defer r.muxReadCache.RUnlock()
+
+	for msgCounter, h := range r.readMsgCache {
+		if h == hash {
+			return &msgCounter
+		}
+	}
+
+	return nil
+}
+
+func (r *FeatureLocal) hasMsgCounterInCache(msgCounter model.MsgCounterType) bool {
+	r.muxReadCache.RLock()
+	defer r.muxReadCache.RUnlock()
+
+	_, ok := r.readMsgCache[msgCounter]
+
+	return ok
+}
+
+func (r *FeatureLocal) addMsgCounterHashToCache(msgCounter model.MsgCounterType, hash string) {
+	r.muxReadCache.Lock()
+	defer r.muxReadCache.Unlock()
+
+	// cleanup cache, keep only the last 20 messages
+	if len(r.readMsgCache) > 20 {
+		keys := make([]uint64, 0, len(r.readMsgCache))
+		for k := range r.readMsgCache {
+			keys = append(keys, uint64(k))
+		}
+		sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+		// oldest key is the one with the lowest msgCounterValue
+		oldestKey := keys[0]
+		delete(r.readMsgCache, model.MsgCounterType(oldestKey))
+	}
+
+	r.readMsgCache[msgCounter] = hash
+}
+
+func (r *FeatureLocal) removeMsgCounterFromCache(msgCounter model.MsgCounterType) {
+	r.muxReadCache.Lock()
+	defer r.muxReadCache.Unlock()
+
+	delete(r.readMsgCache, msgCounter)
+}
 
 /* FeatureLocalInterface */
 
@@ -336,8 +406,20 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 	deviceSki string,
 	destinationAddress *model.FeatureAddressType,
 	maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
+	// check if there is an unanswered read message for this destination and cmd and return that msgCounter
+	hash := r.hashForMessage(destinationAddress, cmd)
+	if len(hash) > 0 {
+		if msgCounterCache := r.msgCounterForHashFromCache(hash); msgCounterCache != nil {
+			return msgCounterCache, nil
+		}
+	}
+
 	msgCounter, err := sender.Request(model.CmdClassifierTypeRead, r.Address(), destinationAddress, false, []model.CmdType{cmd})
 	if err == nil {
+		if len(hash) > 0 {
+			r.addMsgCounterHashToCache(*msgCounter, hash)
+		}
+
 		return msgCounter, nil
 	}
 
@@ -511,6 +593,12 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 	}
 	if cmdData.Function == nil {
 		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "No function found for cmd data")
+	}
+
+	if message.RequestHeader != nil &&
+		message.RequestHeader.MsgCounterReference != nil &&
+		r.hasMsgCounterInCache(*message.RequestHeader.MsgCounterReference) {
+		r.removeMsgCounterFromCache(*message.RequestHeader.MsgCounterReference)
 	}
 
 	switch message.CmdClassifier {
