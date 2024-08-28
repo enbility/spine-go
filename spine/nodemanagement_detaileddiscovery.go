@@ -97,7 +97,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 		return errors.New("the received NodeManagementDetailedDiscovery.notify dataset should be partial")
 	}
 
-	if data.EntityInformation == nil || len(data.EntityInformation) == 0 || data.EntityInformation[0].Description == nil || data.EntityInformation[0].Description.LastStateChange == nil {
+	if len(data.EntityInformation) == 0 || data.EntityInformation[0].Description == nil || data.EntityInformation[0].Description.LastStateChange == nil {
 		return errors.New("the received NodeManagementDetailedDiscovery.notify dataset is incomplete")
 	}
 

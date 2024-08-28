@@ -30,6 +30,6 @@ type SenderInterface interface {
 	Notify(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error)
 	// Sends a write cmd, setting properties of remote features
 	Write(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error)
-	// return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
+	// return the datagram for a given msgCounter (only availbe for Notify messages!), error if not found
 	DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error)
 }
