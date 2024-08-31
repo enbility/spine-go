@@ -121,11 +121,15 @@ func (r *FeatureLocal) addMsgCounterHashToCache(msgCounter model.MsgCounterType,
 	r.readMsgCache[msgCounter] = hash
 }
 
-func (r *FeatureLocal) removeMsgCounterFromCache(msgCounter model.MsgCounterType) {
-	r.muxReadCache.Lock()
-	defer r.muxReadCache.Unlock()
+func (r *FeatureLocal) removeMsgCounterFromCacheIfNeeded(message *api.Message) {
+	if message.RequestHeader != nil &&
+		message.RequestHeader.MsgCounterReference != nil &&
+		r.hasMsgCounterInCache(*message.RequestHeader.MsgCounterReference) {
+		r.muxReadCache.Lock()
+		defer r.muxReadCache.Unlock()
 
-	delete(r.readMsgCache, msgCounter)
+		delete(r.readMsgCache, *message.RequestHeader.MsgCounterReference)
+	}
 }
 
 /* FeatureLocalInterface */
@@ -595,11 +599,8 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "No function found for cmd data")
 	}
 
-	if message.RequestHeader != nil &&
-		message.RequestHeader.MsgCounterReference != nil &&
-		r.hasMsgCounterInCache(*message.RequestHeader.MsgCounterReference) {
-		r.removeMsgCounterFromCache(*message.RequestHeader.MsgCounterReference)
-	}
+	// make sure the cache is cleaned up
+	r.removeMsgCounterFromCacheIfNeeded(message)
 
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeResult:
