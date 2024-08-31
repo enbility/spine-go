@@ -3,6 +3,7 @@ package spine
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -90,117 +91,207 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 	return nil
 }
 
+// check if an AddressEntity slice exists in a list of AddressEntity slices
+func (r *NodeManagement) addressEntityListContainsAddressEntity(list [][]model.AddressEntityType, entityAddress []model.AddressEntityType) bool {
+	for _, entityList := range list {
+		if slices.Equal(entityList, entityAddress) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// process incoming detailed discovery notify with full data
+// and return the data diff
+func (r *NodeManagement) provideDetailedDiscoveryDiffForFullNotify(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) *model.NodeManagementDetailedDiscoveryDataType {
+	remoteDevice := message.FeatureRemote.Device()
+
+	var existingEntities, addedEntities [][]model.AddressEntityType
+
+	var updatedEntityInformation []model.NodeManagementDetailedDiscoveryEntityInformationType
+
+	// search for new entities
+	for _, entity := range data.EntityInformation {
+		if entity.Description == nil || entity.Description.EntityAddress == nil {
+			continue
+		}
+
+		// check if the entity already exists
+		address := entity.Description.EntityAddress
+		if remoteDevice.Entity(address.Entity) == nil {
+			// does not exists
+			added := model.NetworkManagementStateChangeTypeAdded
+			entity.Description.LastStateChange = &added
+			addedEntities = append(addedEntities, address.Entity)
+			updatedEntityInformation = append(updatedEntityInformation, entity)
+		} else {
+			// exists
+			existingEntities = append(existingEntities, address.Entity)
+		}
+	}
+
+	// seach for removed entites
+	for _, entity := range remoteDevice.Entities() {
+		address := entity.Address()
+		if !r.addressEntityListContainsAddressEntity(existingEntities, address.Entity) {
+			// does not exists
+			removed := model.NetworkManagementStateChangeTypeRemoved
+			entityType := entity.EntityType()
+
+			removedEntityDescription := model.NodeManagementDetailedDiscoveryEntityInformationType{
+				Description: &model.NetworkManagementEntityDescriptionDataType{
+					EntityAddress:   address,
+					EntityType:      &entityType,
+					LastStateChange: &removed,
+				},
+			}
+
+			updatedEntityInformation = append(updatedEntityInformation, removedEntityDescription)
+		}
+	}
+
+	data.EntityInformation = updatedEntityInformation
+
+	// update the feature information
+	var updatedFeatureInformation []model.NodeManagementDetailedDiscoveryFeatureInformationType
+	for _, feature := range data.FeatureInformation {
+		if feature.Description == nil || feature.Description.FeatureAddress == nil {
+			continue
+		}
+
+		address := feature.Description.FeatureAddress
+		// if the entity of the feature was added, add it
+		// if the entity of the feature already existed, do not add it
+		if r.addressEntityListContainsAddressEntity(addedEntities, address.Entity) {
+			updatedFeatureInformation = append(updatedFeatureInformation, feature)
+		}
+	}
+
+	data.FeatureInformation = updatedFeatureInformation
+
+	return data
+}
+
 // handle incoming detailed discovery notify data
 func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	// is this a partial request?
 	if message.FilterPartial == nil {
-		return errors.New("the received NodeManagementDetailedDiscovery.notify dataset should be partial")
+		data = r.provideDetailedDiscoveryDiffForFullNotify(message, data)
 	}
 
-	if len(data.EntityInformation) == 0 || data.EntityInformation[0].Description == nil || data.EntityInformation[0].Description.LastStateChange == nil {
-		return errors.New("the received NodeManagementDetailedDiscovery.notify dataset is incomplete")
+	if len(data.EntityInformation) == 0 {
+		return errors.New("nodemanagement.notifyDetailedDiscoveryData: invalid EntityInformation")
 	}
 
-	lastStateChange := *data.EntityInformation[0].Description.LastStateChange
-	remoteDevice := message.FeatureRemote.Device()
-
-	// addition example:
-	// {"data":[{"header":[{"protocolId":"ee1.0"}]},{"payload":{"datagram":[{"header":[{"specificationVersion":"1.1.1"},{"addressSource":[{"device":"d:_i:19667_PorscheEVSE-00016544"},{"entity":[0]},{"feature":0}]},{"addressDestination":[{"device":"EVCC_HEMS"},{"entity":[0]},{"feature":0}]},{"msgCounter":926685},{"cmdClassifier":"notify"}]},{"payload":[{"cmd":[[{"function":"nodeManagementDetailedDiscoveryData"},{"filter":[[{"cmdControl":[{"partial":[]}]}]]},{"nodeManagementDetailedDiscoveryData":[{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},{"entityInformation":[[{"description":[{"entityAddress":[{"entity":[1,1]}]},{"entityType":"EV"},{"lastStateChange":"added"},{"description":"Electric Vehicle"}]}]]},{"featureInformation":[[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":1}]},{"featureType":"LoadControl"},{"role":"server"},{"supportedFunction":[[{"function":"loadControlLimitDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"loadControlLimitListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Load Control"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":2}]},{"featureType":"ElectricalConnection"},{"role":"server"},{"supportedFunction":[[{"function":"electricalConnectionParameterDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionPermittedValueSetListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Electrical Connection"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":3}]},{"featureType":"Measurement"},{"specificUsage":["Electrical"]},{"role":"server"},{"supportedFunction":[[{"function":"measurementListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"measurementDescriptionListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Measurements"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":5}]},{"featureType":"DeviceConfiguration"},{"role":"server"},{"supportedFunction":[[{"function":"deviceConfigurationKeyValueDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"deviceConfigurationKeyValueListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Configuration EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":6}]},{"featureType":"DeviceClassification"},{"role":"server"},{"supportedFunction":[[{"function":"deviceClassificationManufacturerData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Classification for EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":7}]},{"featureType":"TimeSeries"},{"role":"server"},{"supportedFunction":[[{"function":"timeSeriesConstraintsListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Time Series"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":8}]},{"featureType":"IncentiveTable"},{"role":"server"},{"supportedFunction":[[{"function":"incentiveTableConstraintsData"},{"possibleOperations":[{"read":[]}]}],[{"function":"incentiveTableData"},{"possibleOperations":[{"read":[]},{"write":[]}]}],[{"function":"incentiveTableDescriptionData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Incentive Table"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":9}]},{"featureType":"DeviceDiagnosis"},{"role":"server"},{"supportedFunction":[[{"function":"deviceDiagnosisStateData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Diagnosis EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":10}]},{"featureType":"Identification"},{"role":"server"},{"supportedFunction":[[{"function":"identificationListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Identification for EV"}]}]]}]}]]}]}]}}]}
-	// {
-	// 	"cmd":[[
-	// 		{"function":"nodeManagementDetailedDiscoveryData"},
-	// 		{"filter":[[{"cmdControl":[{"partial":[]}]}]]},
-	// 		{"nodeManagementDetailedDiscoveryData":[
-	// 			{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},
-	// 			{"entityInformation":[[
-	// 				{"description":[
-	// 					{"entityAddress":[{"entity":[1,1]}]},
-	// 					{"entityType":"EV"},
-	// 					{"lastStateChange":"added"},
-	// 					{"description":"Electric Vehicle"}
-	// 				]}
-	// 			]]},
-	// 			{"featureInformation":[
-	// 				[{"description":[
-	// 					{"featureAddress":[{"entity":[1,1]},{"feature":1}]},
-	// 					{"featureType":"LoadControl"},
-	// 					{"role":"server"},
-	// 					{"supportedFunction":[
-	// 						[{"function":"loadControlLimitDescriptionListData"},{"possibleOperations":[{"read":[]}]}],
-	// 						[{"function":"loadControlLimitListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]
-	// 					]},
-	// 					{"description":"Load Control"}
-	// 				]}],
-	// ...
-
-	// is this addition?
-	if lastStateChange == model.NetworkManagementStateChangeTypeAdded {
-		entities, err := remoteDevice.AddEntityAndFeatures(false, data)
-		if err != nil {
-			return err
+	for _, entity := range data.EntityInformation {
+		if entity.Description == nil ||
+			entity.Description.EntityAddress == nil ||
+			entity.Description.LastStateChange == nil {
+			return errors.New("nodemanagement.notifyDetailedDiscoveryData: invalid EntityInformation.Description")
 		}
 
-		// publish event for each added remote entity
-		for _, entity := range entities {
-			payload := api.EventPayload{
-				Ski:        remoteDevice.Ski(),
-				EventType:  api.EventTypeEntityChange,
-				ChangeType: api.ElementChangeAdd,
-				Device:     remoteDevice,
-				Entity:     entity,
-				Data:       data,
-			}
-			Events.Publish(payload)
-		}
-	}
+		lastStateChange := *entity.Description.LastStateChange
+		remoteDevice := message.FeatureRemote.Device()
 
-	// removal example:
-	// {"data":[{"header":[{"protocolId":"ee1.0"}]},{"payload":{"datagram":[{"header":[{"specificationVersion":"1.1.1"},{"addressSource":[{"device":"d:_i:19667_PorscheEVSE-00016544"},{"entity":[0]},{"feature":0}]},{"addressDestination":[{"device":"EVCC_HEMS"},{"entity":[0]},{"feature":0}]},{"msgCounter":4835},{"cmdClassifier":"notify"}]},{"payload":[{"cmd":[[{"function":"nodeManagementDetailedDiscoveryData"},{"filter":[[{"cmdControl":[{"partial":[]}]}]]},{"nodeManagementDetailedDiscoveryData":[{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},{"entityInformation":[[{"description":[{"entityAddress":[{"entity":[1,1]}]},{"lastStateChange":"removed"}]}]]}]}]]}]}]}}]}
-	// {
-	// 	"cmd": [[
-	// 			{"function": "nodeManagementDetailedDiscoveryData"},
-	// 			{"filter": [[{"cmdControl": [{"partial": []}]}]]},
-	// 			{"nodeManagementDetailedDiscoveryData": [
-	// 					{"deviceInformation": [{"description": [{"deviceAddress": [{"device": "d:_i:19667_PorscheEVSE-00016544"}]}]}]},
-	// 					{"entityInformation": [[
-	// 							{
-	// 								"description": [
-	// 									{"entityAddress": [{"entity": [1,1]}]},
-	// 									{"lastStateChange": "removed"}
-	// ...
+		// addition example:
+		// {"data":[{"header":[{"protocolId":"ee1.0"}]},{"payload":{"datagram":[{"header":[{"specificationVersion":"1.1.1"},{"addressSource":[{"device":"d:_i:19667_PorscheEVSE-00016544"},{"entity":[0]},{"feature":0}]},{"addressDestination":[{"device":"EVCC_HEMS"},{"entity":[0]},{"feature":0}]},{"msgCounter":926685},{"cmdClassifier":"notify"}]},{"payload":[{"cmd":[[{"function":"nodeManagementDetailedDiscoveryData"},{"filter":[[{"cmdControl":[{"partial":[]}]}]]},{"nodeManagementDetailedDiscoveryData":[{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},{"entityInformation":[[{"description":[{"entityAddress":[{"entity":[1,1]}]},{"entityType":"EV"},{"lastStateChange":"added"},{"description":"Electric Vehicle"}]}]]},{"featureInformation":[[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":1}]},{"featureType":"LoadControl"},{"role":"server"},{"supportedFunction":[[{"function":"loadControlLimitDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"loadControlLimitListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Load Control"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":2}]},{"featureType":"ElectricalConnection"},{"role":"server"},{"supportedFunction":[[{"function":"electricalConnectionParameterDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionPermittedValueSetListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Electrical Connection"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":3}]},{"featureType":"Measurement"},{"specificUsage":["Electrical"]},{"role":"server"},{"supportedFunction":[[{"function":"measurementListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"measurementDescriptionListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Measurements"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":5}]},{"featureType":"DeviceConfiguration"},{"role":"server"},{"supportedFunction":[[{"function":"deviceConfigurationKeyValueDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"deviceConfigurationKeyValueListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Configuration EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":6}]},{"featureType":"DeviceClassification"},{"role":"server"},{"supportedFunction":[[{"function":"deviceClassificationManufacturerData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Classification for EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":7}]},{"featureType":"TimeSeries"},{"role":"server"},{"supportedFunction":[[{"function":"timeSeriesConstraintsListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Time Series"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":8}]},{"featureType":"IncentiveTable"},{"role":"server"},{"supportedFunction":[[{"function":"incentiveTableConstraintsData"},{"possibleOperations":[{"read":[]}]}],[{"function":"incentiveTableData"},{"possibleOperations":[{"read":[]},{"write":[]}]}],[{"function":"incentiveTableDescriptionData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Incentive Table"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":9}]},{"featureType":"DeviceDiagnosis"},{"role":"server"},{"supportedFunction":[[{"function":"deviceDiagnosisStateData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Diagnosis EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":10}]},{"featureType":"Identification"},{"role":"server"},{"supportedFunction":[[{"function":"identificationListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Identification for EV"}]}]]}]}]]}]}]}}]}
+		// {
+		// 	"cmd":[[
+		// 		{"function":"nodeManagementDetailedDiscoveryData"},
+		// 		{"filter":[[{"cmdControl":[{"partial":[]}]}]]},
+		// 		{"nodeManagementDetailedDiscoveryData":[
+		// 			{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},
+		// 			{"entityInformation":[[
+		// 				{"description":[
+		// 					{"entityAddress":[{"entity":[1,1]}]},
+		// 					{"entityType":"EV"},
+		// 					{"lastStateChange":"added"},
+		// 					{"description":"Electric Vehicle"}
+		// 				]}
+		// 			]]},
+		// 			{"featureInformation":[
+		// 				[{"description":[
+		// 					{"featureAddress":[{"entity":[1,1]},{"feature":1}]},
+		// 					{"featureType":"LoadControl"},
+		// 					{"role":"server"},
+		// 					{"supportedFunction":[
+		// 						[{"function":"loadControlLimitDescriptionListData"},{"possibleOperations":[{"read":[]}]}],
+		// 						[{"function":"loadControlLimitListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]
+		// 					]},
+		// 					{"description":"Load Control"}
+		// 				]}],
+		// ...
 
-	// is this removal?
-	if lastStateChange == model.NetworkManagementStateChangeTypeRemoved {
-		for _, ei := range data.EntityInformation {
-			if err := remoteDevice.CheckEntityInformation(false, ei); err != nil {
+		// is this addition?
+		if lastStateChange == model.NetworkManagementStateChangeTypeAdded {
+			entities, err := remoteDevice.AddEntityAndFeatures(false, data)
+			if err != nil {
 				return err
 			}
 
-			entityAddress := ei.Description.EntityAddress.Entity
-			removedEntity := remoteDevice.RemoveEntityByAddress(entityAddress)
-
-			// only continue if the entity existed
-			if removedEntity == nil {
-				continue
+			// publish event for each added remote entity
+			for _, entity := range entities {
+				payload := api.EventPayload{
+					Ski:        remoteDevice.Ski(),
+					EventType:  api.EventTypeEntityChange,
+					ChangeType: api.ElementChangeAdd,
+					Device:     remoteDevice,
+					Entity:     entity,
+					Data:       data,
+				}
+				Events.Publish(payload)
 			}
+		}
 
-			payload := api.EventPayload{
-				Ski:        remoteDevice.Ski(),
-				EventType:  api.EventTypeEntityChange,
-				ChangeType: api.ElementChangeRemove,
-				Device:     remoteDevice,
-				Entity:     removedEntity,
-				Data:       data,
+		// removal example:
+		// {"data":[{"header":[{"protocolId":"ee1.0"}]},{"payload":{"datagram":[{"header":[{"specificationVersion":"1.1.1"},{"addressSource":[{"device":"d:_i:19667_PorscheEVSE-00016544"},{"entity":[0]},{"feature":0}]},{"addressDestination":[{"device":"EVCC_HEMS"},{"entity":[0]},{"feature":0}]},{"msgCounter":4835},{"cmdClassifier":"notify"}]},{"payload":[{"cmd":[[{"function":"nodeManagementDetailedDiscoveryData"},{"filter":[[{"cmdControl":[{"partial":[]}]}]]},{"nodeManagementDetailedDiscoveryData":[{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},{"entityInformation":[[{"description":[{"entityAddress":[{"entity":[1,1]}]},{"lastStateChange":"removed"}]}]]}]}]]}]}]}}]}
+		// {
+		// 	"cmd": [[
+		// 			{"function": "nodeManagementDetailedDiscoveryData"},
+		// 			{"filter": [[{"cmdControl": [{"partial": []}]}]]},
+		// 			{"nodeManagementDetailedDiscoveryData": [
+		// 					{"deviceInformation": [{"description": [{"deviceAddress": [{"device": "d:_i:19667_PorscheEVSE-00016544"}]}]}]},
+		// 					{"entityInformation": [[
+		// 							{
+		// 								"description": [
+		// 									{"entityAddress": [{"entity": [1,1]}]},
+		// 									{"lastStateChange": "removed"}
+		// ...
+
+		// is this removal?
+		if lastStateChange == model.NetworkManagementStateChangeTypeRemoved {
+			for _, ei := range data.EntityInformation {
+				if err := remoteDevice.CheckEntityInformation(false, ei); err != nil {
+					return err
+				}
+
+				entityAddress := ei.Description.EntityAddress.Entity
+				removedEntity := remoteDevice.RemoveEntityByAddress(entityAddress)
+
+				// only continue if the entity existed
+				if removedEntity == nil {
+					continue
+				}
+
+				payload := api.EventPayload{
+					Ski:        remoteDevice.Ski(),
+					EventType:  api.EventTypeEntityChange,
+					ChangeType: api.ElementChangeRemove,
+					Device:     remoteDevice,
+					Entity:     removedEntity,
+					Data:       data,
+				}
+				Events.Publish(payload)
+
+				// remove all subscriptions for this entity
+				subscriptionMgr := r.Device().SubscriptionManager()
+				subscriptionMgr.RemoveSubscriptionsForEntity(removedEntity)
+
+				// remove all bindings for this entity
+				bindingMgr := r.Device().BindingManager()
+				bindingMgr.RemoveBindingsForEntity(removedEntity)
 			}
-			Events.Publish(payload)
-
-			// remove all subscriptions for this entity
-			subscriptionMgr := r.Device().SubscriptionManager()
-			subscriptionMgr.RemoveSubscriptionsForEntity(removedEntity)
-
-			// remove all bindings for this entity
-			bindingMgr := r.Device().BindingManager()
-			bindingMgr.RemoveBindingsForEntity(removedEntity)
 		}
 	}
 
