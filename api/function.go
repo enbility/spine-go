@@ -25,6 +25,6 @@ type FunctionDataInterface interface {
 	SupportsPartialWrite() bool
 	// Get a copy of the functions data
 	DataCopyAny() any
-	// Update the functions data
-	UpdateDataAny(remoteWrite bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType
+	// Update the functions data, only persisted if persist is true, otherwise useful for creating full write datasets
+	UpdateDataAny(remoteWrite, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType)
 }

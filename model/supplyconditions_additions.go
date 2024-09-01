@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*SupplyConditionListDataType)(nil)
 
-func (r *SupplyConditionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SupplyConditionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SupplyConditionDataType
 	if newList != nil {
 		newData = newList.(*SupplyConditionListDataType).SupplyConditionData
@@ -12,18 +12,18 @@ func (r *SupplyConditionListDataType) UpdateList(remoteWrite bool, newList any, 
 
 	data, success := UpdateList(remoteWrite, r.SupplyConditionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SupplyConditionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // SupplyConditionDescriptionListDataType
 
 var _ Updater = (*SupplyConditionDescriptionListDataType)(nil)
 
-func (r *SupplyConditionDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SupplyConditionDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SupplyConditionDescriptionDataType
 	if newList != nil {
 		newData = newList.(*SupplyConditionDescriptionListDataType).SupplyConditionDescriptionData
@@ -31,18 +31,18 @@ func (r *SupplyConditionDescriptionListDataType) UpdateList(remoteWrite bool, ne
 
 	data, success := UpdateList(remoteWrite, r.SupplyConditionDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SupplyConditionDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // SupplyConditionThresholdRelationListDataType
 
 var _ Updater = (*SupplyConditionThresholdRelationListDataType)(nil)
 
-func (r *SupplyConditionThresholdRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SupplyConditionThresholdRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SupplyConditionThresholdRelationDataType
 	if newList != nil {
 		newData = newList.(*SupplyConditionThresholdRelationListDataType).SupplyConditionThresholdRelationData
@@ -50,9 +50,9 @@ func (r *SupplyConditionThresholdRelationListDataType) UpdateList(remoteWrite bo
 
 	data, success := UpdateList(remoteWrite, r.SupplyConditionThresholdRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SupplyConditionThresholdRelationData = data
 	}
 
-	return success
+	return data, success
 }

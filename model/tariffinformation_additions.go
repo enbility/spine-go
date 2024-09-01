@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*TariffListDataType)(nil)
 
-func (r *TariffListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TariffListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TariffDataType
 	if newList != nil {
 		newData = newList.(*TariffListDataType).TariffData
@@ -12,18 +12,18 @@ func (r *TariffListDataType) UpdateList(remoteWrite bool, newList any, filterPar
 
 	data, success := UpdateList(remoteWrite, r.TariffData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TariffData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TariffTierRelationListDataType
 
 var _ Updater = (*TariffTierRelationListDataType)(nil)
 
-func (r *TariffTierRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TariffTierRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TariffTierRelationDataType
 	if newList != nil {
 		newData = newList.(*TariffTierRelationListDataType).TariffTierRelationData
@@ -31,18 +31,18 @@ func (r *TariffTierRelationListDataType) UpdateList(remoteWrite bool, newList an
 
 	data, success := UpdateList(remoteWrite, r.TariffTierRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TariffTierRelationData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TariffBoundaryRelationListDataType
 
 var _ Updater = (*TariffBoundaryRelationListDataType)(nil)
 
-func (r *TariffBoundaryRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TariffBoundaryRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TariffBoundaryRelationDataType
 	if newList != nil {
 		newData = newList.(*TariffBoundaryRelationListDataType).TariffBoundaryRelationData
@@ -50,18 +50,18 @@ func (r *TariffBoundaryRelationListDataType) UpdateList(remoteWrite bool, newLis
 
 	data, success := UpdateList(remoteWrite, r.TariffBoundaryRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TariffBoundaryRelationData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TariffDescriptionListDataType
 
 var _ Updater = (*TariffDescriptionListDataType)(nil)
 
-func (r *TariffDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TariffDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TariffDescriptionDataType
 	if newList != nil {
 		newData = newList.(*TariffDescriptionListDataType).TariffDescriptionData
@@ -69,18 +69,18 @@ func (r *TariffDescriptionListDataType) UpdateList(remoteWrite bool, newList any
 
 	data, success := UpdateList(remoteWrite, r.TariffDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TariffDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TierBoundaryListDataType
 
 var _ Updater = (*TierBoundaryListDataType)(nil)
 
-func (r *TierBoundaryListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TierBoundaryListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TierBoundaryDataType
 	if newList != nil {
 		newData = newList.(*TierBoundaryListDataType).TierBoundaryData
@@ -88,18 +88,18 @@ func (r *TierBoundaryListDataType) UpdateList(remoteWrite bool, newList any, fil
 
 	data, success := UpdateList(remoteWrite, r.TierBoundaryData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TierBoundaryData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TierBoundaryDescriptionListDataType
 
 var _ Updater = (*TierBoundaryDescriptionListDataType)(nil)
 
-func (r *TierBoundaryDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TierBoundaryDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TierBoundaryDescriptionDataType
 	if newList != nil {
 		newData = newList.(*TierBoundaryDescriptionListDataType).TierBoundaryDescriptionData
@@ -107,18 +107,18 @@ func (r *TierBoundaryDescriptionListDataType) UpdateList(remoteWrite bool, newLi
 
 	data, success := UpdateList(remoteWrite, r.TierBoundaryDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TierBoundaryDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // CommodityListDataType
 
 var _ Updater = (*CommodityListDataType)(nil)
 
-func (r *CommodityListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *CommodityListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []CommodityDataType
 	if newList != nil {
 		newData = newList.(*CommodityListDataType).CommodityData
@@ -126,18 +126,18 @@ func (r *CommodityListDataType) UpdateList(remoteWrite bool, newList any, filter
 
 	data, success := UpdateList(remoteWrite, r.CommodityData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.CommodityData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TierListDataType
 
 var _ Updater = (*TierListDataType)(nil)
 
-func (r *TierListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TierListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TierDataType
 	if newList != nil {
 		newData = newList.(*TierListDataType).TierData
@@ -145,18 +145,18 @@ func (r *TierListDataType) UpdateList(remoteWrite bool, newList any, filterParti
 
 	data, success := UpdateList(remoteWrite, r.TierData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TierData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TierIncentiveRelationListDataType
 
 var _ Updater = (*TierIncentiveRelationListDataType)(nil)
 
-func (r *TierIncentiveRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TierIncentiveRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TierIncentiveRelationDataType
 	if newList != nil {
 		newData = newList.(*TierIncentiveRelationListDataType).TierIncentiveRelationData
@@ -164,18 +164,18 @@ func (r *TierIncentiveRelationListDataType) UpdateList(remoteWrite bool, newList
 
 	data, success := UpdateList(remoteWrite, r.TierIncentiveRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TierIncentiveRelationData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TierDescriptionListDataType
 
 var _ Updater = (*TierDescriptionListDataType)(nil)
 
-func (r *TierDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TierDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TierDescriptionDataType
 	if newList != nil {
 		newData = newList.(*TierDescriptionListDataType).TierDescriptionData
@@ -183,18 +183,18 @@ func (r *TierDescriptionListDataType) UpdateList(remoteWrite bool, newList any, 
 
 	data, success := UpdateList(remoteWrite, r.TierDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TierDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // IncentiveListDataType
 
 var _ Updater = (*IncentiveListDataType)(nil)
 
-func (r *IncentiveListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *IncentiveListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []IncentiveDataType
 	if newList != nil {
 		newData = newList.(*IncentiveListDataType).IncentiveData
@@ -202,18 +202,18 @@ func (r *IncentiveListDataType) UpdateList(remoteWrite bool, newList any, filter
 
 	data, success := UpdateList(remoteWrite, r.IncentiveData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.IncentiveData = data
 	}
 
-	return success
+	return data, success
 }
 
 // IncentiveDescriptionListDataType
 
 var _ Updater = (*IncentiveDescriptionListDataType)(nil)
 
-func (r *IncentiveDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *IncentiveDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []IncentiveDescriptionDataType
 	if newList != nil {
 		newData = newList.(*IncentiveDescriptionListDataType).IncentiveDescriptionData
@@ -221,9 +221,9 @@ func (r *IncentiveDescriptionListDataType) UpdateList(remoteWrite bool, newList 
 
 	data, success := UpdateList(remoteWrite, r.IncentiveDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.IncentiveDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
