@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*BindingManagementEntryListDataType)(nil)
 
-func (r *BindingManagementEntryListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *BindingManagementEntryListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []BindingManagementEntryDataType
 	if newList != nil {
 		newData = newList.(*BindingManagementEntryListDataType).BindingManagementEntryData
@@ -12,9 +12,9 @@ func (r *BindingManagementEntryListDataType) UpdateList(remoteWrite bool, newLis
 
 	data, success := UpdateList(remoteWrite, r.BindingManagementEntryData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.BindingManagementEntryData = data
 	}
 
-	return success
+	return data, success
 }

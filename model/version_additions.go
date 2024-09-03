@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*SpecificationVersionListDataType)(nil)
 
-func (r *SpecificationVersionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SpecificationVersionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SpecificationVersionDataType
 	if newList != nil {
 		newData = newList.(*SpecificationVersionListDataType).SpecificationVersionData
@@ -12,9 +12,9 @@ func (r *SpecificationVersionListDataType) UpdateList(remoteWrite bool, newList 
 
 	data, success := UpdateList(remoteWrite, r.SpecificationVersionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SpecificationVersionData = data
 	}
 
-	return success
+	return data, success
 }

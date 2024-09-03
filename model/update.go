@@ -8,8 +8,21 @@ import (
 )
 
 type Updater interface {
-	// returns true if no errors occured
-	UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool
+	// data model specific update function
+	//
+	// parameters:
+	//   - remoteWrite defines if this data came on from a remote service, as that is then to
+	//     ignore the "writecheck" tagges fields and should only be allowed to write if the "writecheck" tagged field
+	//     boolean is set to true
+	//   - persist defines if the data should be persisted, false used for creating full write datasets
+	//   - newList is the new data
+	//   - filterPartial is the partial filter
+	//   - filterDelete is the delete filter
+	//
+	// returns:
+	//   - the merged data
+	//   - true if everything was successful, false if not
+	UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool)
 }
 
 // Generates a new list of function items by applying the rules mentioned in the spec

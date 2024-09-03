@@ -31,7 +31,7 @@ func TestHvacSystemFunctionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacSystemFunctionData
@@ -70,7 +70,7 @@ func TestHvacSystemFunctionOperationModeRelationListDataType_Update(t *testing.T
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacSystemFunctionOperationModeRelationData
@@ -109,7 +109,7 @@ func TestHvacSystemFunctionSetpointRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacSystemFunctionSetpointRelationData
@@ -148,7 +148,7 @@ func TestHvacSystemFunctionPowerSequenceRelationListDataType_Update(t *testing.T
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacSystemFunctionPowerSequenceRelationData
@@ -187,7 +187,7 @@ func TestHvacSystemFunctionDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacSystemFunctionDescriptionData
@@ -226,7 +226,7 @@ func TestHvacOperationModeDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacOperationModeDescriptionData
@@ -265,7 +265,7 @@ func TestHvacOverrunListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacOverrunData
@@ -304,7 +304,7 @@ func TestHvacOverrunDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.HvacOverrunDescriptionData

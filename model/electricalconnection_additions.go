@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*ElectricalConnectionStateListDataType)(nil)
 
-func (r *ElectricalConnectionStateListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *ElectricalConnectionStateListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []ElectricalConnectionStateDataType
 	if newList != nil {
 		newData = newList.(*ElectricalConnectionStateListDataType).ElectricalConnectionStateData
@@ -12,18 +12,18 @@ func (r *ElectricalConnectionStateListDataType) UpdateList(remoteWrite bool, new
 
 	data, success := UpdateList(remoteWrite, r.ElectricalConnectionStateData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.ElectricalConnectionStateData = data
 	}
 
-	return success
+	return data, success
 }
 
 // ElectricalConnectionPermittedValueSetListDataType
 
 var _ Updater = (*ElectricalConnectionPermittedValueSetListDataType)(nil)
 
-func (r *ElectricalConnectionPermittedValueSetListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *ElectricalConnectionPermittedValueSetListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []ElectricalConnectionPermittedValueSetDataType
 	if newList != nil {
 		newData = newList.(*ElectricalConnectionPermittedValueSetListDataType).ElectricalConnectionPermittedValueSetData
@@ -31,18 +31,18 @@ func (r *ElectricalConnectionPermittedValueSetListDataType) UpdateList(remoteWri
 
 	data, success := UpdateList(remoteWrite, r.ElectricalConnectionPermittedValueSetData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.ElectricalConnectionPermittedValueSetData = data
 	}
 
-	return success
+	return data, success
 }
 
 // ElectricalConnectionDescriptionListDataType
 
 var _ Updater = (*ElectricalConnectionDescriptionListDataType)(nil)
 
-func (r *ElectricalConnectionDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *ElectricalConnectionDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []ElectricalConnectionDescriptionDataType
 	if newList != nil {
 		newData = newList.(*ElectricalConnectionDescriptionListDataType).ElectricalConnectionDescriptionData
@@ -50,18 +50,18 @@ func (r *ElectricalConnectionDescriptionListDataType) UpdateList(remoteWrite boo
 
 	data, success := UpdateList(remoteWrite, r.ElectricalConnectionDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.ElectricalConnectionDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // ElectricalConnectionCharacteristicListDataType
 
 var _ Updater = (*ElectricalConnectionCharacteristicListDataType)(nil)
 
-func (r *ElectricalConnectionCharacteristicListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *ElectricalConnectionCharacteristicListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []ElectricalConnectionCharacteristicDataType
 	if newList != nil {
 		newData = newList.(*ElectricalConnectionCharacteristicListDataType).ElectricalConnectionCharacteristicData
@@ -69,18 +69,18 @@ func (r *ElectricalConnectionCharacteristicListDataType) UpdateList(remoteWrite 
 
 	data, success := UpdateList(remoteWrite, r.ElectricalConnectionCharacteristicData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.ElectricalConnectionCharacteristicData = data
 	}
 
-	return success
+	return data, success
 }
 
 // ElectricalConnectionParameterDescriptionListDataType
 
 var _ Updater = (*ElectricalConnectionParameterDescriptionListDataType)(nil)
 
-func (r *ElectricalConnectionParameterDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *ElectricalConnectionParameterDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []ElectricalConnectionParameterDescriptionDataType
 	if newList != nil {
 		newData = newList.(*ElectricalConnectionParameterDescriptionListDataType).ElectricalConnectionParameterDescriptionData
@@ -88,9 +88,9 @@ func (r *ElectricalConnectionParameterDescriptionListDataType) UpdateList(remote
 
 	data, success := UpdateList(remoteWrite, r.ElectricalConnectionParameterDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.ElectricalConnectionParameterDescriptionData = data
 	}
 
-	return success
+	return data, success
 }

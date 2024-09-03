@@ -384,7 +384,7 @@ func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType,
 		return nil, model.NewErrorTypeFromString("data not found")
 	}
 
-	err := fctData.UpdateDataAny(remoteWrite, data, filterPartial, filterDelete)
+	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete)
 
 	return fctData, err
 }
@@ -698,7 +698,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 	cmdData, _ := message.Cmd.Data()
 	featureRemote := message.FeatureRemote
 
-	if err := featureRemote.UpdateData(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete); err != nil {
+	if _, err := featureRemote.UpdateData(true, *cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete); err != nil {
 		return err
 	}
 
@@ -737,7 +737,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 }
 
 func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	if err := featureRemote.UpdateData(function, data, filterPartial, filterDelete); err != nil {
+	if _, err := featureRemote.UpdateData(true, function, data, filterPartial, filterDelete); err != nil {
 		return err
 	}
 

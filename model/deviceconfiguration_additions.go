@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*DeviceConfigurationKeyValueListDataType)(nil)
 
-func (r *DeviceConfigurationKeyValueListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *DeviceConfigurationKeyValueListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []DeviceConfigurationKeyValueDataType
 	if newList != nil {
 		newData = newList.(*DeviceConfigurationKeyValueListDataType).DeviceConfigurationKeyValueData
@@ -12,18 +12,18 @@ func (r *DeviceConfigurationKeyValueListDataType) UpdateList(remoteWrite bool, n
 
 	data, success := UpdateList(remoteWrite, r.DeviceConfigurationKeyValueData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.DeviceConfigurationKeyValueData = data
 	}
 
-	return success
+	return data, success
 }
 
 // DeviceConfigurationKeyValueDescriptionListDataType
 
 var _ Updater = (*DeviceConfigurationKeyValueDescriptionListDataType)(nil)
 
-func (r *DeviceConfigurationKeyValueDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *DeviceConfigurationKeyValueDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []DeviceConfigurationKeyValueDescriptionDataType
 	if newList != nil {
 		newData = newList.(*DeviceConfigurationKeyValueDescriptionListDataType).DeviceConfigurationKeyValueDescriptionData
@@ -31,18 +31,18 @@ func (r *DeviceConfigurationKeyValueDescriptionListDataType) UpdateList(remoteWr
 
 	data, success := UpdateList(remoteWrite, r.DeviceConfigurationKeyValueDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.DeviceConfigurationKeyValueDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // DeviceConfigurationKeyValueConstraintsListDataType
 
 var _ Updater = (*DeviceConfigurationKeyValueConstraintsListDataType)(nil)
 
-func (r *DeviceConfigurationKeyValueConstraintsListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *DeviceConfigurationKeyValueConstraintsListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []DeviceConfigurationKeyValueConstraintsDataType
 	if newList != nil {
 		newData = newList.(*DeviceConfigurationKeyValueConstraintsListDataType).DeviceConfigurationKeyValueConstraintsData
@@ -50,9 +50,9 @@ func (r *DeviceConfigurationKeyValueConstraintsListDataType) UpdateList(remoteWr
 
 	data, success := UpdateList(remoteWrite, r.DeviceConfigurationKeyValueConstraintsData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.DeviceConfigurationKeyValueConstraintsData = data
 	}
 
-	return success
+	return data, success
 }

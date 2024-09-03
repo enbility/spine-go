@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*MeasurementListDataType)(nil)
 
-func (r *MeasurementListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MeasurementListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MeasurementDataType
 	if newList != nil {
 		newData = newList.(*MeasurementListDataType).MeasurementData
@@ -12,18 +12,18 @@ func (r *MeasurementListDataType) UpdateList(remoteWrite bool, newList any, filt
 
 	data, success := UpdateList(remoteWrite, r.MeasurementData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MeasurementData = data
 	}
 
-	return success
+	return data, success
 }
 
 // MeasurementSeriesListDataType
 
 var _ Updater = (*MeasurementSeriesListDataType)(nil)
 
-func (r *MeasurementSeriesListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MeasurementSeriesListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MeasurementSeriesDataType
 	if newList != nil {
 		newData = newList.(*MeasurementSeriesListDataType).MeasurementSeriesData
@@ -31,18 +31,18 @@ func (r *MeasurementSeriesListDataType) UpdateList(remoteWrite bool, newList any
 
 	data, success := UpdateList(remoteWrite, r.MeasurementSeriesData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MeasurementSeriesData = data
 	}
 
-	return success
+	return data, success
 }
 
 // MeasurementConstraintsListDataType
 
 var _ Updater = (*MeasurementConstraintsListDataType)(nil)
 
-func (r *MeasurementConstraintsListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MeasurementConstraintsListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MeasurementConstraintsDataType
 	if newList != nil {
 		newData = newList.(*MeasurementConstraintsListDataType).MeasurementConstraintsData
@@ -50,18 +50,18 @@ func (r *MeasurementConstraintsListDataType) UpdateList(remoteWrite bool, newLis
 
 	data, success := UpdateList(remoteWrite, r.MeasurementConstraintsData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MeasurementConstraintsData = data
 	}
 
-	return success
+	return data, success
 }
 
 // MeasurementDescriptionListDataType
 
 var _ Updater = (*MeasurementDescriptionListDataType)(nil)
 
-func (r *MeasurementDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MeasurementDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MeasurementDescriptionDataType
 	if newList != nil {
 		newData = newList.(*MeasurementDescriptionListDataType).MeasurementDescriptionData
@@ -69,18 +69,18 @@ func (r *MeasurementDescriptionListDataType) UpdateList(remoteWrite bool, newLis
 
 	data, success := UpdateList(remoteWrite, r.MeasurementDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MeasurementDescriptionData = data
 	}
 
-	return success
+	return data, success
 }
 
 // MeasurementThresholdRelationListDataType
 
 var _ Updater = (*MeasurementThresholdRelationListDataType)(nil)
 
-func (r *MeasurementThresholdRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MeasurementThresholdRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MeasurementThresholdRelationDataType
 	if newList != nil {
 		newData = newList.(*MeasurementThresholdRelationListDataType).MeasurementThresholdRelationData
@@ -88,9 +88,9 @@ func (r *MeasurementThresholdRelationListDataType) UpdateList(remoteWrite bool, 
 
 	data, success := UpdateList(remoteWrite, r.MeasurementThresholdRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MeasurementThresholdRelationData = data
 	}
 
-	return success
+	return data, success
 }

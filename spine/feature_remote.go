@@ -64,16 +64,16 @@ func (r *FeatureRemote) DataCopy(function model.FunctionType) any {
 	return r.functionData(function).DataCopyAny()
 }
 
-func (r *FeatureRemote) UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+func (r *FeatureRemote) UpdateData(persist bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	fd := r.functionData(function)
 	if fd == nil {
-		return model.NewErrorTypeFromString("function data not found")
+		return nil, model.NewErrorTypeFromString("function data not found")
 	}
 
-	return fd.UpdateDataAny(false, data, filterPartial, filterDelete)
+	return fd.UpdateDataAny(false, persist, data, filterPartial, filterDelete)
 }
 
 func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {

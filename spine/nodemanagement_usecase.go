@@ -28,7 +28,7 @@ func (r *NodeManagement) processReadUseCaseData(featureRemote api.FeatureRemoteI
 }
 
 func (r *NodeManagement) processReplyUseCaseData(message *api.Message, data *model.NodeManagementUseCaseDataType) error {
-	message.FeatureRemote.UpdateData(model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
+	_, _ = message.FeatureRemote.UpdateData(true, model.FunctionTypeNodeManagementUseCaseData, data, nil, nil)
 
 	// the data was updated, so send an event, other event handlers may watch out for this as well
 	payload := api.EventPayload{

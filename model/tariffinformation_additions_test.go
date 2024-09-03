@@ -31,7 +31,7 @@ func TestTariffListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TariffData
@@ -70,7 +70,7 @@ func TestTariffTierRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TariffTierRelationData
@@ -109,7 +109,7 @@ func TestTariffBoundaryRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TariffBoundaryRelationData
@@ -148,7 +148,7 @@ func TestTariffDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TariffDescriptionData
@@ -187,7 +187,7 @@ func TestTierBoundaryListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TierBoundaryData
@@ -226,7 +226,7 @@ func TestTierBoundaryDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TierBoundaryDescriptionData
@@ -265,7 +265,7 @@ func TestCommodityListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.CommodityData
@@ -304,7 +304,7 @@ func TestTierListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TierData
@@ -343,7 +343,7 @@ func TestTierIncentiveRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TierIncentiveRelationData
@@ -382,7 +382,7 @@ func TestTierDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.TierDescriptionData
@@ -421,7 +421,7 @@ func TestIncentiveListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.IncentiveData
@@ -460,7 +460,7 @@ func TestIncentiveDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.IncentiveDescriptionData

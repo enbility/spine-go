@@ -31,7 +31,7 @@ func TestLoadControlEventListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.LoadControlEventData
@@ -70,7 +70,7 @@ func TestLoadControlStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.LoadControlStateData
@@ -110,7 +110,7 @@ func TestLoadControlLimitListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.LoadControlLimitData
@@ -150,7 +150,7 @@ func TestLoadControlLimitConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.LoadControlLimitConstraintsData
@@ -189,7 +189,7 @@ func TestLoadControlLimitDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.LoadControlLimitDescriptionData

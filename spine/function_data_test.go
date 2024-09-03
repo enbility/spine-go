@@ -14,7 +14,7 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	}
 	functionType := model.FunctionTypeDeviceClassificationManufacturerData
 	sut := NewFunctionData[model.DeviceClassificationManufacturerDataType](functionType)
-	sut.UpdateData(false, newData, nil, nil)
+	_, _ = sut.UpdateData(false, true, newData, nil, nil)
 	getData := sut.DataCopy()
 
 	assert.Equal(t, newData.DeviceName, getData.DeviceName)
@@ -24,14 +24,14 @@ func TestFunctionData_UpdateData(t *testing.T) {
 	newData = &model.DeviceClassificationManufacturerDataType{
 		DeviceName: util.Ptr(model.DeviceClassificationStringType("new device name")),
 	}
-	sut.UpdateData(false, newData, nil, nil)
+	_, _ = sut.UpdateData(false, true, newData, nil, nil)
 	getNewData := sut.DataCopy()
 
 	assert.Equal(t, newData.DeviceName, getNewData.DeviceName)
 	assert.NotEqual(t, getData.DeviceName, getNewData.DeviceName)
 	assert.Equal(t, functionType, sut.FunctionType())
 
-	sut.UpdateDataAny(false, newData, nil, nil)
+	_, _ = sut.UpdateDataAny(false, true, newData, nil, nil)
 	getNewDataAny := sut.DataCopyAny()
 	newDataAny := getNewDataAny.(*model.DeviceClassificationManufacturerDataType)
 
@@ -64,7 +64,7 @@ func TestFunctionData_UpdateDataPartial(t *testing.T) {
 	functionType := model.FunctionTypeElectricalConnectionPermittedValueSetListData
 	sut := NewFunctionData[model.ElectricalConnectionPermittedValueSetListDataType](functionType)
 
-	err := sut.UpdateData(false, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
+	_, err := sut.UpdateData(false, true, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
 	if assert.Nil(t, err) {
 		getData := sut.DataCopy()
 		assert.Equal(t, 1, len(getData.ElectricalConnectionPermittedValueSetData))
@@ -85,7 +85,7 @@ func TestFunctionData_UpdateDataPartial_Supported(t *testing.T) {
 	ok := sut.SupportsPartialWrite()
 	assert.True(t, ok)
 
-	err := sut.UpdateData(false, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
+	_, err := sut.UpdateData(false, true, newData, &model.FilterType{CmdControl: &model.CmdControlType{Partial: &model.ElementTagType{}}}, nil)
 	assert.Nil(t, err)
 
 	functionType = model.FunctionTypeNetworkManagementAddNodeCall

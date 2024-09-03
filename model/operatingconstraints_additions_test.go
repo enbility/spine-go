@@ -32,7 +32,7 @@ func TestOperatingConstraintsInterruptListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsInterruptData
@@ -71,7 +71,7 @@ func TestOperatingConstraintsDurationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsDurationData
@@ -112,7 +112,7 @@ func TestOperatingConstraintsPowerDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerDescriptionData
@@ -151,7 +151,7 @@ func TestOperatingConstraintsPowerRangeListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerRangeData
@@ -190,7 +190,7 @@ func TestOperatingConstraintsPowerLevelListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsPowerLevelData
@@ -229,7 +229,7 @@ func TestOperatingConstraintsResumeImplicationListDataType_Update(t *testing.T) 
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.OperatingConstraintsResumeImplicationData
