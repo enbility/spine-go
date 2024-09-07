@@ -176,6 +176,13 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	if len(r.remoteDevices) == 0 {
 		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
 	}
+
+	// remove all data caches for this device
+	for _, entity := range r.entities {
+		for _, feature := range entity.Features() {
+			feature.CleanCaches(ski)
+		}
+	}
 }
 
 func (r *DeviceLocal) RemoteDevices() []api.DeviceRemoteInterface {

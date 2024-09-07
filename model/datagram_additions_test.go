@@ -4,7 +4,17 @@ import (
 	"testing"
 
 	"github.com/enbility/spine-go/util"
+	"github.com/stretchr/testify/assert"
 )
+
+const emptyResult string = "Send:  Unknown 0 unknown"
+
+func TestTestPrintMessageOverview_Emtpty(t *testing.T) {
+	datagram := &DatagramType{}
+
+	result := datagram.PrintMessageOverview(true, "", "")
+	assert.Equal(t, emptyResult, result)
+}
 
 func TestPrintMessageOverview_Read_Send(t *testing.T) {
 	datagram := &DatagramType{
@@ -25,7 +35,8 @@ func TestPrintMessageOverview_Read_Send(t *testing.T) {
 		},
 	}
 
-	datagram.PrintMessageOverview(false, "", "")
+	result := datagram.PrintMessageOverview(false, "", "")
+	assert.NotEqual(t, emptyResult, result)
 }
 
 func TestPrintMessageOverview_Read_Recv(t *testing.T) {
@@ -45,7 +56,8 @@ func TestPrintMessageOverview_Read_Recv(t *testing.T) {
 		},
 	}
 
-	datagram.PrintMessageOverview(true, "", "")
+	result := datagram.PrintMessageOverview(true, "", "")
+	assert.NotEqual(t, emptyResult, result)
 }
 
 func TestPrintMessageOverview_Reply_Recv(t *testing.T) {
@@ -66,7 +78,8 @@ func TestPrintMessageOverview_Reply_Recv(t *testing.T) {
 		},
 	}
 
-	datagram.PrintMessageOverview(true, "", "")
+	result := datagram.PrintMessageOverview(true, "", "")
+	assert.NotEqual(t, emptyResult, result)
 }
 
 func TestPrintMessageOverview_Result_Recv(t *testing.T) {
@@ -91,7 +104,8 @@ func TestPrintMessageOverview_Result_Recv(t *testing.T) {
 		},
 	}
 
-	datagram.PrintMessageOverview(true, "", "")
+	result := datagram.PrintMessageOverview(true, "", "")
+	assert.NotEqual(t, emptyResult, result)
 }
 
 func TestPrintMessageOverview_Write_Recv(t *testing.T) {
@@ -112,5 +126,6 @@ func TestPrintMessageOverview_Write_Recv(t *testing.T) {
 		},
 	}
 
-	datagram.PrintMessageOverview(true, "", "")
+	result := datagram.PrintMessageOverview(true, "", "")
+	assert.NotEqual(t, emptyResult, result)
 }

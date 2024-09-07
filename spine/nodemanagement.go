@@ -54,9 +54,6 @@ func (r *NodeManagement) Device() api.DeviceLocalInterface {
 }
 
 func (r *NodeManagement) HandleMessage(message *api.Message) *model.ErrorType {
-	// make sure the cache is cleaned up
-	r.removeMsgCounterFromCacheIfNeeded(message)
-
 	switch {
 	case message.Cmd.ResultData != nil:
 		if err := r.processResult(message); err != nil {
