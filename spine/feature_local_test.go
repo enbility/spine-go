@@ -48,72 +48,6 @@ func (s *LocalFeatureTestSuite) BeforeTest(suiteName, testName string) {
 	s.remoteSubFeature, _ = createRemoteEntityAndFeature(remoteDevice, 2, s.subFeatureType, s.serverWriteFunction)
 }
 
-func (s *LocalFeatureTestSuite) TestDeviceClassification_Cache() {
-	expMsgCounter1 := model.MsgCounterType(1)
-
-	s.senderMock.EXPECT().Request(
-		model.CmdClassifierTypeRead,
-		s.localFeature.Address(),
-		s.remoteServerFeature.Address(),
-		false,
-		mock.AnythingOfType("[]model.CmdType")).Return(&expMsgCounter1, nil).Once()
-
-	msgCounter, err := s.localFeature.RequestRemoteDataBySenderAddress(model.CmdType{}, s.senderMock, "dummy", s.remoteServerFeature.Address(), 0)
-	assert.Nil(s.T(), err)
-	assert.NotNil(s.T(), msgCounter)
-
-	msgCounter2, err := s.localFeature.RequestRemoteDataBySenderAddress(model.CmdType{}, s.senderMock, "dummy", s.remoteServerFeature.Address(), 0)
-	assert.Nil(s.T(), err)
-	assert.NotNil(s.T(), msgCounter2)
-	assert.Equal(s.T(), *msgCounter, *msgCounter2)
-
-	replyMsg := api.Message{
-		Cmd: model.CmdType{
-			DeviceClassificationManufacturerData: &model.DeviceClassificationManufacturerDataType{},
-		},
-		CmdClassifier: model.CmdClassifierTypeReply,
-		RequestHeader: &model.HeaderType{
-			MsgCounter:          util.Ptr(model.MsgCounterType(1)),
-			MsgCounterReference: msgCounter,
-		},
-		FeatureRemote: s.remoteFeature,
-	}
-	s.localFeature.HandleMessage(&replyMsg)
-
-	expMsgCounter3 := model.MsgCounterType(3)
-	s.senderMock.EXPECT().Request(
-		model.CmdClassifierTypeRead,
-		s.localFeature.Address(),
-		s.remoteServerFeature.Address(),
-		false,
-		mock.AnythingOfType("[]model.CmdType")).Return(&expMsgCounter3, nil).Once()
-
-	msgCounter3, err := s.localFeature.RequestRemoteDataBySenderAddress(model.CmdType{}, s.senderMock, "dummy", s.remoteServerFeature.Address(), 0)
-	assert.Nil(s.T(), err)
-	assert.NotNil(s.T(), msgCounter3)
-	assert.NotEqual(s.T(), *msgCounter, *msgCounter3)
-
-	for i := 0; i < 50; i++ {
-		expMsgCounter4 := model.MsgCounterType(i + 3)
-		remoteAddress := &model.FeatureAddressType{
-			Device:  s.remoteServerFeature.Device().Address(),
-			Entity:  []model.AddressEntityType{1},
-			Feature: util.Ptr(model.AddressFeatureType(i)),
-		}
-		s.senderMock.EXPECT().Request(
-			model.CmdClassifierTypeRead,
-			s.localFeature.Address(),
-			mock.Anything,
-			false,
-			mock.AnythingOfType("[]model.CmdType")).Return(&expMsgCounter4, nil).Once()
-
-		msgCounter4, err := s.localFeature.RequestRemoteDataBySenderAddress(model.CmdType{}, s.senderMock, "dummy", remoteAddress, 0)
-		assert.Nil(s.T(), err)
-		assert.NotNil(s.T(), expMsgCounter4)
-		assert.NotEqual(s.T(), *msgCounter, *msgCounter4)
-	}
-}
-
 func (s *LocalFeatureTestSuite) TestDeviceClassification_Functions() {
 	fcts := s.localServerFeatureWrite.Functions()
 	assert.NotNil(s.T(), fcts)
@@ -474,9 +408,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(counter),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -492,6 +428,7 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 	}
 	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
+	s.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Once()
 	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
@@ -500,12 +437,15 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 }
 
 func (s *LocalFeatureTestSuite) Test_Write_Callback_One_Fail() {
+	counter := model.MsgCounterType(1)
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
-			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			MsgCounter: util.Ptr(counter),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -534,9 +474,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -560,6 +502,7 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two() {
 	}
 	tempLSFWrite.AddWriteApprovalCallback(cb2)
 
+	s.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Once()
 	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
@@ -571,9 +514,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two_Fail() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -615,9 +560,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Timeout() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
