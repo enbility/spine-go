@@ -408,9 +408,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(counter),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -426,6 +428,7 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 	}
 	tempLSFWrite.AddWriteApprovalCallback(cb1)
 
+	s.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Once()
 	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
@@ -434,12 +437,15 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_One() {
 }
 
 func (s *LocalFeatureTestSuite) Test_Write_Callback_One_Fail() {
+	counter := model.MsgCounterType(1)
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
-			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			MsgCounter: util.Ptr(counter),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -468,9 +474,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -494,6 +502,7 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two() {
 	}
 	tempLSFWrite.AddWriteApprovalCallback(cb2)
 
+	s.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Once()
 	err := tempLSFWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
 
@@ -505,9 +514,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two_Fail() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
@@ -549,9 +560,11 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Timeout() {
 	msg := &api.Message{
 		RequestHeader: &model.HeaderType{
 			MsgCounter: util.Ptr(model.MsgCounterType(1)),
+			AckRequest: util.Ptr(true),
 		},
 		CmdClassifier: model.CmdClassifierTypeWrite,
 		FeatureRemote: s.remoteSubFeature,
+		DeviceRemote:  s.remoteSubFeature.Device(),
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
 		},
