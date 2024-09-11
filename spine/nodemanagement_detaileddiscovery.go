@@ -291,6 +291,9 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 				// remove all bindings for this entity
 				bindingMgr := r.Device().BindingManager()
 				bindingMgr.RemoveBindingsForEntity(removedEntity)
+
+				// remove all feature caches for this entity
+				r.Device().CleanRemoteEntityCaches(removedEntity.Address())
 			}
 		}
 	}
