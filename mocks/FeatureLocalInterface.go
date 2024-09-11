@@ -326,35 +326,101 @@ func (_c *FeatureLocalInterface_BindToRemote_Call) RunAndReturn(run func(*model.
 	return _c
 }
 
-// CleanCaches provides a mock function with given fields: ski
-func (_m *FeatureLocalInterface) CleanCaches(ski string) {
-	_m.Called(ski)
+// CleanRemoteDeviceCaches provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType) {
+	_m.Called(remoteAddress)
 }
 
-// FeatureLocalInterface_CleanCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanCaches'
-type FeatureLocalInterface_CleanCaches_Call struct {
+// FeatureLocalInterface_CleanRemoteDeviceCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanRemoteDeviceCaches'
+type FeatureLocalInterface_CleanRemoteDeviceCaches_Call struct {
 	*mock.Call
 }
 
-// CleanCaches is a helper method to define mock.On call
-//   - ski string
-func (_e *FeatureLocalInterface_Expecter) CleanCaches(ski interface{}) *FeatureLocalInterface_CleanCaches_Call {
-	return &FeatureLocalInterface_CleanCaches_Call{Call: _e.mock.On("CleanCaches", ski)}
+// CleanRemoteDeviceCaches is a helper method to define mock.On call
+//   - remoteAddress *model.DeviceAddressType
+func (_e *FeatureLocalInterface_Expecter) CleanRemoteDeviceCaches(remoteAddress interface{}) *FeatureLocalInterface_CleanRemoteDeviceCaches_Call {
+	return &FeatureLocalInterface_CleanRemoteDeviceCaches_Call{Call: _e.mock.On("CleanRemoteDeviceCaches", remoteAddress)}
 }
 
-func (_c *FeatureLocalInterface_CleanCaches_Call) Run(run func(ski string)) *FeatureLocalInterface_CleanCaches_Call {
+func (_c *FeatureLocalInterface_CleanRemoteDeviceCaches_Call) Run(run func(remoteAddress *model.DeviceAddressType)) *FeatureLocalInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.DeviceAddressType))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_CleanRemoteDeviceCaches_Call) Return() *FeatureLocalInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *FeatureLocalInterface_CleanRemoteDeviceCaches_Call) RunAndReturn(run func(*model.DeviceAddressType)) *FeatureLocalInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CleanRemoteEntityCaches provides a mock function with given fields: remoteAddress
+func (_m *FeatureLocalInterface) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	_m.Called(remoteAddress)
+}
+
+// FeatureLocalInterface_CleanRemoteEntityCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanRemoteEntityCaches'
+type FeatureLocalInterface_CleanRemoteEntityCaches_Call struct {
+	*mock.Call
+}
+
+// CleanRemoteEntityCaches is a helper method to define mock.On call
+//   - remoteAddress *model.EntityAddressType
+func (_e *FeatureLocalInterface_Expecter) CleanRemoteEntityCaches(remoteAddress interface{}) *FeatureLocalInterface_CleanRemoteEntityCaches_Call {
+	return &FeatureLocalInterface_CleanRemoteEntityCaches_Call{Call: _e.mock.On("CleanRemoteEntityCaches", remoteAddress)}
+}
+
+func (_c *FeatureLocalInterface_CleanRemoteEntityCaches_Call) Run(run func(remoteAddress *model.EntityAddressType)) *FeatureLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.EntityAddressType))
+	})
+	return _c
+}
+
+func (_c *FeatureLocalInterface_CleanRemoteEntityCaches_Call) Return() *FeatureLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *FeatureLocalInterface_CleanRemoteEntityCaches_Call) RunAndReturn(run func(*model.EntityAddressType)) *FeatureLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CleanWriteApprovalCaches provides a mock function with given fields: ski
+func (_m *FeatureLocalInterface) CleanWriteApprovalCaches(ski string) {
+	_m.Called(ski)
+}
+
+// FeatureLocalInterface_CleanWriteApprovalCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanWriteApprovalCaches'
+type FeatureLocalInterface_CleanWriteApprovalCaches_Call struct {
+	*mock.Call
+}
+
+// CleanWriteApprovalCaches is a helper method to define mock.On call
+//   - ski string
+func (_e *FeatureLocalInterface_Expecter) CleanWriteApprovalCaches(ski interface{}) *FeatureLocalInterface_CleanWriteApprovalCaches_Call {
+	return &FeatureLocalInterface_CleanWriteApprovalCaches_Call{Call: _e.mock.On("CleanWriteApprovalCaches", ski)}
+}
+
+func (_c *FeatureLocalInterface_CleanWriteApprovalCaches_Call) Run(run func(ski string)) *FeatureLocalInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *FeatureLocalInterface_CleanCaches_Call) Return() *FeatureLocalInterface_CleanCaches_Call {
+func (_c *FeatureLocalInterface_CleanWriteApprovalCaches_Call) Return() *FeatureLocalInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *FeatureLocalInterface_CleanCaches_Call) RunAndReturn(run func(string)) *FeatureLocalInterface_CleanCaches_Call {
+func (_c *FeatureLocalInterface_CleanWriteApprovalCaches_Call) RunAndReturn(run func(string)) *FeatureLocalInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Return(run)
 	return _c
 }

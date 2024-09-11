@@ -59,6 +59,9 @@ type DeviceLocalInterface interface {
 	// Get a FeatureLocalInterface implementation for a given feature address
 	FeatureByAddress(address *model.FeatureAddressType) FeatureLocalInterface
 
+	// Clean all entity specific caches
+	CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType)
+
 	// Process incoming SPINE datagram
 	ProcessCmd(datagram model.DatagramType, remoteDevice DeviceRemoteInterface) error
 

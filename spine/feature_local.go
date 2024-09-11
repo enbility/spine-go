@@ -261,12 +261,83 @@ func (r *FeatureLocal) SetWriteApprovalTimeout(duration time.Duration) {
 	r.writeTimeout = duration
 }
 
-func (r *FeatureLocal) CleanCaches(ski string) {
+func (r *FeatureLocal) CleanWriteApprovalCaches(ski string) {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
 	delete(r.pendingWriteApprovals, ski)
 	delete(r.writeApprovalReceived, ski)
+}
+
+// Remove subscriptions and bindings from local cache for a remote device
+// used if a remote device is getting disconnected
+func (r *FeatureLocal) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType) {
+	if remoteAddress == nil ||
+		remoteAddress.Device == nil {
+		return
+	}
+
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	var subscriptions []*model.FeatureAddressType
+
+	for _, item := range r.subscriptions {
+		if item.Device == nil ||
+			*item.Device != *remoteAddress.Device {
+			subscriptions = append(subscriptions, item)
+		}
+	}
+
+	r.subscriptions = subscriptions
+
+	var bindings []*model.FeatureAddressType
+
+	for _, item := range r.bindings {
+		if item.Device == nil ||
+			*item.Device != *remoteAddress.Device {
+			bindings = append(bindings, item)
+		}
+	}
+
+	r.bindings = bindings
+}
+
+// Remove subscriptions and bindings from local cache for a remote entity
+// used if a remote entity is removed
+func (r *FeatureLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	if remoteAddress == nil ||
+		remoteAddress.Device == nil ||
+		remoteAddress.Entity == nil {
+		return
+	}
+
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	var subscriptions []*model.FeatureAddressType
+
+	for _, item := range r.subscriptions {
+		if item.Device == nil || item.Entity == nil ||
+			*item.Device != *remoteAddress.Device ||
+			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
+			subscriptions = append(subscriptions, item)
+		}
+	}
+
+	r.subscriptions = subscriptions
+
+	var bindings []*model.FeatureAddressType
+
+	for _, item := range r.bindings {
+		if item.Device == nil || item.Entity == nil ||
+			*item.Device != *remoteAddress.Device ||
+			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
+			bindings = append(bindings, item)
+		}
+	}
+
+	r.bindings = bindings
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {

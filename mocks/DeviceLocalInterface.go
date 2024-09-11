@@ -185,6 +185,39 @@ func (_c *DeviceLocalInterface_BindingManager_Call) RunAndReturn(run func() api.
 	return _c
 }
 
+// CleanRemoteEntityCaches provides a mock function with given fields: remoteAddress
+func (_m *DeviceLocalInterface) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	_m.Called(remoteAddress)
+}
+
+// DeviceLocalInterface_CleanRemoteEntityCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanRemoteEntityCaches'
+type DeviceLocalInterface_CleanRemoteEntityCaches_Call struct {
+	*mock.Call
+}
+
+// CleanRemoteEntityCaches is a helper method to define mock.On call
+//   - remoteAddress *model.EntityAddressType
+func (_e *DeviceLocalInterface_Expecter) CleanRemoteEntityCaches(remoteAddress interface{}) *DeviceLocalInterface_CleanRemoteEntityCaches_Call {
+	return &DeviceLocalInterface_CleanRemoteEntityCaches_Call{Call: _e.mock.On("CleanRemoteEntityCaches", remoteAddress)}
+}
+
+func (_c *DeviceLocalInterface_CleanRemoteEntityCaches_Call) Run(run func(remoteAddress *model.EntityAddressType)) *DeviceLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.EntityAddressType))
+	})
+	return _c
+}
+
+func (_c *DeviceLocalInterface_CleanRemoteEntityCaches_Call) Return() *DeviceLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *DeviceLocalInterface_CleanRemoteEntityCaches_Call) RunAndReturn(run func(*model.EntityAddressType)) *DeviceLocalInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DestinationData provides a mock function with given fields:
 func (_m *DeviceLocalInterface) DestinationData() model.NodeManagementDestinationDataType {
 	ret := _m.Called()

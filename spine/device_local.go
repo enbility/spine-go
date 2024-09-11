@@ -158,7 +158,8 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
-	if r.RemoteDeviceForSki(ski) == nil {
+	remoteDevice := r.RemoteDeviceForSki(ski)
+	if remoteDevice == nil {
 		return
 	}
 
@@ -177,10 +178,14 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
 	}
 
+	remoteDeviceAddress := &model.DeviceAddressType{
+		Device: remoteDevice.Address(),
+	}
 	// remove all data caches for this device
 	for _, entity := range r.entities {
 		for _, feature := range entity.Features() {
-			feature.CleanCaches(ski)
+			feature.CleanWriteApprovalCaches(ski)
+			feature.CleanRemoteDeviceCaches(remoteDeviceAddress)
 		}
 	}
 }
@@ -285,6 +290,14 @@ func (r *DeviceLocal) FeatureByAddress(address *model.FeatureAddressType) api.Fe
 		return entity.FeatureOfAddress(address.Feature)
 	}
 	return nil
+}
+
+func (r *DeviceLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	for _, entity := range r.entities {
+		for _, feature := range entity.Features() {
+			feature.CleanRemoteEntityCaches(remoteAddress)
+		}
+	}
 }
 
 func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemoteInterface) error {

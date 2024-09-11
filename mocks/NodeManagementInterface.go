@@ -326,35 +326,101 @@ func (_c *NodeManagementInterface_BindToRemote_Call) RunAndReturn(run func(*mode
 	return _c
 }
 
-// CleanCaches provides a mock function with given fields: ski
-func (_m *NodeManagementInterface) CleanCaches(ski string) {
-	_m.Called(ski)
+// CleanRemoteDeviceCaches provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType) {
+	_m.Called(remoteAddress)
 }
 
-// NodeManagementInterface_CleanCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanCaches'
-type NodeManagementInterface_CleanCaches_Call struct {
+// NodeManagementInterface_CleanRemoteDeviceCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanRemoteDeviceCaches'
+type NodeManagementInterface_CleanRemoteDeviceCaches_Call struct {
 	*mock.Call
 }
 
-// CleanCaches is a helper method to define mock.On call
-//   - ski string
-func (_e *NodeManagementInterface_Expecter) CleanCaches(ski interface{}) *NodeManagementInterface_CleanCaches_Call {
-	return &NodeManagementInterface_CleanCaches_Call{Call: _e.mock.On("CleanCaches", ski)}
+// CleanRemoteDeviceCaches is a helper method to define mock.On call
+//   - remoteAddress *model.DeviceAddressType
+func (_e *NodeManagementInterface_Expecter) CleanRemoteDeviceCaches(remoteAddress interface{}) *NodeManagementInterface_CleanRemoteDeviceCaches_Call {
+	return &NodeManagementInterface_CleanRemoteDeviceCaches_Call{Call: _e.mock.On("CleanRemoteDeviceCaches", remoteAddress)}
 }
 
-func (_c *NodeManagementInterface_CleanCaches_Call) Run(run func(ski string)) *NodeManagementInterface_CleanCaches_Call {
+func (_c *NodeManagementInterface_CleanRemoteDeviceCaches_Call) Run(run func(remoteAddress *model.DeviceAddressType)) *NodeManagementInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.DeviceAddressType))
+	})
+	return _c
+}
+
+func (_c *NodeManagementInterface_CleanRemoteDeviceCaches_Call) Return() *NodeManagementInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *NodeManagementInterface_CleanRemoteDeviceCaches_Call) RunAndReturn(run func(*model.DeviceAddressType)) *NodeManagementInterface_CleanRemoteDeviceCaches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CleanRemoteEntityCaches provides a mock function with given fields: remoteAddress
+func (_m *NodeManagementInterface) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	_m.Called(remoteAddress)
+}
+
+// NodeManagementInterface_CleanRemoteEntityCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanRemoteEntityCaches'
+type NodeManagementInterface_CleanRemoteEntityCaches_Call struct {
+	*mock.Call
+}
+
+// CleanRemoteEntityCaches is a helper method to define mock.On call
+//   - remoteAddress *model.EntityAddressType
+func (_e *NodeManagementInterface_Expecter) CleanRemoteEntityCaches(remoteAddress interface{}) *NodeManagementInterface_CleanRemoteEntityCaches_Call {
+	return &NodeManagementInterface_CleanRemoteEntityCaches_Call{Call: _e.mock.On("CleanRemoteEntityCaches", remoteAddress)}
+}
+
+func (_c *NodeManagementInterface_CleanRemoteEntityCaches_Call) Run(run func(remoteAddress *model.EntityAddressType)) *NodeManagementInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.EntityAddressType))
+	})
+	return _c
+}
+
+func (_c *NodeManagementInterface_CleanRemoteEntityCaches_Call) Return() *NodeManagementInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *NodeManagementInterface_CleanRemoteEntityCaches_Call) RunAndReturn(run func(*model.EntityAddressType)) *NodeManagementInterface_CleanRemoteEntityCaches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CleanWriteApprovalCaches provides a mock function with given fields: ski
+func (_m *NodeManagementInterface) CleanWriteApprovalCaches(ski string) {
+	_m.Called(ski)
+}
+
+// NodeManagementInterface_CleanWriteApprovalCaches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CleanWriteApprovalCaches'
+type NodeManagementInterface_CleanWriteApprovalCaches_Call struct {
+	*mock.Call
+}
+
+// CleanWriteApprovalCaches is a helper method to define mock.On call
+//   - ski string
+func (_e *NodeManagementInterface_Expecter) CleanWriteApprovalCaches(ski interface{}) *NodeManagementInterface_CleanWriteApprovalCaches_Call {
+	return &NodeManagementInterface_CleanWriteApprovalCaches_Call{Call: _e.mock.On("CleanWriteApprovalCaches", ski)}
+}
+
+func (_c *NodeManagementInterface_CleanWriteApprovalCaches_Call) Run(run func(ski string)) *NodeManagementInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *NodeManagementInterface_CleanCaches_Call) Return() *NodeManagementInterface_CleanCaches_Call {
+func (_c *NodeManagementInterface_CleanWriteApprovalCaches_Call) Return() *NodeManagementInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *NodeManagementInterface_CleanCaches_Call) RunAndReturn(run func(string)) *NodeManagementInterface_CleanCaches_Call {
+func (_c *NodeManagementInterface_CleanWriteApprovalCaches_Call) RunAndReturn(run func(string)) *NodeManagementInterface_CleanWriteApprovalCaches_Call {
 	_c.Call.Return(run)
 	return _c
 }

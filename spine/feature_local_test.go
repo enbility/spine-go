@@ -21,13 +21,14 @@ func TestLocalFeatureTestSuite(t *testing.T) {
 
 type LocalFeatureTestSuite struct {
 	suite.Suite
-	senderMock                                                *mocks.SenderInterface
-	localDevice                                               *DeviceLocal
-	localEntity                                               *EntityLocal
-	function, serverWriteFunction                             model.FunctionType
-	featureType, subFeatureType                               model.FeatureTypeType
-	msgCounter                                                model.MsgCounterType
-	remoteFeature, remoteServerFeature, remoteSubFeature      api.FeatureRemoteInterface
+	senderMock                    *mocks.SenderInterface
+	localDevice                   *DeviceLocal
+	localEntity                   *EntityLocal
+	function, serverWriteFunction model.FunctionType
+	featureType, subFeatureType   model.FeatureTypeType
+	msgCounter                    model.MsgCounterType
+	remoteFeature, remote2Feature,
+	remoteServerFeature, remoteSubFeature api.FeatureRemoteInterface
 	localFeature, localServerFeature, localServerFeatureWrite api.FeatureLocalInterface
 }
 
@@ -43,9 +44,11 @@ func (s *LocalFeatureTestSuite) BeforeTest(suiteName, testName string) {
 	s.localFeature, s.localServerFeature = createLocalFeatures(s.localEntity, s.featureType, "")
 	_, s.localServerFeatureWrite = createLocalFeatures(s.localEntity, s.subFeatureType, s.serverWriteFunction)
 
-	remoteDevice := createRemoteDevice(s.localDevice, s.senderMock)
+	remoteDevice := createRemoteDevice(s.localDevice, "ski", s.senderMock)
+	remoteDevice2 := createRemoteDevice(s.localDevice, "iks", s.senderMock)
 	s.remoteFeature, s.remoteServerFeature = createRemoteEntityAndFeature(remoteDevice, 1, s.featureType, s.function)
 	s.remoteSubFeature, _ = createRemoteEntityAndFeature(remoteDevice, 2, s.subFeatureType, s.serverWriteFunction)
+	s.remote2Feature, _ = createRemoteEntityAndFeature(remoteDevice2, 1, s.featureType, s.function)
 }
 
 func (s *LocalFeatureTestSuite) TestDeviceClassification_Functions() {
@@ -247,6 +250,152 @@ func (s *LocalFeatureTestSuite) TestDeviceClassification_Bindings() {
 	assert.NotNil(s.T(), msgCounter)
 
 	s.localFeature.RemoveAllRemoteBindings()
+}
+
+func (s *LocalFeatureTestSuite) Test_CleanRemoteDeviceCaches() {
+	s.senderMock.On("Subscribe", mock.Anything, mock.Anything, mock.Anything).Return(&s.msgCounter, nil)
+	s.senderMock.On("Bind", mock.Anything, mock.Anything, mock.Anything).Return(&s.msgCounter, nil)
+
+	s.localFeature.CleanWriteApprovalCaches("testdummytest")
+	s.localFeature.CleanRemoteDeviceCaches(nil)
+
+	address := &model.DeviceAddressType{}
+	s.localFeature.CleanRemoteDeviceCaches(address)
+
+	address.Device = util.Ptr(model.AddressDeviceType("dummy"))
+	s.localFeature.CleanRemoteDeviceCaches(address)
+
+	address.Device = s.remoteFeature.Address().Device
+	s.localFeature.CleanRemoteDeviceCaches(address)
+
+	s.localFeature.Device().AddRemoteDeviceForSki(s.remoteFeature.Device().Ski(), s.remoteFeature.Device())
+	s.localFeature.Device().AddRemoteDeviceForSki(s.remote2Feature.Device().Ski(), s.remote2Feature.Device())
+
+	msgCounter, err := s.localFeature.SubscribeToRemote(s.remote2Feature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.SubscribeToRemote(s.remoteFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.SubscribeToRemote(s.remoteSubFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	value := s.localFeature.HasSubscriptionToRemote(s.remote2Feature.Address())
+	assert.True(s.T(), value)
+
+	value = s.localFeature.HasSubscriptionToRemote(s.remoteFeature.Address())
+	assert.True(s.T(), value)
+
+	value = s.localFeature.HasSubscriptionToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), value)
+
+	msgCounter, err = s.localFeature.BindToRemote(s.remote2Feature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.BindToRemote(s.remoteFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.BindToRemote(s.remoteSubFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	value = s.localFeature.HasBindingToRemote(s.remoteFeature.Address())
+	assert.True(s.T(), value)
+
+	value = s.localFeature.HasBindingToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), value)
+
+	s.localFeature.CleanRemoteDeviceCaches(address)
+
+	value = s.localFeature.HasSubscriptionToRemote(s.remote2Feature.Address())
+	assert.True(s.T(), value)
+
+	value = s.localFeature.HasSubscriptionToRemote(s.remoteFeature.Address())
+	assert.False(s.T(), value)
+
+	value = s.localFeature.HasSubscriptionToRemote(s.remoteSubFeature.Address())
+	assert.False(s.T(), value)
+
+	value = s.localFeature.HasBindingToRemote(s.remote2Feature.Address())
+	assert.True(s.T(), value)
+
+	value = s.localFeature.HasBindingToRemote(s.remoteFeature.Address())
+	assert.False(s.T(), value)
+
+	value = s.localFeature.HasBindingToRemote(s.remoteSubFeature.Address())
+	assert.False(s.T(), value)
+}
+
+func (s *LocalFeatureTestSuite) Test_CleanRemoteEntityCaches() {
+	s.senderMock.On("Subscribe", mock.Anything, mock.Anything, mock.Anything).Return(&s.msgCounter, nil)
+	s.senderMock.On("Bind", mock.Anything, mock.Anything, mock.Anything).Return(&s.msgCounter, nil)
+
+	s.localFeature.CleanWriteApprovalCaches("testdummytest")
+	s.localFeature.CleanRemoteEntityCaches(nil)
+
+	address := &model.EntityAddressType{}
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	address.Device = util.Ptr(model.AddressDeviceType("dummy"))
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	address.Entity = []model.AddressEntityType{10}
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	address.Device = s.remoteFeature.Address().Device
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	address.Entity = s.remoteFeature.Address().Entity
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	s.localFeature.Device().AddRemoteDeviceForSki(s.remoteFeature.Device().Ski(), s.remoteFeature.Device())
+
+	msgCounter, err := s.localFeature.SubscribeToRemote(s.remoteFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.SubscribeToRemote(s.remoteSubFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	binding := s.localFeature.HasSubscriptionToRemote(s.remoteFeature.Address())
+	assert.True(s.T(), binding)
+
+	binding = s.localFeature.HasSubscriptionToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), binding)
+
+	msgCounter, err = s.localFeature.BindToRemote(s.remoteFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	msgCounter, err = s.localFeature.BindToRemote(s.remoteSubFeature.Address())
+	assert.Nil(s.T(), err)
+	assert.NotNil(s.T(), msgCounter)
+
+	binding = s.localFeature.HasBindingToRemote(s.remoteFeature.Address())
+	assert.True(s.T(), binding)
+
+	binding = s.localFeature.HasBindingToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), binding)
+
+	s.localFeature.CleanRemoteEntityCaches(address)
+
+	binding = s.localFeature.HasSubscriptionToRemote(s.remoteFeature.Address())
+	assert.False(s.T(), binding)
+
+	binding = s.localFeature.HasSubscriptionToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), binding)
+
+	binding = s.localFeature.HasBindingToRemote(s.remoteFeature.Address())
+	assert.False(s.T(), binding)
+
+	binding = s.localFeature.HasBindingToRemote(s.remoteSubFeature.Address())
+	assert.True(s.T(), binding)
 }
 
 func (s *LocalFeatureTestSuite) Test_HandleMessage() {

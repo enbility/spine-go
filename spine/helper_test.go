@@ -194,9 +194,9 @@ func createLocalFeatures(localEntity *EntityLocal, featureType model.FeatureType
 	return localFeature, localServerFeature
 }
 
-func createRemoteDevice(localDevice *DeviceLocal, sender api.SenderInterface) *DeviceRemote {
-	remoteDevice := NewDeviceRemote(localDevice, "ski", sender)
-	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
+func createRemoteDevice(localDevice *DeviceLocal, ski string, sender api.SenderInterface) *DeviceRemote {
+	remoteDevice := NewDeviceRemote(localDevice, ski, sender)
+	remoteDevice.address = util.Ptr(model.AddressDeviceType(fmt.Sprintf("Address%s", ski)))
 
 	return remoteDevice
 }

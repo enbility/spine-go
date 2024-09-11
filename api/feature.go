@@ -64,8 +64,12 @@ type FeatureLocalInterface interface {
 	// Overwrite the default 1 minute timeout for write approvals
 	SetWriteApprovalTimeout(duration time.Duration)
 
-	// Clean all device specific caches
-	CleanCaches(ski string)
+	// Clean all write approval caches for a remote device ski
+	CleanWriteApprovalCaches(ski string)
+	// Clean all remote device specific caches
+	CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType)
+	// Clean all remote entity specific caches
+	CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType)
 
 	// return all functions
 	Functions() []model.FunctionType
