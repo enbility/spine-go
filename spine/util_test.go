@@ -24,8 +24,8 @@ type UtilsSuite struct {
 func (s *UtilsSuite) WriteShipMessageWithPayload([]byte) {}
 
 func (s *UtilsSuite) Test_DataCopyOfType() {
-	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	localEntity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}), time.Second*4)
 	s.localDevice.AddEntity(localEntity)
 
 	localFeature := NewFeatureLocal(1, localEntity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer)

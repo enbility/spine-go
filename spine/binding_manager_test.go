@@ -27,7 +27,7 @@ type BindingManagerSuite struct {
 
 func (s *BindingManagerSuite) BeforeTest(suiteName, testName string) {
 	s.localDevice = NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
-		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	remoteSki := "TestRemoteSki"
 
 	s.writeHandler = &WriteMessageHandler{}
@@ -40,7 +40,7 @@ func (s *BindingManagerSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (suite *BindingManagerSuite) Test_Bindings() {
-	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
 	suite.localDevice.AddEntity(entity)
 
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)

@@ -90,7 +90,7 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&
 		function == model.FunctionTypeDeviceDiagnosisHeartbeatData {
 		// Update HeartbeatManager
-		r.Device().HeartbeatManager().SetLocalFeature(r.Entity(), r)
+		r.Entity().HeartbeatManager().SetLocalFeature(r.Entity(), r)
 	}
 }
 

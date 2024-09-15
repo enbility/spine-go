@@ -101,8 +101,8 @@ func beforeTest(
 	fId uint, ftype model.FeatureTypeType,
 	frole model.RoleType) (api.DeviceLocalInterface, string, api.DeviceRemoteInterface, *WriteMessageHandler) {
 	sut := spine.NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
-		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	localEntity := spine.NewEntityLocal(sut, model.EntityTypeTypeCEM, spine.NewAddressEntityType([]uint{1}))
+		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	localEntity := spine.NewEntityLocal(sut, model.EntityTypeTypeCEM, spine.NewAddressEntityType([]uint{1}), time.Second*4)
 	sut.AddEntity(localEntity)
 	f := spine.NewFeatureLocal(fId, localEntity, ftype, frole)
 	localEntity.AddFeature(f)

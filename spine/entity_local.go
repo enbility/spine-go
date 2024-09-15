@@ -2,6 +2,7 @@ package spine
 
 import (
 	"sync"
+	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -12,14 +13,25 @@ type EntityLocal struct {
 	device   api.DeviceLocalInterface
 	features []api.FeatureLocalInterface
 
+	heartbeatManager api.HeartbeatManagerInterface
+
 	mux sync.Mutex
 }
 
-func NewEntityLocal(device api.DeviceLocalInterface, eType model.EntityTypeType, entityAddress []model.AddressEntityType) *EntityLocal {
-	return &EntityLocal{
+func NewEntityLocal(device api.DeviceLocalInterface,
+	eType model.EntityTypeType,
+	entityAddress []model.AddressEntityType,
+	heartbeatTimeout time.Duration) *EntityLocal {
+	entity := &EntityLocal{
 		Entity: NewEntity(eType, device.Address(), entityAddress),
 		device: device,
 	}
+	// only needed if the entity address is not DeviceInformationEntityId
+	if len(entityAddress) > 0 && entityAddress[0] != model.AddressEntityType(DeviceInformationEntityId) {
+		entity.heartbeatManager = NewHeartbeatManager(entity, heartbeatTimeout)
+	}
+
+	return entity
 }
 
 var _ api.EntityLocalInterface = (*EntityLocal)(nil)
@@ -28,6 +40,10 @@ var _ api.EntityLocalInterface = (*EntityLocal)(nil)
 
 func (r *EntityLocal) Device() api.DeviceLocalInterface {
 	return r.device
+}
+
+func (r *EntityLocal) HeartbeatManager() api.HeartbeatManagerInterface {
+	return r.heartbeatManager
 }
 
 // Add a feature to the entity if it is not already added

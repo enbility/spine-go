@@ -30,7 +30,8 @@ type Sender struct {
 
 	reqMsgCache reqMsgCacheData // cache for unanswered request messages, so we can filter duplicates and not send them
 
-	muxReadCache sync.RWMutex
+	muxNotifyCache sync.RWMutex
+	muxReadCache   sync.RWMutex
 }
 
 var _ api.SenderInterface = (*Sender)(nil)
@@ -46,6 +47,9 @@ func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInter
 
 // return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
 func (c *Sender) DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error) {
+	c.muxNotifyCache.RLock()
+	defer c.muxNotifyCache.RUnlock()
+
 	if datagram, ok := c.datagramNotifyCache.Get(msgCounter); ok {
 		return datagram, nil
 	}
@@ -276,7 +280,9 @@ func (c *Sender) Notify(senderAddress, destinationAddress *model.FeatureAddressT
 		},
 	}
 
+	c.muxNotifyCache.Lock()
 	c.datagramNotifyCache.Put(*msgCounter, datagram)
+	c.muxNotifyCache.Unlock()
 
 	return msgCounter, c.sendSpineMessage(datagram)
 }

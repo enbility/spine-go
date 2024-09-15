@@ -173,10 +173,10 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 }
 
 func createLocalDeviceAndEntity(entityId uint) (*DeviceLocal, *EntityLocal) {
-	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	localDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
-	localEntity := NewEntityLocal(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
+	localEntity := NewEntityLocal(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)}, time.Second*4)
 	localDevice.AddEntity(localEntity)
 
 	return localDevice, localEntity
