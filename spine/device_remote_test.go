@@ -2,7 +2,6 @@ package spine
 
 import (
 	"testing"
-	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -32,7 +31,7 @@ func (s *DeviceRemoteSuite) WriteShipMessageWithPayload([]byte) {}
 func (s *DeviceRemoteSuite) SetupSuite() {}
 
 func (s *DeviceRemoteSuite) BeforeTest(suiteName, testName string) {
-	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
 	ski := "test"
 	sender := NewSender(s)

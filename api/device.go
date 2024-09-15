@@ -76,9 +76,6 @@ type DeviceLocalInterface interface {
 	// Send a notify message to remote device subscribing to a specific feature
 	NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType)
 
-	// Get the hearbeat manager
-	HeartbeatManager() HeartbeatManagerInterface
-
 	// Get the SPINE data structure for NodeManagementDetailDiscoveryData messages for this device
 	Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType
 }

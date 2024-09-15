@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"slices"
 	"sync"
-	"time"
 
 	shipapi "github.com/enbility/ship-go/api"
 	"github.com/enbility/ship-go/logging"
@@ -20,7 +19,6 @@ type DeviceLocal struct {
 	entities            []api.EntityLocalInterface
 	subscriptionManager api.SubscriptionManagerInterface
 	bindingManager      api.BindingManagerInterface
-	heartbeatManager    api.HeartbeatManagerInterface
 	nodeManagement      *NodeManagement
 
 	remoteDevices map[string]api.DeviceRemoteInterface
@@ -41,8 +39,7 @@ type DeviceLocal struct {
 func NewDeviceLocal(
 	brandName, deviceModel, serialNumber, deviceCode, deviceAddress string,
 	deviceType model.DeviceTypeType,
-	featureSet model.NetworkManagementFeatureSetType,
-	heartbeatTimeout time.Duration) *DeviceLocal {
+	featureSet model.NetworkManagementFeatureSetType) *DeviceLocal {
 	address := model.AddressDeviceType(deviceAddress)
 
 	var fSet *model.NetworkManagementFeatureSetType
@@ -61,7 +58,6 @@ func NewDeviceLocal(
 
 	res.subscriptionManager = NewSubscriptionManager(res)
 	res.bindingManager = NewBindingManager(res)
-	res.heartbeatManager = NewHeartbeatManager(res, res.subscriptionManager, heartbeatTimeout)
 
 	res.addDeviceInformation()
 	return res
@@ -420,10 +416,6 @@ func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
 	return r.bindingManager
 }
 
-func (r *DeviceLocal) HeartbeatManager() api.HeartbeatManagerInterface {
-	return r.heartbeatManager
-}
-
 func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
 	res := model.NodeManagementDetailedDiscoveryDeviceInformationType{
 		Description: &model.NetworkManagementDeviceDescriptionDataType{
@@ -475,7 +467,7 @@ func (r *DeviceLocal) notifySubscribersOfEntity(entity api.EntityLocalInterface,
 
 func (r *DeviceLocal) addDeviceInformation() {
 	entityType := model.EntityTypeTypeDeviceInformation
-	entity := NewEntityLocal(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
+	entity := NewEntityLocal(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)}, 0)
 
 	{
 		r.nodeManagement = NewNodeManagement(entity.NextFeatureId(), entity)

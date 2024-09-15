@@ -10,7 +10,6 @@ import (
 )
 
 type HeartbeatManager struct {
-	localDevice  api.DeviceLocalInterface
 	localEntity  api.EntityLocalInterface
 	localFeature api.FeatureLocalInterface
 
@@ -18,8 +17,7 @@ type HeartbeatManager struct {
 	stopHeartbeatC chan struct{}
 	stopMux        sync.Mutex
 
-	subscriptionManager api.SubscriptionManagerInterface
-	heartBeatTimeout    *model.DurationType
+	heartBeatTimeout *model.DurationType
 
 	mux sync.Mutex
 }
@@ -27,11 +25,10 @@ type HeartbeatManager struct {
 var _ api.HeartbeatManagerInterface = (*HeartbeatManager)(nil)
 
 // Create a new Heartbeat Manager which handles sending of heartbeats
-func NewHeartbeatManager(localDevice api.DeviceLocalInterface, subscriptionManager api.SubscriptionManagerInterface, timeout time.Duration) *HeartbeatManager {
+func NewHeartbeatManager(localEntity api.EntityLocalInterface, timeout time.Duration) *HeartbeatManager {
 	h := &HeartbeatManager{
-		localDevice:         localDevice,
-		subscriptionManager: subscriptionManager,
-		heartBeatTimeout:    model.NewDurationType(timeout),
+		localEntity:      localEntity,
+		heartBeatTimeout: model.NewDurationType(timeout),
 	}
 
 	return h

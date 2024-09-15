@@ -2,7 +2,6 @@ package spine
 
 import (
 	"testing"
-	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -37,7 +36,7 @@ type NodeManagementSuite struct {
 
 func (s *NodeManagementSuite) BeforeTest(suiteName, testName string) {
 	s.sut = NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
-		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	s.remoteSki = "TestRemoteSki"
 
 	s.writeHandler = &WriteMessageHandler{}

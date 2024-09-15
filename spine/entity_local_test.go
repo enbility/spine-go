@@ -18,8 +18,8 @@ type EntityLocalTestSuite struct {
 }
 
 func (suite *EntityLocalTestSuite) Test_Entity() {
-	device := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
-	entity := NewEntityLocal(device, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))
+	device := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	entity := NewEntityLocal(device, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}), time.Second*4)
 	device.AddEntity(entity)
 
 	f := NewFeatureLocal(1, entity, model.FeatureTypeTypeElectricalConnection, model.RoleTypeClient)
