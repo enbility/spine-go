@@ -233,6 +233,10 @@ func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllSubscriptions()
 	entity.RemoveAllBindings()
 
+	if heartbeatMgr := entity.HeartbeatManager(); heartbeatMgr != nil {
+		heartbeatMgr.StopHeartbeat()
+	}
+
 	r.mux.Lock()
 
 	var entities []api.EntityLocalInterface
