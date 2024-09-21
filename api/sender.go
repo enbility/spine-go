@@ -10,6 +10,8 @@ type ComControlInterface interface {
 }
 
 type SenderInterface interface {
+	// Process a received message, e.g. for handling caching data
+	ProcessResponseForMsgCounterReference(msgCounterRef *model.MsgCounterType)
 	// Sends a read cmd to request some data
 	Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error)
 	// Sends a result cmd with no error to indicate that a message was processed successfully
@@ -30,6 +32,6 @@ type SenderInterface interface {
 	Notify(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error)
 	// Sends a write cmd, setting properties of remote features
 	Write(senderAddress, destinationAddress *model.FeatureAddressType, cmd model.CmdType) (*model.MsgCounterType, error)
-	// return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
+	// return the datagram for a given msgCounter (only availbe for Notify messages!), error if not found
 	DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error)
 }

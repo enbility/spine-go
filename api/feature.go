@@ -64,6 +64,13 @@ type FeatureLocalInterface interface {
 	// Overwrite the default 1 minute timeout for write approvals
 	SetWriteApprovalTimeout(duration time.Duration)
 
+	// Clean all write approval caches for a remote device ski
+	CleanWriteApprovalCaches(ski string)
+	// Clean all remote device specific caches
+	CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType)
+	// Clean all remote entity specific caches
+	CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType)
+
 	// return all functions
 	Functions() []model.FunctionType
 
@@ -130,7 +137,8 @@ type FeatureRemoteInterface interface {
 	// Get a copy of the features data for a given function type
 	DataCopy(function model.FunctionType) any
 	// Set the features data for a given function type
-	UpdateData(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType
+	// persist true will store the data, false will return the updated data without storing it
+	UpdateData(persist bool, function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType)
 
 	// Set the supported operations of the feature for a set of functions
 	SetOperations(functions []model.FunctionPropertyType)

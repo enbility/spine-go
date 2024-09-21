@@ -19,14 +19,14 @@ type FeatureLocal struct {
 	entity              api.EntityLocalInterface
 	functionDataMap     map[model.FunctionType]api.FunctionDataCmdInterface
 	muxResponseCB       sync.Mutex
-	responseMsgCallback map[model.MsgCounterType]func(result api.ResponseMessage)
-	responseCallbacks   []func(result api.ResponseMessage)
+	responseMsgCallback map[model.MsgCounterType][]func(result api.ResponseMessage)
+	resultCallbacks     []func(result api.ResponseMessage)
 
 	writeTimeout           time.Duration
 	writeApprovalCallbacks []api.WriteApprovalCallbackFunc
 	muxWriteReceived       sync.Mutex
-	writeApprovalReceived  map[model.MsgCounterType]int
-	pendingWriteApprovals  map[model.MsgCounterType]*time.Timer
+	writeApprovalReceived  map[string]map[model.MsgCounterType]int
+	pendingWriteApprovals  map[string]map[model.MsgCounterType]*time.Timer
 
 	bindings      []*model.FeatureAddressType // bindings to remote features
 	subscriptions []*model.FeatureAddressType // subscriptions to remote features
@@ -42,9 +42,9 @@ func NewFeatureLocal(id uint, entity api.EntityLocalInterface, ftype model.Featu
 			role),
 		entity:                entity,
 		functionDataMap:       make(map[model.FunctionType]api.FunctionDataCmdInterface),
-		responseMsgCallback:   make(map[model.MsgCounterType]func(result api.ResponseMessage)),
-		writeApprovalReceived: make(map[model.MsgCounterType]int),
-		pendingWriteApprovals: make(map[model.MsgCounterType]*time.Timer),
+		responseMsgCallback:   make(map[model.MsgCounterType][]func(result api.ResponseMessage)),
+		writeApprovalReceived: make(map[string]map[model.MsgCounterType]int),
+		pendingWriteApprovals: make(map[string]map[model.MsgCounterType]*time.Timer),
 		writeTimeout:          defaultMaxResponseDelay,
 	}
 
@@ -90,7 +90,7 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&
 		function == model.FunctionTypeDeviceDiagnosisHeartbeatData {
 		// Update HeartbeatManager
-		r.Device().HeartbeatManager().SetLocalFeature(r.Entity(), r)
+		r.Entity().HeartbeatManager().SetLocalFeature(r.Entity(), r)
 	}
 }
 
@@ -111,12 +111,15 @@ func (r *FeatureLocal) AddResponseCallback(msgCounterReference model.MsgCounterT
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	_, ok := r.responseMsgCallback[msgCounterReference]
-	if ok {
-		return errors.New("callback already set")
+	if _, ok := r.responseMsgCallback[msgCounterReference]; ok {
+		for _, cb := range r.responseMsgCallback[msgCounterReference] {
+			if reflect.ValueOf(cb).Pointer() == reflect.ValueOf(function).Pointer() {
+				return errors.New("callback already set")
+			}
+		}
 	}
 
-	r.responseMsgCallback[msgCounterReference] = function
+	r.responseMsgCallback[msgCounterReference] = append(r.responseMsgCallback[msgCounterReference], function)
 
 	return nil
 }
@@ -125,12 +128,14 @@ func (r *FeatureLocal) processResponseMsgCallbacks(msgCounterReference model.Msg
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	cb, ok := r.responseMsgCallback[msgCounterReference]
+	cbs, ok := r.responseMsgCallback[msgCounterReference]
 	if !ok {
 		return
 	}
 
-	go cb(msg)
+	for _, cb := range cbs {
+		go cb(msg)
+	}
 
 	delete(r.responseMsgCallback, msgCounterReference)
 }
@@ -140,14 +145,14 @@ func (r *FeatureLocal) AddResultCallback(function func(msg api.ResponseMessage))
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	r.responseCallbacks = append(r.responseCallbacks, function)
+	r.resultCallbacks = append(r.resultCallbacks, function)
 }
 
 func (r *FeatureLocal) processResultCallbacks(msg api.ResponseMessage) {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
 
-	for _, cb := range r.responseCallbacks {
+	for _, cb := range r.resultCallbacks {
 		go cb(msg)
 	}
 }
@@ -175,13 +180,18 @@ func (r *FeatureLocal) processWriteApprovalCallbacks(msg *api.Message) {
 }
 
 func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
-	if r.Role() != model.RoleTypeServer || msg.RequestHeader == nil || msg.RequestHeader.MsgCounter == nil {
+	if r.Role() != model.RoleTypeServer ||
+		msg.DeviceRemote == nil ||
+		msg.RequestHeader == nil ||
+		msg.RequestHeader.MsgCounter == nil {
 		return
 	}
 
+	ski := msg.DeviceRemote.Ski()
+
 	newTimer := time.AfterFunc(r.writeTimeout, func() {
 		r.muxResponseCB.Lock()
-		delete(r.pendingWriteApprovals, *msg.RequestHeader.MsgCounter)
+		delete(r.pendingWriteApprovals[ski], *msg.RequestHeader.MsgCounter)
 		r.muxResponseCB.Unlock()
 
 		err := model.NewErrorTypeFromString("write not approved in time by application")
@@ -189,17 +199,23 @@ func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
 	})
 
 	r.muxResponseCB.Lock()
-	r.pendingWriteApprovals[*msg.RequestHeader.MsgCounter] = newTimer
+	if _, ok := r.pendingWriteApprovals[ski]; !ok {
+		r.pendingWriteApprovals[ski] = make(map[model.MsgCounterType]*time.Timer)
+	}
+	r.pendingWriteApprovals[ski][*msg.RequestHeader.MsgCounter] = newTimer
 	r.muxResponseCB.Unlock()
 }
 
 func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType) {
-	if r.Role() != model.RoleTypeServer {
+	if r.Role() != model.RoleTypeServer ||
+		msg.DeviceRemote == nil {
 		return
 	}
 
+	ski := msg.DeviceRemote.Ski()
+
 	r.muxResponseCB.Lock()
-	timer, ok := r.pendingWriteApprovals[*msg.RequestHeader.MsgCounter]
+	timer, ok := r.pendingWriteApprovals[ski][*msg.RequestHeader.MsgCounter]
 	count := len(r.writeApprovalCallbacks)
 	r.muxResponseCB.Unlock()
 
@@ -212,25 +228,26 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 	r.muxWriteReceived.Lock()
 	defer r.muxWriteReceived.Unlock()
 	if count > 1 && err.ErrorNumber == 0 {
-		amount, ok := r.writeApprovalReceived[*msg.RequestHeader.MsgCounter]
+		amount, ok := r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter]
 		if ok {
-			r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] = amount + 1
+			r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] = amount + 1
 		} else {
-			r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] = 1
+			r.writeApprovalReceived[ski] = make(map[model.MsgCounterType]int)
+			r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] = 1
 		}
 		// do we have enough approve messages, if not exit
-		if r.writeApprovalReceived[*msg.RequestHeader.MsgCounter] < count {
+		if r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] < count {
 			return
 		}
 	}
 
 	timer.Stop()
 
-	delete(r.writeApprovalReceived, *msg.RequestHeader.MsgCounter)
+	delete(r.writeApprovalReceived[ski], *msg.RequestHeader.MsgCounter)
 
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
-	delete(r.pendingWriteApprovals, *msg.RequestHeader.MsgCounter)
+	delete(r.pendingWriteApprovals[ski], *msg.RequestHeader.MsgCounter)
 
 	if err.ErrorNumber == 0 {
 		r.processWrite(msg)
@@ -242,6 +259,85 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 
 func (r *FeatureLocal) SetWriteApprovalTimeout(duration time.Duration) {
 	r.writeTimeout = duration
+}
+
+func (r *FeatureLocal) CleanWriteApprovalCaches(ski string) {
+	r.muxResponseCB.Lock()
+	defer r.muxResponseCB.Unlock()
+
+	delete(r.pendingWriteApprovals, ski)
+	delete(r.writeApprovalReceived, ski)
+}
+
+// Remove subscriptions and bindings from local cache for a remote device
+// used if a remote device is getting disconnected
+func (r *FeatureLocal) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddressType) {
+	if remoteAddress == nil ||
+		remoteAddress.Device == nil {
+		return
+	}
+
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	var subscriptions []*model.FeatureAddressType
+
+	for _, item := range r.subscriptions {
+		if item.Device == nil ||
+			*item.Device != *remoteAddress.Device {
+			subscriptions = append(subscriptions, item)
+		}
+	}
+
+	r.subscriptions = subscriptions
+
+	var bindings []*model.FeatureAddressType
+
+	for _, item := range r.bindings {
+		if item.Device == nil ||
+			*item.Device != *remoteAddress.Device {
+			bindings = append(bindings, item)
+		}
+	}
+
+	r.bindings = bindings
+}
+
+// Remove subscriptions and bindings from local cache for a remote entity
+// used if a remote entity is removed
+func (r *FeatureLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	if remoteAddress == nil ||
+		remoteAddress.Device == nil ||
+		remoteAddress.Entity == nil {
+		return
+	}
+
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	var subscriptions []*model.FeatureAddressType
+
+	for _, item := range r.subscriptions {
+		if item.Device == nil || item.Entity == nil ||
+			*item.Device != *remoteAddress.Device ||
+			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
+			subscriptions = append(subscriptions, item)
+		}
+	}
+
+	r.subscriptions = subscriptions
+
+	var bindings []*model.FeatureAddressType
+
+	for _, item := range r.bindings {
+		if item.Device == nil || item.Entity == nil ||
+			*item.Device != *remoteAddress.Device ||
+			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
+			bindings = append(bindings, item)
+		}
+	}
+
+	r.bindings = bindings
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -310,7 +406,7 @@ func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType,
 		return nil, model.NewErrorTypeFromString("data not found")
 	}
 
-	err := fctData.UpdateDataAny(remoteWrite, data, filterPartial, filterDelete)
+	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete)
 
 	return fctData, err
 }
@@ -609,7 +705,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 	cmdData, _ := message.Cmd.Data()
 	featureRemote := message.FeatureRemote
 
-	if err := featureRemote.UpdateData(*cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete); err != nil {
+	if _, err := featureRemote.UpdateData(true, *cmdData.Function, cmdData.Value, message.FilterPartial, message.FilterDelete); err != nil {
 		return err
 	}
 
@@ -648,7 +744,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 }
 
 func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
-	if err := featureRemote.UpdateData(function, data, filterPartial, filterDelete); err != nil {
+	if _, err := featureRemote.UpdateData(true, function, data, filterPartial, filterDelete); err != nil {
 		return err
 	}
 

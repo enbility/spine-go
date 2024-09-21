@@ -18,9 +18,12 @@ import (
 )
 
 const (
-	wallbox_detaileddiscoverydata_recv_reply_file_path         = "./testdata/wallbox_detaileddiscoverydata_recv_reply.json"
-	wallbox_detaileddiscoverydata_recv_notify_file_path        = "./testdata/wallbox_detaileddiscoverydata_recv_notify.json"
-	wallbox_detaileddiscoverydata_recv_notify_remove_file_path = "./testdata/wallbox_detaileddiscoverydata_recv_notify_remove.json"
+	wallbox_detaileddiscoverydata_recv_reply_file_path              = "./testdata/wallbox_detaileddiscoverydata_recv_reply.json"
+	wallbox_detaileddiscoverydata_recv_notify_file_path             = "./testdata/wallbox_detaileddiscoverydata_recv_notify.json"
+	wallbox_detaileddiscoverydata_recv_notify_remove_file_path      = "./testdata/wallbox_detaileddiscoverydata_recv_notify_remove.json"
+	wallbox_detaileddiscoverydata_recv_reply_full_file_path         = "./testdata/wallbox_detaileddiscoverydata_recv_reply_full.json"
+	wallbox_detaileddiscoverydata_recv_notify_full_file_path        = "./testdata/wallbox_detaileddiscoverydata_recv_notify_full.json"
+	wallbox_detaileddiscoverydata_recv_notify_remove_full_file_path = "./testdata/wallbox_detaileddiscoverydata_recv_notify_remove_full.json"
 )
 
 type WriteMessageHandler struct {
@@ -170,10 +173,10 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 }
 
 func createLocalDeviceAndEntity(entityId uint) (*DeviceLocal, *EntityLocal) {
-	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	localDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
-	localEntity := NewEntityLocal(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)})
+	localEntity := NewEntityLocal(localDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{model.AddressEntityType(entityId)}, time.Second*4)
 	localDevice.AddEntity(localEntity)
 
 	return localDevice, localEntity
@@ -191,9 +194,9 @@ func createLocalFeatures(localEntity *EntityLocal, featureType model.FeatureType
 	return localFeature, localServerFeature
 }
 
-func createRemoteDevice(localDevice *DeviceLocal, sender api.SenderInterface) *DeviceRemote {
-	remoteDevice := NewDeviceRemote(localDevice, "ski", sender)
-	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
+func createRemoteDevice(localDevice *DeviceLocal, ski string, sender api.SenderInterface) *DeviceRemote {
+	remoteDevice := NewDeviceRemote(localDevice, ski, sender)
+	remoteDevice.address = util.Ptr(model.AddressDeviceType(fmt.Sprintf("Address%s", ski)))
 
 	return remoteDevice
 }

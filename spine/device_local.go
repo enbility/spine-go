@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"slices"
 	"sync"
-	"time"
 
 	shipapi "github.com/enbility/ship-go/api"
 	"github.com/enbility/ship-go/logging"
@@ -20,7 +19,6 @@ type DeviceLocal struct {
 	entities            []api.EntityLocalInterface
 	subscriptionManager api.SubscriptionManagerInterface
 	bindingManager      api.BindingManagerInterface
-	heartbeatManager    api.HeartbeatManagerInterface
 	nodeManagement      *NodeManagement
 
 	remoteDevices map[string]api.DeviceRemoteInterface
@@ -41,8 +39,7 @@ type DeviceLocal struct {
 func NewDeviceLocal(
 	brandName, deviceModel, serialNumber, deviceCode, deviceAddress string,
 	deviceType model.DeviceTypeType,
-	featureSet model.NetworkManagementFeatureSetType,
-	heartbeatTimeout time.Duration) *DeviceLocal {
+	featureSet model.NetworkManagementFeatureSetType) *DeviceLocal {
 	address := model.AddressDeviceType(deviceAddress)
 
 	var fSet *model.NetworkManagementFeatureSetType
@@ -61,7 +58,6 @@ func NewDeviceLocal(
 
 	res.subscriptionManager = NewSubscriptionManager(res)
 	res.bindingManager = NewBindingManager(res)
-	res.heartbeatManager = NewHeartbeatManager(res, res.subscriptionManager, heartbeatTimeout)
 
 	res.addDeviceInformation()
 	return res
@@ -158,7 +154,8 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
-	if r.RemoteDeviceForSki(ski) == nil {
+	remoteDevice := r.RemoteDeviceForSki(ski)
+	if remoteDevice == nil {
 		return
 	}
 
@@ -175,6 +172,17 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	// only unsubscribe if we don't have any remote devices left
 	if len(r.remoteDevices) == 0 {
 		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
+	}
+
+	remoteDeviceAddress := &model.DeviceAddressType{
+		Device: remoteDevice.Address(),
+	}
+	// remove all data caches for this device
+	for _, entity := range r.entities {
+		for _, feature := range entity.Features() {
+			feature.CleanWriteApprovalCaches(ski)
+			feature.CleanRemoteDeviceCaches(remoteDeviceAddress)
+		}
 	}
 }
 
@@ -224,6 +232,10 @@ func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllUseCaseSupports()
 	entity.RemoveAllSubscriptions()
 	entity.RemoveAllBindings()
+
+	if heartbeatMgr := entity.HeartbeatManager(); heartbeatMgr != nil {
+		heartbeatMgr.StopHeartbeat()
+	}
 
 	r.mux.Lock()
 
@@ -278,6 +290,14 @@ func (r *DeviceLocal) FeatureByAddress(address *model.FeatureAddressType) api.Fe
 		return entity.FeatureOfAddress(address.Feature)
 	}
 	return nil
+}
+
+func (r *DeviceLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddressType) {
+	for _, entity := range r.entities {
+		for _, feature := range entity.Features() {
+			feature.CleanRemoteEntityCaches(remoteAddress)
+		}
+	}
 }
 
 func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.DeviceRemoteInterface) error {
@@ -400,10 +420,6 @@ func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
 	return r.bindingManager
 }
 
-func (r *DeviceLocal) HeartbeatManager() api.HeartbeatManagerInterface {
-	return r.heartbeatManager
-}
-
 func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
 	res := model.NodeManagementDetailedDiscoveryDeviceInformationType{
 		Description: &model.NetworkManagementDeviceDescriptionDataType{
@@ -455,7 +471,7 @@ func (r *DeviceLocal) notifySubscribersOfEntity(entity api.EntityLocalInterface,
 
 func (r *DeviceLocal) addDeviceInformation() {
 	entityType := model.EntityTypeTypeDeviceInformation
-	entity := NewEntityLocal(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)})
+	entity := NewEntityLocal(r, entityType, []model.AddressEntityType{model.AddressEntityType(DeviceInformationEntityId)}, 0)
 
 	{
 		r.nodeManagement = NewNodeManagement(entity.NextFeatureId(), entity)

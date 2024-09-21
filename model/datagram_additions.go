@@ -20,9 +20,18 @@ func (d *DatagramType) PrintMessageOverview(send bool, localFeature, remoteFeatu
 		device = fmt.Sprintf("%s:%s to %s", device, remoteFeature, localFeature)
 	}
 
-	cmdClassifier := *d.Header.CmdClassifier
-	msgCounter := *d.Header.MsgCounter
-	cmd := d.Payload.Cmd[0]
+	cmdClassifier := CmdClassifierType("Unknown")
+	if d.Header.CmdClassifier != nil {
+		cmdClassifier = *d.Header.CmdClassifier
+	}
+	msgCounter := MsgCounterType(0)
+	if d.Header.MsgCounter != nil {
+		msgCounter = *d.Header.MsgCounter
+	}
+	cmd := CmdType{}
+	if len(d.Payload.Cmd) > 0 {
+		cmd = d.Payload.Cmd[0]
+	}
 
 	switch cmdClassifier {
 	case CmdClassifierTypeRead:

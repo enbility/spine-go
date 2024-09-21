@@ -26,7 +26,7 @@ func (suite *FctDataCmdSuite) SetupSuite() {
 		DeviceName: util.Ptr(model.DeviceClassificationStringType("device name")),
 	}
 	suite.sut = NewFunctionDataCmd[model.DeviceClassificationManufacturerDataType](suite.function)
-	suite.sut.UpdateData(false, suite.data, nil, nil)
+	_, _ = suite.sut.UpdateData(false, true, suite.data, nil, nil)
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReadCmd() {

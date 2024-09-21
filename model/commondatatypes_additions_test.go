@@ -284,6 +284,10 @@ func TestNewScaledNumberType(t *testing.T) {
 
 	for _, tc := range tc {
 		got := NewScaledNumberType(tc.in)
+		if got.Scale == nil {
+			t.Errorf("NewScaledNumberType(%v): Scale may not be nil", tc.in)
+		}
+
 		number := int64(*got.Number)
 		scale := 0
 		if got.Scale != nil {

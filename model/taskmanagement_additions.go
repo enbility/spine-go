@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*TaskManagementJobListDataType)(nil)
 
-func (r *TaskManagementJobListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TaskManagementJobListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TaskManagementJobDataType
 	if newList != nil {
 		newData = newList.(*TaskManagementJobListDataType).TaskManagementJobData
@@ -12,18 +12,18 @@ func (r *TaskManagementJobListDataType) UpdateList(remoteWrite bool, newList any
 
 	data, success := UpdateList(remoteWrite, r.TaskManagementJobData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TaskManagementJobData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TaskManagementJobRelationListDataType
 
 var _ Updater = (*TaskManagementJobRelationListDataType)(nil)
 
-func (r *TaskManagementJobRelationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TaskManagementJobRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TaskManagementJobRelationDataType
 	if newList != nil {
 		newData = newList.(*TaskManagementJobRelationListDataType).TaskManagementJobRelationData
@@ -31,18 +31,18 @@ func (r *TaskManagementJobRelationListDataType) UpdateList(remoteWrite bool, new
 
 	data, success := UpdateList(remoteWrite, r.TaskManagementJobRelationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TaskManagementJobRelationData = data
 	}
 
-	return success
+	return data, success
 }
 
 // TaskManagementJobDescriptionListDataType
 
 var _ Updater = (*TaskManagementJobDescriptionListDataType)(nil)
 
-func (r *TaskManagementJobDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *TaskManagementJobDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []TaskManagementJobDescriptionDataType
 	if newList != nil {
 		newData = newList.(*TaskManagementJobDescriptionListDataType).TaskManagementJobDescriptionData
@@ -50,9 +50,9 @@ func (r *TaskManagementJobDescriptionListDataType) UpdateList(remoteWrite bool, 
 
 	data, success := UpdateList(remoteWrite, r.TaskManagementJobDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.TaskManagementJobDescriptionData = data
 	}
 
-	return success
+	return data, success
 }

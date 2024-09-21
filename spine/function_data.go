@@ -52,18 +52,18 @@ func (r *FunctionData[T]) DataCopy() *T {
 	return &copiedData
 }
 
-func (r *FunctionData[T]) UpdateData(remoteWrite bool, newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
+func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	if filterPartial == nil && filterDelete == nil {
+	if filterPartial == nil && filterDelete == nil && persist {
 		// just set the data
 		r.data = newData
-		return nil
+		return r.data, nil
 	}
 
 	if !r.SupportsPartialWrite() {
-		return model.NewErrorTypeFromString(fmt.Sprintf("partial updates are not supported for type '%s'", util.Type[T]().Name()))
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("partial updates are not supported for type '%s'", util.Type[T]().Name()))
 	}
 
 	if r.data == nil {
@@ -71,22 +71,23 @@ func (r *FunctionData[T]) UpdateData(remoteWrite bool, newData *T, filterPartial
 	}
 
 	updater := any(r.data).(model.Updater)
-	if !updater.UpdateList(remoteWrite, newData, filterPartial, filterDelete) {
-		return model.NewErrorTypeFromString("update failed, likely not allowed to write")
+	data, success := updater.UpdateList(remoteWrite, persist, newData, filterPartial, filterDelete)
+	if !success {
+		return nil, model.NewErrorTypeFromString("update failed, likely not allowed to write")
 	}
 
-	return nil
+	return data, nil
 }
 
 func (r *FunctionData[T]) DataCopyAny() any {
 	return r.DataCopy()
 }
 
-func (r *FunctionData[T]) UpdateDataAny(remoteWrite bool, newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) *model.ErrorType {
-	err := r.UpdateData(remoteWrite, newData.(*T), filterPartial, filterDelete)
+func (r *FunctionData[T]) UpdateDataAny(remoteWrite, persist bool, newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
+	data, err := r.UpdateData(remoteWrite, persist, newData.(*T), filterPartial, filterDelete)
 	if err != nil {
 		logging.Log().Debug(err.String())
 	}
 
-	return err
+	return data, err
 }

@@ -155,6 +155,11 @@ func (d *DeviceRemote) HandleSpineMesssage(message []byte) (*model.MsgCounterTyp
 	if err := json.Unmarshal([]byte(message), &datagram); err != nil {
 		return nil, err
 	}
+
+	if datagram.Datagram.Header.MsgCounterReference != nil {
+		d.sender.ProcessResponseForMsgCounterReference(datagram.Datagram.Header.MsgCounterReference)
+	}
+
 	err := d.localDevice.ProcessCmd(datagram.Datagram, d)
 	if err != nil {
 		logging.Log().Trace(err)

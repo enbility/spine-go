@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*MessagingListDataType)(nil)
 
-func (r *MessagingListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *MessagingListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []MessagingDataType
 	if newList != nil {
 		newData = newList.(*MessagingListDataType).MessagingData
@@ -12,9 +12,9 @@ func (r *MessagingListDataType) UpdateList(remoteWrite bool, newList any, filter
 
 	data, success := UpdateList(remoteWrite, r.MessagingData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.MessagingData = data
 	}
 
-	return success
+	return data, success
 }

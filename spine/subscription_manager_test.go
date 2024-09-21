@@ -27,7 +27,7 @@ type SubscriptionManagerSuite struct {
 func (suite *SubscriptionManagerSuite) WriteShipMessageWithPayload([]byte) {}
 
 func (suite *SubscriptionManagerSuite) SetupSuite() {
-	suite.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+	suite.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
 	ski := "test"
 	sender := NewSender(suite)
@@ -42,7 +42,7 @@ func (suite *SubscriptionManagerSuite) SetupSuite() {
 }
 
 func (suite *SubscriptionManagerSuite) Test_Subscriptions() {
-	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	entity := NewEntityLocal(suite.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
 	suite.localDevice.AddEntity(entity)
 
 	localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)

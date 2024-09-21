@@ -2,7 +2,6 @@ package spine
 
 import (
 	"testing"
-	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -37,7 +36,7 @@ type NodeManagementSuite struct {
 
 func (s *NodeManagementSuite) BeforeTest(suiteName, testName string) {
 	s.sut = NewDeviceLocal("TestBrandName", "TestDeviceModel", "TestSerialNumber", "TestDeviceCode",
-		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart, time.Second*4)
+		"TestDeviceAddress", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	s.remoteSki = "TestRemoteSki"
 
 	s.writeHandler = &WriteMessageHandler{}
@@ -166,6 +165,61 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyAdded() {
 			assert.NotNil(s.T(), di)
 			assert.Equal(s.T(), model.EntityTypeTypeDeviceInformation, di.EntityType())
 			assert.Equal(s.T(), 2, len(di.Features()))
+		}
+		{
+			evse := rEntities[1]
+			assert.NotNil(s.T(), evse)
+			assert.Equal(s.T(), model.EntityTypeTypeEVSE, evse.EntityType())
+			assert.Equal(s.T(), 3, len(evse.Features()))
+		}
+	}
+}
+
+func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyFullAdded() {
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_full_file_path))
+
+	// Act
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_notify_full_file_path))
+
+	// Assert
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.NotNil(s.T(), remoteDevice)
+	assert.Equal(s.T(), model.DeviceTypeTypeChargingStation, *remoteDevice.DeviceType())
+	assert.Equal(s.T(), model.NetworkManagementFeatureSetTypeSmart, *remoteDevice.FeatureSet())
+
+	rEntities := remoteDevice.Entities()
+	if assert.Equal(s.T(), 3, len(rEntities)) {
+		{
+			di := rEntities[DeviceInformationEntityId]
+			assert.NotNil(s.T(), di)
+			assert.Equal(s.T(), model.EntityTypeTypeDeviceInformation, di.EntityType())
+			assert.Equal(s.T(), 1, len(di.Features()))
+		}
+		{
+			evse := rEntities[1]
+			assert.NotNil(s.T(), evse)
+			assert.Equal(s.T(), model.EntityTypeTypeEVSE, evse.EntityType())
+			assert.Equal(s.T(), 3, len(evse.Features()))
+		}
+		{
+			ev := rEntities[2]
+			assert.NotNil(s.T(), ev)
+			assert.Equal(s.T(), model.EntityTypeTypeEV, ev.EntityType())
+			assert.Equal(s.T(), 6, len(ev.Features()))
+		}
+	}
+
+	// Act
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_notify_remove_full_file_path))
+
+	// Assert
+	rEntities = remoteDevice.Entities()
+	if assert.Equal(s.T(), 2, len(rEntities)) {
+		{
+			di := rEntities[DeviceInformationEntityId]
+			assert.NotNil(s.T(), di)
+			assert.Equal(s.T(), model.EntityTypeTypeDeviceInformation, di.EntityType())
+			assert.Equal(s.T(), 1, len(di.Features()))
 		}
 		{
 			evse := rEntities[1]

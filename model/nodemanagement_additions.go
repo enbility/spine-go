@@ -13,7 +13,7 @@ var nmMux sync.Mutex
 
 var _ Updater = (*NodeManagementDestinationListDataType)(nil)
 
-func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []NodeManagementDestinationDataType
 	if newList != nil {
 		newData = newList.(*NodeManagementDestinationListDataType).NodeManagementDestinationData
@@ -21,11 +21,11 @@ func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite bool, new
 
 	data, success := UpdateList(remoteWrite, r.NodeManagementDestinationData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.NodeManagementDestinationData = data
 	}
 
-	return success
+	return data, success
 }
 
 // NodeManagementUseCaseDataType

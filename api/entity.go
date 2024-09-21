@@ -25,6 +25,9 @@ type EntityLocalInterface interface {
 	// Get the associated DeviceLocalInterface implementation
 	Device() DeviceLocalInterface
 
+	// Get the hearbeat manager for this entity
+	HeartbeatManager() HeartbeatManagerInterface
+
 	// Add a new feature with a given FeatureLocalInterface implementation
 	AddFeature(f FeatureLocalInterface)
 	// Get a FeatureLocalInterface implementation for a given feature type and role or create it if it does not exist yet and return it

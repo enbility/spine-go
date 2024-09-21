@@ -292,10 +292,13 @@ func NewScaledNumberType(value float64) *ScaledNumberType {
 	numberValue := NumberType(math.Trunc(value * math.Pow(10, float64(numberOfDecimals))))
 	m.Number = &numberValue
 
+	var scaleValue ScaleType
 	if numberValue != 0 {
-		scaleValue := ScaleType(-numberOfDecimals)
-		m.Scale = &scaleValue
+		scaleValue = ScaleType(-numberOfDecimals)
+	} else {
+		scaleValue = ScaleType(0)
 	}
+	m.Scale = &scaleValue
 
 	return m
 }

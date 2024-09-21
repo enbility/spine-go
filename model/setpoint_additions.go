@@ -4,7 +4,7 @@ package model
 
 var _ Updater = (*SetpointListDataType)(nil)
 
-func (r *SetpointListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SetpointListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SetpointDataType
 	if newList != nil {
 		newData = newList.(*SetpointListDataType).SetpointData
@@ -12,18 +12,18 @@ func (r *SetpointListDataType) UpdateList(remoteWrite bool, newList any, filterP
 
 	data, success := UpdateList(remoteWrite, r.SetpointData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SetpointData = data
 	}
 
-	return success
+	return data, success
 }
 
 // SetpointDescriptionListDataType
 
 var _ Updater = (*SetpointDescriptionListDataType)(nil)
 
-func (r *SetpointDescriptionListDataType) UpdateList(remoteWrite bool, newList any, filterPartial, filterDelete *FilterType) bool {
+func (r *SetpointDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
 	var newData []SetpointDescriptionDataType
 	if newList != nil {
 		newData = newList.(*SetpointDescriptionListDataType).SetpointDescriptionData
@@ -31,9 +31,9 @@ func (r *SetpointDescriptionListDataType) UpdateList(remoteWrite bool, newList a
 
 	data, success := UpdateList(remoteWrite, r.SetpointDescriptionData, newData, filterPartial, filterDelete)
 
-	if success {
+	if success && persist {
 		r.SetpointDescriptionData = data
 	}
 
-	return success
+	return data, success
 }

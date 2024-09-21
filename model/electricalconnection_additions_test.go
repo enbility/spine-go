@@ -32,7 +32,7 @@ func TestElectricalConnectionStateListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionStateData
@@ -157,7 +157,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Modify(t *test
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -281,7 +281,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Modify_Selecto
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, partial, nil)
+	_, success := sut.UpdateList(false, false, &newData, partial, nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -445,7 +445,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Modify(
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), deleteFilter)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), deleteFilter)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -542,7 +542,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete(t *test
 	}
 
 	// Act
-	success := sut.UpdateList(false, nil, nil, deleteFilter)
+	_, success := sut.UpdateList(false, true, nil, nil, deleteFilter)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -642,7 +642,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Element
 	}
 
 	// Act
-	success := sut.UpdateList(false, nil, nil, deleteFilter)
+	_, success := sut.UpdateList(false, true, nil, nil, deleteFilter)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -745,7 +745,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_OnlyEle
 	}
 
 	// Act
-	success := sut.UpdateList(false, nil, nil, deleteFilter)
+	_, success := sut.UpdateList(false, true, nil, nil, deleteFilter)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -920,7 +920,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_Delete_Add(t *
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), deleteFilter)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), deleteFilter)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -1003,7 +1003,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_Update_NewItem(t *tes
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -1086,7 +1086,7 @@ func TestElectricalConnectionPermittedValueSetListDataType_UpdateWithoutIdenifie
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionPermittedValueSetData
@@ -1141,7 +1141,7 @@ func TestElectricalConnectionDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionDescriptionData
@@ -1186,7 +1186,7 @@ func TestElectricalConnectionCharacteristicListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionCharacteristicData
@@ -1229,7 +1229,7 @@ func TestElectricalConnectionParameterDescriptionListDataType_Update(t *testing.
 	}
 
 	// Act
-	success := sut.UpdateList(false, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
 	assert.True(t, success)
 
 	data := sut.ElectricalConnectionParameterDescriptionData
