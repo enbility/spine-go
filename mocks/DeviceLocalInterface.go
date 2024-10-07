@@ -548,53 +548,6 @@ func (_c *DeviceLocalInterface_FeatureSet_Call) RunAndReturn(run func() *model.N
 	return _c
 }
 
-// HeartbeatManager provides a mock function with given fields:
-func (_m *DeviceLocalInterface) HeartbeatManager() api.HeartbeatManagerInterface {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for HeartbeatManager")
-	}
-
-	var r0 api.HeartbeatManagerInterface
-	if rf, ok := ret.Get(0).(func() api.HeartbeatManagerInterface); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(api.HeartbeatManagerInterface)
-		}
-	}
-
-	return r0
-}
-
-// DeviceLocalInterface_HeartbeatManager_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HeartbeatManager'
-type DeviceLocalInterface_HeartbeatManager_Call struct {
-	*mock.Call
-}
-
-// HeartbeatManager is a helper method to define mock.On call
-func (_e *DeviceLocalInterface_Expecter) HeartbeatManager() *DeviceLocalInterface_HeartbeatManager_Call {
-	return &DeviceLocalInterface_HeartbeatManager_Call{Call: _e.mock.On("HeartbeatManager")}
-}
-
-func (_c *DeviceLocalInterface_HeartbeatManager_Call) Run(run func()) *DeviceLocalInterface_HeartbeatManager_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *DeviceLocalInterface_HeartbeatManager_Call) Return(_a0 api.HeartbeatManagerInterface) *DeviceLocalInterface_HeartbeatManager_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DeviceLocalInterface_HeartbeatManager_Call) RunAndReturn(run func() api.HeartbeatManagerInterface) *DeviceLocalInterface_HeartbeatManager_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Information provides a mock function with given fields:
 func (_m *DeviceLocalInterface) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
 	ret := _m.Called()

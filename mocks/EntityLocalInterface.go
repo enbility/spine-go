@@ -519,6 +519,53 @@ func (_c *EntityLocalInterface_HasUseCaseSupport_Call) RunAndReturn(run func(mod
 	return _c
 }
 
+// HeartbeatManager provides a mock function with given fields:
+func (_m *EntityLocalInterface) HeartbeatManager() api.HeartbeatManagerInterface {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for HeartbeatManager")
+	}
+
+	var r0 api.HeartbeatManagerInterface
+	if rf, ok := ret.Get(0).(func() api.HeartbeatManagerInterface); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(api.HeartbeatManagerInterface)
+		}
+	}
+
+	return r0
+}
+
+// EntityLocalInterface_HeartbeatManager_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HeartbeatManager'
+type EntityLocalInterface_HeartbeatManager_Call struct {
+	*mock.Call
+}
+
+// HeartbeatManager is a helper method to define mock.On call
+func (_e *EntityLocalInterface_Expecter) HeartbeatManager() *EntityLocalInterface_HeartbeatManager_Call {
+	return &EntityLocalInterface_HeartbeatManager_Call{Call: _e.mock.On("HeartbeatManager")}
+}
+
+func (_c *EntityLocalInterface_HeartbeatManager_Call) Run(run func()) *EntityLocalInterface_HeartbeatManager_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *EntityLocalInterface_HeartbeatManager_Call) Return(_a0 api.HeartbeatManagerInterface) *EntityLocalInterface_HeartbeatManager_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *EntityLocalInterface_HeartbeatManager_Call) RunAndReturn(run func() api.HeartbeatManagerInterface) *EntityLocalInterface_HeartbeatManager_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Information provides a mock function with given fields:
 func (_m *EntityLocalInterface) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
 	ret := _m.Called()
