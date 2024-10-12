@@ -42,7 +42,7 @@ func TestFunctionDataFactory_FunctionData(t *testing.T) {
 	assert.IsType(t, &FunctionData[model.HvacOperationModeDescriptionListDataType]{}, result[0])
 	assert.IsType(t, &FunctionData[model.HvacOverrunDescriptionListDataType]{}, result[1])
 	assert.IsType(t, &FunctionData[model.HvacOverrunListDataType]{}, result[2])
-	assert.IsType(t, &FunctionData[model.HvacSystemFunctionDescriptionDataType]{}, result[3])
+	assert.IsType(t, &FunctionData[model.HvacSystemFunctionDescriptionListDataType]{}, result[3])
 	assert.IsType(t, &FunctionData[model.HvacSystemFunctionListDataType]{}, result[4])
 
 	result = CreateFunctionData[api.FunctionDataInterface](model.FeatureTypeTypeIdentification)
