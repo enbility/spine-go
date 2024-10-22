@@ -102,10 +102,10 @@ func CreateFunctionData[F any](featureType model.FeatureTypeType) []F {
 
 	if featureType == model.FeatureTypeTypeHvac || featureType == model.FeatureTypeTypeGeneric {
 		result = append(result, []F{
-			createFunctionData[model.HvacOperationModeDescriptionDataType, F](model.FunctionTypeHvacOperationModeDescriptionListData),
+			createFunctionData[model.HvacOperationModeDescriptionListDataType, F](model.FunctionTypeHvacOperationModeDescriptionListData),
 			createFunctionData[model.HvacOverrunDescriptionListDataType, F](model.FunctionTypeHvacOverrunDescriptionListData),
 			createFunctionData[model.HvacOverrunListDataType, F](model.FunctionTypeHvacOverrunListData),
-			createFunctionData[model.HvacSystemFunctionDescriptionDataType, F](model.FunctionTypeHvacSystemFunctionDescriptionListData),
+			createFunctionData[model.HvacSystemFunctionDescriptionListDataType, F](model.FunctionTypeHvacSystemFunctionDescriptionListData),
 			createFunctionData[model.HvacSystemFunctionListDataType, F](model.FunctionTypeHvacSystemFunctionListData),
 			createFunctionData[model.HvacSystemFunctionOperationModeRelationListDataType, F](model.FunctionTypeHvacSystemFunctionOperationModeRelationListData),
 			createFunctionData[model.HvacSystemFunctionPowerSequenceRelationListDataType, F](model.FunctionTypeHvacSystemFunctionPowerSequenceRelationListData),
