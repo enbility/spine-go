@@ -74,8 +74,8 @@ func (r *events) Unsubscribe(handler api.EventHandlerInterface) error {
 // Publish an event to all subscribers
 func (r *events) Publish(payload api.EventPayload) {
 	r.mu.Lock()
-	var handler []eventHandlerItem
-	copy(r.handlers, handler)
+	handler := make([]eventHandlerItem, len(r.handlers))
+	copy(handler, r.handlers)
 	r.mu.Unlock()
 
 	// Use different locks, so unpublish is possible in the event handlers
@@ -87,7 +87,7 @@ func (r *events) Publish(payload api.EventPayload) {
 	}
 
 	for _, level := range handlerLevels {
-		for _, item := range r.handlers {
+		for _, item := range handler {
 			if item.Level != level {
 				continue
 			}
