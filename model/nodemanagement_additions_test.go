@@ -79,7 +79,7 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseFilter{
+		UseCaseFilterType{
 			Actor:       UseCaseActorTypeCEM,
 			UseCaseName: UseCaseNameTypeEVChargingSummary,
 		},
@@ -97,7 +97,7 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseFilter{
+		UseCaseFilterType{
 			Actor:       UseCaseActorTypeCEM,
 			UseCaseName: UseCaseNameTypeControlOfBattery,
 		},
@@ -107,14 +107,14 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseFilter{
+		UseCaseFilterType{
 			Actor:       UseCaseActorTypeCEM,
 			UseCaseName: UseCaseNameTypeEVSECommissioningAndConfiguration,
 		},
 	)
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 
-	ucs.RemoveUseCaseSupport(address, UseCaseFilter{})
+	ucs.RemoveUseCaseSupport(address, UseCaseFilterType{})
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 
 	invalidAddress := FeatureAddressType{
@@ -123,7 +123,7 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	}
 	ucs.RemoveUseCaseSupport(
 		invalidAddress,
-		UseCaseFilter{
+		UseCaseFilterType{
 			Actor:       UseCaseActorTypeCEM,
 			UseCaseName: UseCaseNameTypeEVSECommissioningAndConfiguration,
 		},

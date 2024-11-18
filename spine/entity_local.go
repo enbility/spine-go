@@ -149,7 +149,7 @@ func (r *EntityLocal) AddUseCaseSupport(
 }
 
 // Check if a use case is already added
-func (r *EntityLocal) HasUseCaseSupport(uc model.UseCaseFilter) bool {
+func (r *EntityLocal) HasUseCaseSupport(uc model.UseCaseFilterType) bool {
 	nodeMgmt := r.device.NodeManagement()
 
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
@@ -168,7 +168,7 @@ func (r *EntityLocal) HasUseCaseSupport(uc model.UseCaseFilter) bool {
 // Set the availability of a usecase. This may only be used for usescases
 // that act as a client within the usecase!
 func (r *EntityLocal) SetUseCaseAvailability(
-	uc model.UseCaseFilter,
+	uc model.UseCaseFilterType,
 	available bool) {
 	nodeMgmt := r.device.NodeManagement()
 
@@ -188,7 +188,7 @@ func (r *EntityLocal) SetUseCaseAvailability(
 }
 
 // Remove a usecase with a list of given actor and usecase name
-func (r *EntityLocal) RemoveUseCaseSupports(filters []model.UseCaseFilter) {
+func (r *EntityLocal) RemoveUseCaseSupports(filters []model.UseCaseFilterType) {
 	if len(filters) == 0 {
 		return
 	}

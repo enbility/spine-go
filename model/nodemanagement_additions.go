@@ -29,7 +29,7 @@ func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite, persist 
 }
 
 // helper type for easier filtering a specific UseCase element
-type UseCaseFilter struct {
+type UseCaseFilterType struct {
 	Actor       UseCaseActorType
 	UseCaseName UseCaseNameType
 }
@@ -159,7 +159,7 @@ func (n *NodeManagementUseCaseDataType) SetAvailability(
 // a provided FeatureAddressType, UseCaseActorType and UseCaseNameType
 func (n *NodeManagementUseCaseDataType) RemoveUseCaseSupport(
 	address FeatureAddressType,
-	filter UseCaseFilter,
+	filter UseCaseFilterType,
 ) {
 	nmMux.Lock()
 	defer nmMux.Unlock()
