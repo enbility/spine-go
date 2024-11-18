@@ -297,10 +297,9 @@ func NewScaledNumberType(value float64) *ScaledNumberType {
 	m.Number = &numberValue
 
 	var scaleValue ScaleType
-	if numberValue != 0 {
-		scaleValue = ScaleType(-numberOfDecimals)
-	} else {
-		scaleValue = ScaleType(0)
+	scaleValue = ScaleType(0)
+	if numberValue != 0 && -numberOfDecimals >= math.MinInt8 && -numberOfDecimals <= math.MaxInt8 {
+		scaleValue = ScaleType(int8(-numberOfDecimals))
 	}
 	m.Scale = &scaleValue
 
