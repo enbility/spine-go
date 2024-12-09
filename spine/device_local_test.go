@@ -39,6 +39,11 @@ func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 
 	rDevice = sut.RemoteDeviceForSki(ski)
 	assert.Nil(d.T(), rDevice)
+
+	// removing twice should not trigger anything
+	sut.RemoveRemoteDeviceConnection(ski)
+	rDevice = sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), rDevice)
 }
 
 func (d *DeviceLocalTestSuite) Test_RemoteDevice() {

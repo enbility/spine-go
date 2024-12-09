@@ -141,6 +141,12 @@ func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemote
 func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 	remoteDevice := r.RemoteDeviceForSki(ski)
 
+	// we get the events for any disconnection, even for cases where SHIP
+	// closed a connection and therefor it never reached SPINE
+	if remoteDevice == nil {
+		return
+	}
+
 	r.RemoveRemoteDevice(ski)
 
 	// inform about the disconnection
