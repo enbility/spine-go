@@ -15,6 +15,8 @@ const (
 	m_subscriptionRequestCall_recv_result_file_path = "./testdata/m_subscriptionRequestCall_recv_result.json"
 	m_descriptionListData_recv_reply_file_path      = "./testdata/m_descriptionListData_recv_reply.json"
 	m_measurementListData_recv_notify_file_path     = "./testdata/m_measurementListData_recv_notify.json"
+	m_measurementListData_set_key_path              = "./testdata/m_measurementListData_set_key.json"
+	m_measurementListData_unset_key_path            = "./testdata/m_measurementListData_unset_key.json"
 )
 
 func TestMeasurementSuite(t *testing.T) {
@@ -110,6 +112,36 @@ func (s *MeasurementSuite) TestMeasurementList_Recv() {
 		2022, 11, 19, 15, 21, 50, 3000000, time.UTC)
 	assert.Equal(s.T(), compareTimestamp, timestamp)
 	assert.Equal(s.T(), string(model.MeasurementValueSourceTypeMeasuredValue), string(*item1.ValueSource))
+}
+
+func (s *MeasurementSuite) TestMeasurementUnsetKey() {
+	// Send measurements with everything except MeasurementID set to nil
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), m_measurementListData_unset_key_path))
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	// Then send proper measurements
+	msgCounter, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), m_measurementListData_set_key_path))
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.NotNil(s.T(), remoteDevice)
+
+	mFeature := remoteDevice.FeatureByEntityTypeAndRole(
+		remoteDevice.Entity(spine.NewAddressEntityType([]uint{1, 1})),
+		model.FeatureTypeTypeMeasurement,
+		model.RoleTypeServer)
+	assert.NotNil(s.T(), mFeature)
+
+	fdata := mFeature.DataCopy(model.FunctionTypeMeasurementListData)
+	if !assert.NotNil(s.T(), fdata) {
+		return
+	}
+	data := fdata.(*model.MeasurementListDataType)
+
+	// If correctly merged the first 3 unset measurements are overwritten with new measurements
+	if !assert.Equal(s.T(), 3, len(data.MeasurementData)) {
+		return
+	}
 }
 
 func (s *MeasurementSuite) TestMeasurementByScope_Recv() {
