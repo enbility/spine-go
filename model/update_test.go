@@ -19,13 +19,14 @@ type TestUpdater struct {
 }
 
 func TestUpdateList_NewItem(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
 	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
 	newData := []TestUpdateData{{Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
 
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result, boolV := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
 
 	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
@@ -33,20 +34,21 @@ func TestUpdateList_NewItem(t *testing.T) {
 	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
 
 	// Act
-	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+	result, boolV = UpdateList(true, existingData, newData, partialFilter, nil)
 
 	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
 func TestUpdateList_ChangedItem(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
 	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(1))}}
 	newData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}}
 
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(2))}}
 
 	// Act
-	result, boolV := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
 
 	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
@@ -54,20 +56,21 @@ func TestUpdateList_ChangedItem(t *testing.T) {
 	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), IsChangeable: util.Ptr(false), DataItem: util.Ptr(int(1))}}
 
 	// Act
-	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+	result, boolV = UpdateList(true, existingData, newData, partialFilter, nil)
 
 	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
 func TestUpdateList_NewAndChangedItem(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
 	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
 	newData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(3)), DataItem: util.Ptr(int(3))}}
 
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(3)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result, boolV := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
 
 	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
@@ -75,20 +78,21 @@ func TestUpdateList_NewAndChangedItem(t *testing.T) {
 	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
 
 	// Act
-	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+	result, boolV = UpdateList(true, existingData, newData, partialFilter, nil)
 
 	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 
 func TestUpdateList_ItemWithNoIdentifier(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
 	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
 	newData := []TestUpdateData{{DataItem: util.Ptr(int(3))}}
 
 	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(3))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result, boolV := UpdateList(false, existingData, newData, nil, nil)
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
 
 	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
@@ -96,7 +100,7 @@ func TestUpdateList_ItemWithNoIdentifier(t *testing.T) {
 	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(3))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
 
 	// Act
-	result, boolV = UpdateList(true, existingData, newData, nil, nil)
+	result, boolV = UpdateList(true, existingData, newData, partialFilter, nil)
 
 	assert.False(t, boolV)
 	assert.Equal(t, expectedResult, result)

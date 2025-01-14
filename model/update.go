@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/util"
 )
 
@@ -35,6 +36,21 @@ type Updater interface {
 func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
 	success := true
 
+	if filterDelete == nil && filterPartial == nil {
+		if len(newData) == 0 {
+			return newData, success
+		}
+		// filter invalid data out and simply return all new data left
+		newData = filterIncompleteIdentifiers(newData)
+		if len(newData) == 0 {
+			logging.Log().Debug("provided list only contains invalid items, leaving old data unchanged")
+			return existingData, false
+		}
+
+		result := SortData(newData)
+		return result, success
+	}
+
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
 		if filterData, err := filterDelete.Data(); err == nil {
@@ -59,9 +75,7 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	}
 
 	// check if items have no identifiers
-	// Currently all fields marked as key are required
-	// TODO: check how to handle if only one identifier is provided
-	if len(newData) > 0 && !HasIdentifiers(newData[0]) {
+	if len(newData) > 0 && HasNoIdentifiers(newData[0]) {
 		// no identifiers specified --> copy data to all existing items
 		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
 		newData, noErrors := copyToAllData(remoteWrite, existingData, &newData[0])
@@ -71,6 +85,8 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		return newData, success
 	}
 
+	// Items with some (but not all identifiers) set need to be filtered out as they are invalid
+	newData = filterIncompleteIdentifiers(newData)
 	result, noErrors := Merge(remoteWrite, existingData, newData)
 	if !noErrors {
 		success = false
@@ -79,6 +95,20 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	result = SortData(result)
 
 	return result, success
+}
+
+// Filter out all items that do not have complete identifiers
+func filterIncompleteIdentifiers[T any](data []T) []T {
+	var filteredItems []T
+	for _, item := range data {
+		if HasAllIdentifiers(item) {
+			filteredItems = append(filteredItems, item)
+		} else {
+			logging.Log().Debug("an item in list of new data does not have all identifiers set and will thus be ignored")
+		}
+	}
+
+	return filteredItems
 }
 
 // return a list of field names that have the eebus tag
@@ -112,7 +142,29 @@ func fieldNamesWithEEBusTag(tag EEBusTag, item any) []string {
 	return result
 }
 
-func HasIdentifiers(data any) bool {
+// Checks if none of an items identifiers are set if it has any
+func HasNoIdentifiers(data any) bool {
+	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
+
+	// If item has no fields with tag 'key' then those fields can't be 'missing' or 'unset'
+	if len(keys) == 0 {
+		return false
+	}
+
+	v := reflect.ValueOf(data)
+
+	for _, fieldName := range keys {
+		f := v.FieldByName(fieldName)
+
+		if !f.IsNil() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func HasAllIdentifiers(data any) bool {
 	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
 
 	v := reflect.ValueOf(data)

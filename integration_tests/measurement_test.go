@@ -138,7 +138,7 @@ func (s *MeasurementSuite) TestMeasurementUnsetKey() {
 	}
 	data := fdata.(*model.MeasurementListDataType)
 
-	// If correctly merged the first 3 unset measurements are overwritten with new measurements
+	// The 3 unset measurements should be overwritten/merged or ignored => there should be a total of 3 measurements
 	if !assert.Equal(s.T(), 3, len(data.MeasurementData)) {
 		return
 	}
