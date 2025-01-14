@@ -154,3 +154,26 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 		}
 	}
 }
+
+// When using waitForNack and waitForAck in the same test ensure that each message sent has a unique message counter
+func waitForNack(t *testing.T, msgCounterReference *model.MsgCounterType, writeHandler *WriteMessageHandler) {
+	var datagram model.Datagram
+
+	msg := writeHandler.ResultWithReference(msgCounterReference)
+	if msg == nil {
+		t.Fatal("acknowledge message was not sent!!")
+	}
+
+	if err := json.Unmarshal(msg, &datagram); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := datagram.Datagram.Payload.Cmd[0]
+	if cmd.ResultData != nil {
+		if cmd.ResultData.ErrorNumber == nil || uint(*cmd.ResultData.ErrorNumber) == uint(model.ErrorNumberTypeNoError) {
+			t.Fatal("expected error in acknowledgement but received nil/no error")
+		}
+	} else {
+		t.Fatal("expected ResultData with error in acknowledgement but received no ResultData")
+	}
+}

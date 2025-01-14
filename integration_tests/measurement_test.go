@@ -17,6 +17,7 @@ const (
 	m_measurementListData_recv_notify_file_path     = "./testdata/m_measurementListData_recv_notify.json"
 	m_measurementListData_set_key_path              = "./testdata/m_measurementListData_set_key.json"
 	m_measurementListData_unset_key_path            = "./testdata/m_measurementListData_unset_key.json"
+	m_measurementListData_unset_key_filter_path		= "./testdata/m_measurementListData_unset_key_with_filter.json"
 )
 
 func TestMeasurementSuite(t *testing.T) {
@@ -117,11 +118,15 @@ func (s *MeasurementSuite) TestMeasurementList_Recv() {
 func (s *MeasurementSuite) TestMeasurementUnsetKey() {
 	// Send measurements with everything except MeasurementID set to nil
 	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), m_measurementListData_unset_key_path))
-	waitForAck(s.T(), msgCounter, s.writeHandler)
+	waitForNack(s.T(), msgCounter, s.writeHandler)
 
-	// Then send proper measurements
+	// Send proper measurements
 	msgCounter, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), m_measurementListData_set_key_path))
 	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	// Try to merge data with unset keys by providing partial filter
+	msgCounter, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), m_measurementListData_unset_key_filter_path))
+	waitForNack(s.T(), msgCounter, s.writeHandler)
 
 	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
 	assert.NotNil(s.T(), remoteDevice)
@@ -138,10 +143,8 @@ func (s *MeasurementSuite) TestMeasurementUnsetKey() {
 	}
 	data := fdata.(*model.MeasurementListDataType)
 
-	// The 3 unset measurements should be overwritten/merged or ignored => there should be a total of 3 measurements
-	if !assert.Equal(s.T(), 3, len(data.MeasurementData)) {
-		return
-	}
+	// The 3 unset measurements should have been ignored and not merged => Value should stay unchanged
+	assert.Equal(s.T(), 5.0, data.MeasurementData[0].Value.GetValue()) 
 }
 
 func (s *MeasurementSuite) TestMeasurementByScope_Recv() {

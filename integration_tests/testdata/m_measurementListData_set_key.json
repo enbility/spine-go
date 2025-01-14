@@ -12,7 +12,7 @@
         "entity": [1],
         "feature": 2
       },
-      "msgCounter": 10,
+      "msgCounter": 11,
       "cmdClassifier": "notify",
       "ackRequest":true
     },

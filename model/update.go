@@ -74,8 +74,12 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		}
 	}
 
+	if len(newData) == 0 {
+		return existingData, success
+	}
+
 	// check if items have no identifiers
-	if len(newData) > 0 && HasNoIdentifiers(newData[0]) {
+	if HasNoIdentifiers(newData[0]) {
 		// no identifiers specified --> copy data to all existing items
 		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
 		newData, noErrors := copyToAllData(remoteWrite, existingData, &newData[0])
@@ -87,6 +91,11 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 
 	// Items with some (but not all identifiers) set need to be filtered out as they are invalid
 	newData = filterIncompleteIdentifiers(newData)
+	if len(newData) == 0 {
+		logging.Log().Debug("provided list only contains invalid items, leaving old data unchanged")
+		return existingData, false
+	}
+	
 	result, noErrors := Merge(remoteWrite, existingData, newData)
 	if !noErrors {
 		success = false
