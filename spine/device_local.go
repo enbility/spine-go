@@ -161,11 +161,13 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 
 	// remove all subscriptions for this device
 	subscriptionMgr := r.SubscriptionManager()
-	subscriptionMgr.RemoveSubscriptionsForDevice(r.remoteDevices[ski])
+	subscriptionMgr.RemoveSubscriptionsForDevice(remoteDevice)
 
 	// remove all bindings for this device
 	bindingMgr := r.BindingManager()
-	bindingMgr.RemoveBindingsForDevice(r.remoteDevices[ski])
+	bindingMgr.RemoveBindingsForDevice(remoteDevice)
+
+	r.mux.Lock()
 
 	delete(r.remoteDevices, ski)
 
@@ -173,6 +175,8 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	if len(r.remoteDevices) == 0 {
 		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
 	}
+
+	r.mux.Unlock()
 
 	remoteDeviceAddress := &model.DeviceAddressType{
 		Device: remoteDevice.Address(),
