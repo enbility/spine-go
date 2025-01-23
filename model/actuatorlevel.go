@@ -19,8 +19,8 @@ type ActuatorLevelDataType struct {
 }
 
 type ActuatorLevelDataElementsType struct {
-	Function *ElementTagType `json:"function,omitempty"`
-	Value    *ElementTagType `json:"value,omitempty"`
+	Function *ElementTagType           `json:"function,omitempty"`
+	Value    *ScaledNumberElementsType `json:"value,omitempty"`
 }
 
 type ActuatorLevelDescriptionDataType struct {
