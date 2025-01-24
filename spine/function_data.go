@@ -62,10 +62,9 @@ func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filt
 			// just set the data
 			r.data = newData
 			return r.data, nil
-		} else {
-			logging.Log().Debug("the provided new data does not have all identifiers set and will thus be ignored")
-			return r.data, nil
 		}
+		logging.Log().Debug("the provided new data does not have all identifiers set and will thus be ignored")
+		return r.data, nil
 	}
 
 	if !r.SupportsPartialWrite() {
