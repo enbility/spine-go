@@ -76,7 +76,7 @@ func TestFunctionDataFactory_FunctionData(t *testing.T) {
 	assert.IsType(t, &FunctionData[model.TimeSeriesListDataType]{}, result[2])
 
 	result = CreateFunctionData[api.FunctionDataInterface](model.FeatureTypeTypeGeneric)
-	assert.Equal(t, 124, len(result))
+	assert.Equal(t, 125, len(result))
 }
 
 func TestFunctionDataFactory_FunctionDataCmd(t *testing.T) {
