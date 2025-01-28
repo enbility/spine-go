@@ -98,6 +98,7 @@ type FilterType struct {
 	SupplyConditionDescriptionListDataSelectors               *SupplyConditionDescriptionListDataSelectorsType               `json:"supplyConditionDescriptionListDataSelectors,omitempty" eebus:"typ:selector,fct:supplyConditionDescriptionListData"`
 	SupplyConditionListDataSelectors                          *SupplyConditionListDataSelectorsType                          `json:"supplyConditionListDataSelectors,omitempty" eebus:"typ:selector,fct:supplyConditionListData"`
 	SupplyConditionThresholdRelationListDataSelectors         *SupplyConditionThresholdRelationListDataSelectorsType         `json:"supplyConditionThresholdRelationListDataSelectors,omitempty" eebus:"typ:selector,fct:supplyConditionThresholdRelationListData"`
+	SurrogateDescriptionListDataSelectors                     *SurrogateDescriptionListDataSelectorsType                     `json:"surrogateDescriptionListDataSelectors,omitempty" eebus:"typ:selector,fct:surrogateDescriptionListData"`
 	TariffBoundaryRelationListDataSelectors                   *TariffBoundaryRelationListDataSelectorsType                   `json:"tariffBoundaryRelationListDataSelectors,omitempty" eebus:"typ:selector,fct:tariffBoundaryRelationListData"`
 	TariffDescriptionListDataSelectors                        *TariffDescriptionListDataSelectorsType                        `json:"tariffDescriptionListDataSelectors,omitempty" eebus:"typ:selector,fct:tariffDescriptionListData"`
 	TariffListDataSelectors                                   *TariffListDataSelectorsType                                   `json:"tariffListDataSelectors,omitempty" eebus:"typ:selector,fct:tariffListData"`
@@ -235,6 +236,7 @@ type FilterType struct {
 	SupplyConditionDataElements                                *SupplyConditionDataElementsType                                `json:"supplyConditionDataElements,omitempty" eebus:"typ:elements,fct:supplyConditionListData"`
 	SupplyConditionDescriptionDataElements                     *SupplyConditionDescriptionDataElementsType                     `json:"supplyConditionDescriptionDataElements,omitempty" eebus:"typ:elements,fct:supplyConditionDescriptionListData"`
 	SupplyConditionThresholdRelationDataElements               *SupplyConditionThresholdRelationDataElementsType               `json:"supplyConditionThresholdRelationDataElements,omitempty" eebus:"typ:elements,fct:supplyConditionThresholdRelationListData"`
+	SurrogateDescriptionDataElements                           *SurrogateDescriptionDataElementsType                           `json:"surrogateDescriptionDataElements,omitempty" eebus:"typ:elements,fct:surrogateDescriptionListData"`
 	TariffBoundaryRelationDataElements                         *TariffBoundaryRelationDataElementsType                         `json:"tariffBoundaryRelationDataElements,omitempty" eebus:"typ:elements,fct:tariffBoundaryRelationListData"`
 	TariffDataElements                                         *TariffDataElementsType                                         `json:"tariffDataElements,omitempty" eebus:"typ:elements,fct:tariffListData"`
 	TariffDescriptionDataElements                              *TariffDescriptionDataElementsType                              `json:"tariffDescriptionDataElements,omitempty" eebus:"typ:elements,fct:tariffDescriptionListData"`
@@ -391,6 +393,7 @@ type CmdType struct {
 	SupplyConditionDescriptionListData                 *SupplyConditionDescriptionListDataType                 `json:"supplyConditionDescriptionListData,omitempty" eebus:"fct:supplyConditionDescriptionListData"`
 	SupplyConditionListData                            *SupplyConditionListDataType                            `json:"supplyConditionListData,omitempty" eebus:"fct:supplyConditionListData"`
 	SupplyConditionThresholdRelationListData           *SupplyConditionThresholdRelationListDataType           `json:"supplyConditionThresholdRelationListData,omitempty" eebus:"fct:supplyConditionThresholdRelationListData"`
+	SurrogateDescriptionListData                       *SurrogateDescriptionListDataType                       `json:"surrogateDescriptionListData,omitempty" eebus:"fct:surrogateDescriptionListData"`
 	TariffBoundaryRelationListData                     *TariffBoundaryRelationListDataType                     `json:"tariffBoundaryRelationListData,omitempty" eebus:"fct:tariffBoundaryRelationListData"`
 	TariffDescriptionListData                          *TariffDescriptionListDataType                          `json:"tariffDescriptionListData,omitempty" eebus:"fct:tariffDescriptionListData"`
 	TariffListData                                     *TariffListDataType                                     `json:"tariffListData,omitempty" eebus:"fct:tariffListData"`

@@ -240,6 +240,12 @@ func CreateFunctionData[F any](featureType model.FeatureTypeType) []F {
 		}...)
 	}
 
+	if featureType == model.FeatureTypeTypeSurrogate || featureType == model.FeatureTypeTypeGeneric {
+		result = append(result, []F{
+			createFunctionData[model.SurrogateDescriptionListDataType, F](model.FunctionTypeSurrogateDescriptionListData),
+		}...)
+	}
+
 	if featureType == model.FeatureTypeTypeTariffInformation || featureType == model.FeatureTypeTypeGeneric {
 		result = append(result, []F{
 			createFunctionData[model.IncentiveDescriptionListDataType, F](model.FunctionTypeIncentiveDescriptionListData),

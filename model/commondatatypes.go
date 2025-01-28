@@ -611,6 +611,11 @@ const (
 	ScopeTypeTypeIncentiveTableEnConsWithTF      ScopeTypeType = "incentiveTableEnConsWithTF"
 	ScopeTypeTypeIncentiveTableEnProdWithTF      ScopeTypeType = "incentiveTableEnProdWithTF"
 	ScopeTypeTypeActivePowerForecast             ScopeTypeType = "activePowerForecast"
+	ScopeTypeTypeACEnergyPossibleConsumption     ScopeTypeType = "acEnergyPossibleConsumption"
+	ScopeTypeTypeExtraPowerRequest               ScopeTypeType = "extraPowerRequest"
+	ScopeTypeTypeTimeToMinimumSoC                ScopeTypeType = "timeToMinimumSoC"
+	ScopeTypeTypeTimeToMaximumSoC                ScopeTypeType = "timeToMaximumSoC"
+	ScopeTypeTypeTimeToTargetSoC                 ScopeTypeType = "timeToTargetSoC"
 )
 
 type RoleType string
@@ -693,6 +698,7 @@ const (
 	EntityTypeTypePVString                      EntityTypeType = "PVString"
 	EntityTypeTypeGridGuard                     EntityTypeType = "GridGuard"
 	EntityTypeTypeControllableSystem            EntityTypeType = "ControllableSystem"
+	EntityTypeTypeSurrogate                     EntityTypeType = "Surrogate"
 )
 
 type FeatureTypeType string
@@ -730,6 +736,7 @@ const (
 	FeatureTypeTypeBill                    FeatureTypeType = "Bill"
 	FeatureTypeTypeIdentification          FeatureTypeType = "Identification"
 	FeatureTypeTypeStateInformation        FeatureTypeType = "StateInformation"
+	FeatureTypeTypeSurrogate               FeatureTypeType = "Surrogate"
 )
 
 type FeatureSpecificUsageType string
@@ -901,6 +908,7 @@ const (
 	FunctionTypeSupplyConditionDescriptionListData                 FunctionType = "supplyConditionDescriptionListData"
 	FunctionTypeSupplyConditionListData                            FunctionType = "supplyConditionListData"
 	FunctionTypeSupplyConditionThresholdRelationListData           FunctionType = "supplyConditionThresholdRelationListData"
+	FunctionTypeSurrogateDescriptionListData                       FunctionType = "surrogateDescriptionListData"
 	FunctionTypeTaskManagementJobDescriptionListData               FunctionType = "taskManagementJobDescriptionListData"
 	FunctionTypeTaskManagementJobListData                          FunctionType = "taskManagementJobListData"
 	FunctionTypeTaskManagementJobRelationListData                  FunctionType = "taskManagementJobRelationListData"

@@ -9,6 +9,14 @@ const (
 	SetpointTypeTypeValueRelative SetpointTypeType = "valueRelative"
 )
 
+type SetpointValuesType struct {
+	Value []ScaledNumberType `json:"value,omitempty"`
+}
+
+type SetpointValuesElementsType struct {
+	Value []ScaledNumberElementsType `json:"value,omitempty"`
+}
+
 type SetpointDataType struct {
 	SetpointId               *SetpointIdType   `json:"setpointId,omitempty" eebus:"key"`
 	Value                    *ScaledNumberType `json:"value,omitempty"`
@@ -42,17 +50,19 @@ type SetpointListDataSelectorsType struct {
 }
 
 type SetpointConstraintsDataType struct {
-	SetpointId       *SetpointIdType   `json:"setpointId,omitempty" eebus:"key"`
-	SetpointRangeMin *ScaledNumberType `json:"setpointRangeMin,omitempty"`
-	SetpointRangeMax *ScaledNumberType `json:"setpointRangeMax,omitempty"`
-	SetpointStepSize *ScaledNumberType `json:"setpointStepSize,omitempty"`
+	SetpointId       *SetpointIdType     `json:"setpointId,omitempty" eebus:"key"`
+	SetpointRangeMin *ScaledNumberType   `json:"setpointRangeMin,omitempty"`
+	SetpointRangeMax *ScaledNumberType   `json:"setpointRangeMax,omitempty"`
+	SetpointStepSize *ScaledNumberType   `json:"setpointStepSize,omitempty"`
+	SetpointValues   *SetpointValuesType `json:"setpointValues,omitempty"`
 }
 
 type SetpointConstraintsDataElementsType struct {
-	SetpointId       *ElementTagType           `json:"setpointId,omitempty"`
-	SetpointRangeMin *ScaledNumberElementsType `json:"setpointRangeMin,omitempty"`
-	SetpointRangeMax *ScaledNumberElementsType `json:"setpointRangeMax,omitempty"`
-	SetpointStepSize *ScaledNumberElementsType `json:"setpointStepSize,omitempty"`
+	SetpointId       *ElementTagType             `json:"setpointId,omitempty"`
+	SetpointRangeMin *ScaledNumberElementsType   `json:"setpointRangeMin,omitempty"`
+	SetpointRangeMax *ScaledNumberElementsType   `json:"setpointRangeMax,omitempty"`
+	SetpointStepSize *ScaledNumberElementsType   `json:"setpointStepSize,omitempty"`
+	SetpointValues   *SetpointValuesElementsType `json:"setpointValues,omitempty"`
 }
 
 type SetpointConstraintsListDataType struct {

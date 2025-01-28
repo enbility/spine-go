@@ -50,6 +50,16 @@ const (
 	DeviceConfigurationKeyNameTypeIncentivesSimulationConcurrent               DeviceConfigurationKeyNameType = "incentivesSimulationConcurrent"
 	DeviceConfigurationKeyNameTypeIncentivesTimeoutIncentiveRequest            DeviceConfigurationKeyNameType = "incentivesTimeoutIncentiveRequest"
 	DeviceConfigurationKeyNameTypeIncentivesWaitIncentiveWriteable             DeviceConfigurationKeyNameType = "incentivesWaitIncentiveWriteable"
+	DeviceConfigurationKeyNameTypePowerSetpointDeviation                       DeviceConfigurationKeyNameType = "powerSetpointDeviation"
+	DeviceConfigurationKeyNameTypePowerSetpointDeviationTypes                  DeviceConfigurationKeyNameType = "powerSetpointDeviationTypes"
+	DeviceConfigurationKeyNameTypeRemainingExtraPowerRequests                  DeviceConfigurationKeyNameType = "remainingExtraPowerRequests"
+	DeviceConfigurationKeyNameTypePvChargeMode                                 DeviceConfigurationKeyNameType = "pvChargeMode"
+	DeviceConfigurationKeyNameTypeSurplusWithThresholdValue                    DeviceConfigurationKeyNameType = "surplusWithThresholdValue"
+	DeviceConfigurationKeyNameTypeStartDelay                                   DeviceConfigurationKeyNameType = "startDelay"
+	DeviceConfigurationKeyNameTypeStopDelay                                    DeviceConfigurationKeyNameType = "stopDelay"
+	DeviceConfigurationKeyNameTypeMinimumStateOfCharge                         DeviceConfigurationKeyNameType = "minimumStateOfCharge"
+	DeviceConfigurationKeyNameTypeTargetStateOfCharge                          DeviceConfigurationKeyNameType = "targetStateOfCharge"
+	DeviceConfigurationKeyNameTypePhaseRotation                                DeviceConfigurationKeyNameType = "phaseRotation"
 )
 
 type DeviceConfigurationKeyValueTypeType string
