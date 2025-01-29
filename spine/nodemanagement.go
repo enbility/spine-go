@@ -22,7 +22,6 @@ var _ api.NodeManagementInterface = (*NodeManagement)(nil)
 
 type NodeManagement struct {
 	*FeatureLocal
-	entity api.EntityLocalInterface
 }
 
 func NewNodeManagement(id uint, entity api.EntityLocalInterface) *NodeManagement {
@@ -31,7 +30,6 @@ func NewNodeManagement(id uint, entity api.EntityLocalInterface) *NodeManagement
 			id, entity,
 			model.FeatureTypeTypeNodeManagement,
 			model.RoleTypeSpecial),
-		entity: entity,
 	}
 
 	f.AddFunctionType(model.FunctionTypeNodeManagementDetailedDiscoveryData, true, false)
