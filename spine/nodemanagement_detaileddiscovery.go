@@ -59,7 +59,8 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 	}
 
 	remoteDevice.UpdateDevice(deviceDescription)
-	entities, err := remoteDevice.AddEntityAndFeatures(true, data)
+	// add all entities from the dataset
+	entities, err := remoteDevice.AddEntityAndFeatures(true, data, nil)
 	if err != nil {
 		return err
 	}
@@ -225,7 +226,8 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 
 		// is this addition?
 		if lastStateChange == model.NetworkManagementStateChangeTypeAdded {
-			entities, err := remoteDevice.AddEntityAndFeatures(false, data)
+			// only add a specific entity
+			entities, err := remoteDevice.AddEntityAndFeatures(false, data, entity.Description.EntityAddress)
 			if err != nil {
 				return err
 			}

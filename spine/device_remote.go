@@ -199,7 +199,11 @@ func (d *DeviceRemote) UpdateDevice(description *model.NetworkManagementDeviceDe
 	}
 }
 
-func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]api.EntityRemoteInterface, error) {
+func (d *DeviceRemote) AddEntityAndFeatures(
+	initialData bool,
+	data *model.NodeManagementDetailedDiscoveryDataType,
+	entityAddressToAdd *model.EntityAddressType,
+) ([]api.EntityRemoteInterface, error) {
 	rEntites := make([]api.EntityRemoteInterface, 0)
 
 	for _, ei := range data.EntityInformation {
@@ -208,6 +212,10 @@ func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeMa
 		}
 
 		entityAddress := ei.Description.EntityAddress.Entity
+		// if entityAddressToAdd, make sure we are adding the correct entity
+		if entityAddressToAdd != nil && !reflect.DeepEqual(entityAddress, entityAddressToAdd.Entity) {
+			continue
+		}
 
 		entity := d.Entity(entityAddress)
 		if entity == nil {

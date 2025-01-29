@@ -115,7 +115,7 @@ type DeviceRemoteInterface interface {
 	UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType)
 
 	// Add entities and their features using provided NodeManagementDetailedDiscoveryData
-	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]EntityRemoteInterface, error)
+	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType, entityAddressToAdd *model.EntityAddressType) ([]EntityRemoteInterface, error)
 
 	// Helper method for checking incoming NodeManagementDetailedDiscoveryEntityInformation data
 	CheckEntityInformation(initialData bool, entity model.NodeManagementDetailedDiscoveryEntityInformationType) error
