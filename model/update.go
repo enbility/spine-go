@@ -36,14 +36,18 @@ type Updater interface {
 func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
 	success := true
 
+	if !listIsValid(newData) {
+		logging.Log().Debug("incoming list update for type '%s' contains invalid items (some but not all identifiers set), leaving old data unchanged", util.Type[T]().Name())
+		return existingData, false
+	}
+
 	if filterDelete == nil && filterPartial == nil {
 		if len(newData) == 0 {
 			return newData, success
 		}
-		// filter invalid data out and simply return all new data left
-		newData = filterIncompleteIdentifiers(newData)
-		if len(newData) == 0 {
-			logging.Log().Debug("provided list only contains invalid items, leaving old data unchanged")
+		// because no filters are set all items need to have complete identifiers
+		if !listHasAllIdentifiers(newData) {
+			logging.Log().Debug("no filters were set and incoming list update for type '%s' contains items that do not have all identifiers, leaving old data unchanged", util.Type[T]().Name())
 			return existingData, false
 		}
 
@@ -78,46 +82,47 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		return existingData, success
 	}
 
-	// check if items have no identifiers
-	if HasNoIdentifiers(newData[0]) {
-		// no identifiers specified --> copy data to all existing items
-		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
-		newData, noErrors := copyToAllData(remoteWrite, existingData, &newData[0])
-		if !noErrors {
-			success = false
+	updatedData := existingData
+	for _, item := range newData {
+		var noErrors bool
+		if HasNoIdentifiers(item) {
+			// no identifiers specified --> copy data to all existing items
+			// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
+			updatedData, noErrors = copyToAllData(remoteWrite, updatedData, &item)
+			if !noErrors {
+				success = false
+			}
+		} else {
+			updatedData, noErrors = Merge(remoteWrite, updatedData, []T{item})
+			if !noErrors {
+				success = false
+			}
 		}
-		return newData, success
 	}
 
-	// Items with some (but not all identifiers) set need to be filtered out as they are invalid
-	newData = filterIncompleteIdentifiers(newData)
-	if len(newData) == 0 {
-		logging.Log().Debug("provided list only contains invalid items, leaving old data unchanged")
-		return existingData, false
-	}
-	
-	result, noErrors := Merge(remoteWrite, existingData, newData)
-	if !noErrors {
-		success = false
-	}
-
-	result = SortData(result)
+	result := SortData(updatedData)
 
 	return result, success
 }
 
-// Filter out all items that do not have complete identifiers
-func filterIncompleteIdentifiers[T any](data []T) []T {
-	var filteredItems []T
+// Check if every item in list has either all or no identifiers set
+func listIsValid[T any](data []T) bool {
 	for _, item := range data {
-		if HasAllIdentifiers(item) {
-			filteredItems = append(filteredItems, item)
-		} else {
-			logging.Log().Debug("an item in list of new data does not have all identifiers set and will thus be ignored")
+		if !HasAllIdentifiers(item) && !HasNoIdentifiers(item) {
+			return false
 		}
 	}
+	return true
+}
 
-	return filteredItems
+// Check if all items in a list have all of their identifiers
+func listHasAllIdentifiers[T any](data []T) bool {
+	for _, item := range data {
+		if !HasAllIdentifiers(item) {
+			return false
+		}
+	}
+	return true
 }
 
 // return a list of field names that have the eebus tag

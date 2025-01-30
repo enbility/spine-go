@@ -13,6 +13,13 @@ type TestUpdateData struct {
 	DataItem     *int
 }
 
+type TestUpdateDataMultiKey struct {
+	Id           *uint   `eebus:"key"`
+	DataType     *string `eebus:"key"`
+	IsChangeable *bool   `eebus:"writecheck"`
+	DataItem     *int
+}
+
 type TestUpdater struct {
 	// updateSelectorHashKey *string
 	// deleteSelectorHashKey *string
@@ -103,6 +110,40 @@ func TestUpdateList_ItemWithNoIdentifier(t *testing.T) {
 	result, boolV = UpdateList(true, existingData, newData, partialFilter, nil)
 
 	assert.False(t, boolV)
+	assert.Equal(t, expectedResult, result)
+}
+
+func TestUpdateList_ItemWithSomeIdentifiers(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
+	existingData := []TestUpdateDataMultiKey{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1)), DataType: util.Ptr("testType")}}
+	newData := []TestUpdateDataMultiKey{{Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(1))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2)), DataType: util.Ptr("testType")}}
+
+	expectedResult := existingData
+
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
+
+	assert.False(t, boolV)
+	assert.Equal(t, expectedResult, result)
+}
+
+func TestUpdateList_ItemsWithNoAndAllIdentifiers(t *testing.T) {
+	partialFilter := NewFilterTypePartial()
+	existingData := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(1))}}
+	newData := []TestUpdateData{{DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
+
+	expectedResult := []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}}
+
+	result, boolV := UpdateList(false, existingData, newData, partialFilter, nil)
+
+	assert.True(t, boolV)
+	assert.Equal(t, expectedResult, result)
+
+	newData = []TestUpdateData{{Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(3))}, {DataItem: util.Ptr(int(2))}}
+	expectedResult = []TestUpdateData{{Id: util.Ptr(uint(1)), DataItem: util.Ptr(int(2))}, {Id: util.Ptr(uint(2)), DataItem: util.Ptr(int(2))}}
+
+	result, boolV = UpdateList(false, existingData, newData, partialFilter, nil)
+
+	assert.True(t, boolV)
 	assert.Equal(t, expectedResult, result)
 }
 

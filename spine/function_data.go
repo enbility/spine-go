@@ -63,7 +63,7 @@ func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filt
 			r.data = newData
 			return r.data, nil
 		}
-		logging.Log().Debug("the provided new data does not have all identifiers set and will thus be ignored")
+		logging.Log().Debug("incoming new data of type '%s' does not have all identifiers set, leaving old data unchanged", util.Type[T]().Name())
 		return r.data, nil
 	}
 

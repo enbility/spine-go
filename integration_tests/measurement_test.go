@@ -17,7 +17,7 @@ const (
 	m_measurementListData_recv_notify_file_path     = "./testdata/m_measurementListData_recv_notify.json"
 	m_measurementListData_set_key_path              = "./testdata/m_measurementListData_set_key.json"
 	m_measurementListData_unset_key_path            = "./testdata/m_measurementListData_unset_key.json"
-	m_measurementListData_unset_key_filter_path		= "./testdata/m_measurementListData_unset_key_with_filter.json"
+	m_measurementListData_unset_key_filter_path     = "./testdata/m_measurementListData_unset_key_with_filter.json"
 )
 
 func TestMeasurementSuite(t *testing.T) {
@@ -144,7 +144,7 @@ func (s *MeasurementSuite) TestMeasurementUnsetKey() {
 	data := fdata.(*model.MeasurementListDataType)
 
 	// The 3 unset measurements should have been ignored and not merged => Value should stay unchanged
-	assert.Equal(s.T(), 5.0, data.MeasurementData[0].Value.GetValue()) 
+	assert.Equal(s.T(), 5.0, data.MeasurementData[0].Value.GetValue())
 }
 
 func (s *MeasurementSuite) TestMeasurementByScope_Recv() {
