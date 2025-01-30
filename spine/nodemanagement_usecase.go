@@ -32,12 +32,12 @@ func (r *NodeManagement) processReplyUseCaseData(message *api.Message, data *mod
 
 	// the data was updated, so send an event, other event handlers may watch out for this as well
 	payload := api.EventPayload{
-		Ski:           message.FeatureRemote.Device().Ski(),
+		Ski:           message.DeviceRemote.Ski(),
 		EventType:     api.EventTypeDataChange,
 		ChangeType:    api.ElementChangeUpdate,
 		Feature:       message.FeatureRemote,
-		Device:        message.FeatureRemote.Device(),
-		Entity:        message.FeatureRemote.Entity(),
+		Device:        message.DeviceRemote,
+		Entity:        message.EntityRemote,
 		CmdClassifier: util.Ptr(message.CmdClassifier),
 		Data:          data,
 	}

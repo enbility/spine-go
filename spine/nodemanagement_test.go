@@ -36,6 +36,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 				clientFeature.Address(), serverFeature.Address(), featureType),
 		},
 		CmdClassifier: model.CmdClassifierTypeCall,
+		DeviceRemote:  remoteDevice,
 		FeatureRemote: clientFeature,
 	}
 
@@ -49,6 +50,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 				NodeManagementBindingData: &model.NodeManagementBindingDataType{},
 			},
 			CmdClassifier: model.CmdClassifierTypeCall,
+			DeviceRemote:  remoteDevice,
 			FeatureRemote: clientFeature,
 		}
 		err = sut.HandleMessage(&dataMsg)
@@ -66,6 +68,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 				clientFeature.Address(), serverFeature.Address()),
 		},
 		CmdClassifier: model.CmdClassifierTypeCall,
+		DeviceRemote:  remoteDevice,
 		FeatureRemote: clientFeature,
 	}
 
@@ -77,6 +80,7 @@ func TestNodemanagement_BindingCalls(t *testing.T) {
 				NodeManagementBindingData: &model.NodeManagementBindingDataType{},
 			},
 			CmdClassifier: model.CmdClassifierTypeCall,
+			DeviceRemote:  remoteDevice,
 			FeatureRemote: clientFeature,
 		}
 		err = sut.HandleMessage(&dataMsg)
@@ -109,6 +113,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 				clientFeature.Address(), serverFeature.Address(), featureType),
 		},
 		CmdClassifier: model.CmdClassifierTypeCall,
+		DeviceRemote:  remoteDevice,
 		FeatureRemote: clientFeature,
 	}
 
@@ -122,6 +127,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 				NodeManagementSubscriptionData: &model.NodeManagementSubscriptionDataType{},
 			},
 			CmdClassifier: model.CmdClassifierTypeCall,
+			DeviceRemote:  remoteDevice,
 			FeatureRemote: clientFeature,
 		}
 		err = sut.HandleMessage(&dataMsg)
@@ -139,6 +145,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 				clientFeature.Address(), serverFeature.Address()),
 		},
 		CmdClassifier: model.CmdClassifierTypeCall,
+		DeviceRemote:  remoteDevice,
 		FeatureRemote: clientFeature,
 	}
 
@@ -150,6 +157,7 @@ func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 				NodeManagementSubscriptionData: &model.NodeManagementSubscriptionDataType{},
 			},
 			CmdClassifier: model.CmdClassifierTypeCall,
+			DeviceRemote:  remoteDevice,
 			FeatureRemote: clientFeature,
 		}
 		err = sut.HandleMessage(&dataMsg)

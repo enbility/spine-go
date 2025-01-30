@@ -31,7 +31,7 @@ func NewNodeManagementBindingDeleteCallType(clientAddress *model.FeatureAddressT
 // route bindings request calls to the appropriate feature implementation and add the bindings to the current list
 func (r *NodeManagement) processReadBindingData(message *api.Message) error {
 	var remoteDeviceBindings []model.BindingManagementEntryDataType
-	remoteDeviceBindingEntries := r.Device().BindingManager().Bindings(message.FeatureRemote.Device())
+	remoteDeviceBindingEntries := r.Device().BindingManager().Bindings(message.DeviceRemote)
 	linq.From(remoteDeviceBindingEntries).SelectT(func(s *api.BindingEntry) model.BindingManagementEntryDataType {
 		return model.BindingManagementEntryDataType{
 			BindingId:     util.Ptr(model.BindingIdType(s.Id)),
@@ -46,7 +46,7 @@ func (r *NodeManagement) processReadBindingData(message *api.Message) error {
 		},
 	}
 
-	return message.FeatureRemote.Device().Sender().Reply(message.RequestHeader, r.Address(), cmd)
+	return message.DeviceRemote.Sender().Reply(message.RequestHeader, r.Address(), cmd)
 }
 
 func (r *NodeManagement) handleMsgBindingData(message *api.Message) error {
@@ -62,7 +62,7 @@ func (r *NodeManagement) handleMsgBindingData(message *api.Message) error {
 func (r *NodeManagement) handleMsgBindingRequestCall(message *api.Message, data *model.NodeManagementBindingRequestCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
-		return r.Device().BindingManager().AddBinding(message.FeatureRemote.Device(), *data.BindingRequest)
+		return r.Device().BindingManager().AddBinding(message.DeviceRemote, *data.BindingRequest)
 
 	default:
 		return fmt.Errorf("nodemanagement.handleBindingRequestCall: NodeManagementBindingRequestCall CmdClassifierType not implemented: %s", message.CmdClassifier)
@@ -72,7 +72,7 @@ func (r *NodeManagement) handleMsgBindingRequestCall(message *api.Message, data 
 func (r *NodeManagement) handleMsgBindingDeleteCall(message *api.Message, data *model.NodeManagementBindingDeleteCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
-		return r.Device().BindingManager().RemoveBinding(*data.BindingDelete, message.FeatureRemote.Device())
+		return r.Device().BindingManager().RemoveBinding(*data.BindingDelete, message.DeviceRemote)
 
 	default:
 		return fmt.Errorf("nodemanagement.handleBindingDeleteCall: NodeManagementBindingRequestCall CmdClassifierType not implemented: %s", message.CmdClassifier)

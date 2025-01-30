@@ -31,7 +31,7 @@ func NewNodeManagementSubscriptionDeleteCallType(clientAddress *model.FeatureAdd
 // route subscription request calls to the appropriate feature implementation and add the subscription to the current list
 func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error {
 	var remoteDeviceSubscriptions []model.SubscriptionManagementEntryDataType
-	remoteDeviceSubscriptionEntries := r.Device().SubscriptionManager().Subscriptions(message.FeatureRemote.Device())
+	remoteDeviceSubscriptionEntries := r.Device().SubscriptionManager().Subscriptions(message.DeviceRemote)
 	linq.From(remoteDeviceSubscriptionEntries).SelectT(func(s *api.SubscriptionEntry) model.SubscriptionManagementEntryDataType {
 		return model.SubscriptionManagementEntryDataType{
 			SubscriptionId: util.Ptr(model.SubscriptionIdType(s.Id)),
@@ -46,7 +46,7 @@ func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error
 		},
 	}
 
-	return message.FeatureRemote.Device().Sender().Reply(message.RequestHeader, r.Address(), cmd)
+	return message.DeviceRemote.Sender().Reply(message.RequestHeader, r.Address(), cmd)
 }
 
 func (r *NodeManagement) handleMsgSubscriptionData(message *api.Message) error {
@@ -64,7 +64,7 @@ func (r *NodeManagement) handleMsgSubscriptionRequestCall(message *api.Message, 
 	case model.CmdClassifierTypeCall:
 		subscriptionMgr := r.Device().SubscriptionManager()
 
-		return subscriptionMgr.AddSubscription(message.FeatureRemote.Device(), *data.SubscriptionRequest)
+		return subscriptionMgr.AddSubscription(message.DeviceRemote, *data.SubscriptionRequest)
 
 	default:
 		return fmt.Errorf("nodemanagement.handleSubscriptionRequestCall: NodeManagementSubscriptionRequestCall CmdClassifierType not implemented: %s", message.CmdClassifier)
@@ -76,7 +76,7 @@ func (r *NodeManagement) handleMsgSubscriptionDeleteCall(message *api.Message, d
 	case model.CmdClassifierTypeCall:
 		subscriptionMgr := r.Device().SubscriptionManager()
 
-		return subscriptionMgr.RemoveSubscription(*data.SubscriptionDelete, message.FeatureRemote.Device())
+		return subscriptionMgr.RemoveSubscription(*data.SubscriptionDelete, message.DeviceRemote)
 
 	default:
 		return fmt.Errorf("nodemanagement.handleSubscriptionDeleteCall: NodeManagementSubscriptionRequestCall CmdClassifierType not implemented: %s", message.CmdClassifier)
