@@ -8,7 +8,7 @@
 
 ## Introduction
 
-This library provides an implementation of SPINE 1.3 in [go](https://golang.org), which is part of the [EEBUS](https://eebus.org) specification.
+This library provides an implementation of SPINE 1.4 in [go](https://golang.org), which is part of the [EEBUS](https://eebus.org) specification.
 
 Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is required. Please check the corresponding specifications on the [EEBUS downloads website](https://www.eebus.org/media-downloads/).
 
