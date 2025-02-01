@@ -50,10 +50,23 @@ func (suite *SubscriptionManagerSuite) Test_Subscriptions() {
 	remoteEntity := NewEntityRemote(suite.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
 	suite.remoteDevice.AddEntity(remoteEntity)
 
+	remoteDeviceAddress := model.AddressDeviceType("remoteDevice")
+	remoteDeviceAddress2 := model.AddressDeviceType("remoteDevice2")
+	suite.remoteDevice.UpdateDevice(
+		&model.NetworkManagementDeviceDescriptionDataType{
+			DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress},
+		},
+	)
+	suite.remoteDevice2.UpdateDevice(
+		&model.NetworkManagementDeviceDescriptionDataType{
+			DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress2},
+		},
+	)
+
 	remoteFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
-	remoteFeature.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice"))
+	remoteFeature.Address().Device = &remoteDeviceAddress
 	remoteEntity.AddFeature(remoteFeature)
-	remoteEntity.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice"))
+	remoteEntity.Address().Device = &remoteDeviceAddress
 
 	subscrRequest := model.SubscriptionManagementRequestCallType{
 		ClientAddress:     remoteFeature.Address(),
@@ -65,9 +78,9 @@ func (suite *SubscriptionManagerSuite) Test_Subscriptions() {
 	suite.remoteDevice2.AddEntity(remoteEntity2)
 
 	remoteFeature2 := NewFeatureRemote(remoteEntity2.NextFeatureId(), remoteEntity2, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeClient)
-	remoteFeature2.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice2"))
+	remoteFeature2.Address().Device = &remoteDeviceAddress2
 	remoteEntity2.AddFeature(remoteFeature2)
-	remoteEntity2.Address().Device = util.Ptr(model.AddressDeviceType("remoteDevice2"))
+	remoteEntity2.Address().Device = &remoteDeviceAddress2
 
 	subscrRequest2 := model.SubscriptionManagementRequestCallType{
 		ClientAddress:     remoteFeature2.Address(),
@@ -94,10 +107,15 @@ func (suite *SubscriptionManagerSuite) Test_Subscriptions() {
 	subs = subMgr.Subscriptions(suite.remoteDevice2)
 	assert.Equal(suite.T(), 1, len(subs))
 
+	var clientFeatureAddress, serverFeatureAddress model.FeatureAddressType
+	util.DeepCopy(remoteFeature.Address(), &clientFeatureAddress)
+	util.DeepCopy(localFeature.Address(), &serverFeatureAddress)
 	subscrDelete := model.SubscriptionManagementDeleteCallType{
-		ClientAddress: remoteFeature.Address(),
-		ServerAddress: localFeature.Address(),
+		ClientAddress: &clientFeatureAddress,
+		ServerAddress: &serverFeatureAddress,
 	}
+	subscrDelete.ClientAddress.Device = nil
+	subscrDelete.ServerAddress.Device = nil
 
 	err = subMgr.RemoveSubscription(subscrDelete, suite.remoteDevice)
 	assert.Nil(suite.T(), err)

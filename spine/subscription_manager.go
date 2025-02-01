@@ -92,32 +92,35 @@ func (c *SubscriptionManager) RemoveSubscription(data model.SubscriptionManageme
 	// b. The absence of "subscriptionDelete. serverAddress. device" SHALL be treated as if it was
 	//    present and set to the recipient's "device" address part.
 
-	var clientAddress model.FeatureAddressType
+	var clientAddress, serverAddress model.FeatureAddressType
 	util.DeepCopy(data.ClientAddress, &clientAddress)
 	if data.ClientAddress.Device == nil {
 		clientAddress.Device = remoteDevice.Address()
 	}
-
-	clientFeature := remoteDevice.FeatureByAddress(data.ClientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", data.ClientAddress, *remoteDevice.Address())
+	util.DeepCopy(data.ServerAddress, &serverAddress)
+	if data.ServerAddress.Device == nil {
+		serverAddress.Device = c.localDevice.Address()
 	}
 
-	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
+	clientFeature := remoteDevice.FeatureByAddress(&clientAddress)
+	if clientFeature == nil {
+		return fmt.Errorf("client feature '%s' in remote device '%s' not found", &clientAddress, *remoteDevice.Address())
+	}
+
+	serverFeature := c.localDevice.FeatureByAddress(&serverAddress)
 	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
+		return fmt.Errorf("server feature '%s' in local device '%s' not found", &serverAddress, *c.localDevice.Address())
 	}
 
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	for _, item := range c.subscriptionEntries {
-		itemAddress := item.ClientFeature.Address()
+		itemClientAddress := item.ClientFeature.Address()
+		itemServerAddress := item.ServerFeature.Address()
 
-		if !reflect.DeepEqual(itemAddress.Device, clientAddress.Device) ||
-			!reflect.DeepEqual(itemAddress.Entity, clientAddress.Entity) ||
-			!reflect.DeepEqual(itemAddress.Feature, clientAddress.Feature) ||
-			!reflect.DeepEqual(item.ServerFeature, serverFeature) {
+		if !reflect.DeepEqual(*itemClientAddress, clientAddress) ||
+			!reflect.DeepEqual(*itemServerAddress, serverAddress) {
 			newSubscriptionEntries = append(newSubscriptionEntries, item)
 		}
 	}
