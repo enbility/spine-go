@@ -178,7 +178,8 @@ func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteIn
 
 	var newBindingEntries []*api.BindingEntry
 	for _, item := range c.bindingEntries {
-		if !reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
+		if !reflect.DeepEqual(item.ClientFeature.Address().Device, remoteEntity.Address().Device) ||
+			!reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
 			newBindingEntries = append(newBindingEntries, item)
 			continue
 		}
