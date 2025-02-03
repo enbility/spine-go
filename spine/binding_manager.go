@@ -94,20 +94,24 @@ func (c *BindingManager) RemoveBinding(data model.BindingManagementDeleteCallTyp
 	// b. The absence of "bindingDelete. serverAddress. device" SHALL be treated as if it was
 	//    present and set to the recipient's "device" address part.
 
-	var clientAddress model.FeatureAddressType
+	var clientAddress, serverAddress model.FeatureAddressType
 	util.DeepCopy(data.ClientAddress, &clientAddress)
 	if data.ClientAddress.Device == nil {
 		clientAddress.Device = remoteDevice.Address()
 	}
-
-	clientFeature := remoteDevice.FeatureByAddress(data.ClientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", data.ClientAddress, *remoteDevice.Address())
+	util.DeepCopy(data.ServerAddress, &serverAddress)
+	if data.ServerAddress.Device == nil {
+		serverAddress.Device = c.localDevice.Address()
 	}
 
-	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
+	clientFeature := remoteDevice.FeatureByAddress(&clientAddress)
+	if clientFeature == nil {
+		return fmt.Errorf("client feature '%s' in remote device '%s' not found", &clientAddress, *remoteDevice.Address())
+	}
+
+	serverFeature := c.localDevice.FeatureByAddress(&serverAddress)
 	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
+		return fmt.Errorf("server feature '%s' in local device '%s' not found", &serverAddress, *c.localDevice.Address())
 	}
 
 	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, serverFeature.Type()); err != nil {
@@ -115,17 +119,18 @@ func (c *BindingManager) RemoveBinding(data model.BindingManagementDeleteCallTyp
 	}
 
 	if !c.HasLocalFeatureRemoteBinding(serverFeature.Address(), clientFeature.Address()) {
-		return fmt.Errorf("the feature '%s' address has no binding", data.ClientAddress)
+		return fmt.Errorf("the feature '%s' address has no binding", &clientAddress)
 	}
 
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	for _, item := range c.bindingEntries {
-		itemAddress := item.ClientFeature.Address()
+		itemClientAddress := item.ClientFeature.Address()
+		itemServerAddress := item.ServerFeature.Address()
 
-		if !reflect.DeepEqual(*itemAddress, clientAddress) &&
-			!reflect.DeepEqual(item.ServerFeature, serverFeature) {
+		if !reflect.DeepEqual(*itemClientAddress, clientAddress) ||
+			!reflect.DeepEqual(*itemServerAddress, serverAddress) {
 			newBindingEntries = append(newBindingEntries, item)
 		}
 	}
@@ -173,7 +178,8 @@ func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteIn
 
 	var newBindingEntries []*api.BindingEntry
 	for _, item := range c.bindingEntries {
-		if !reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
+		if !reflect.DeepEqual(item.ClientFeature.Address().Device, remoteEntity.Address().Device) ||
+			!reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
 			newBindingEntries = append(newBindingEntries, item)
 			continue
 		}
