@@ -8,6 +8,8 @@ const (
 	IdentificationTypeTypeEui48       IdentificationTypeType = "eui48"
 	IdentificationTypeTypeEui64       IdentificationTypeType = "eui64"
 	IdentificationTypeTypeUserrfidtag IdentificationTypeType = "userRfidTag"
+	IdentificationTypeTypePcId        IdentificationTypeType = "pcid"
+	IdentificationTypeTypeEmaId       IdentificationTypeType = "emaid"
 )
 
 type IdentificationValueType string

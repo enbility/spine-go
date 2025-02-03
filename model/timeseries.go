@@ -9,13 +9,28 @@ type TimeSeriesSlotCountType TimeSeriesSlotIdType
 type TimeSeriesTypeType string
 
 const (
-	TimeSeriesTypeTypePlan                     TimeSeriesTypeType = "plan"
-	TimeSeriesTypeTypeSingleDemand             TimeSeriesTypeType = "singleDemand"
-	TimeSeriesTypeTypeConstraints              TimeSeriesTypeType = "constraints"
-	TimeSeriesTypeTypeEnergyRequest            TimeSeriesTypeType = "energyRequest"
-	TimeSeriesTypeTypeDischargingEnergyRequest TimeSeriesTypeType = "dischargingEnergyRequest"
-	TimeSeriesTypeTypeConsumptionLimitCurve    TimeSeriesTypeType = "consumptionLimitCurve"
-	TimeSeriesTypeTypeProductionLimitCurve     TimeSeriesTypeType = "productionLimitCurve"
+	TimeSeriesTypeTypePlan                          TimeSeriesTypeType = "plan"
+	TimeSeriesTypeTypeSingleDemand                  TimeSeriesTypeType = "singleDemand"
+	TimeSeriesTypeTypeConstraints                   TimeSeriesTypeType = "constraints"
+	TimeSeriesTypeTypeEnergyRequest                 TimeSeriesTypeType = "energyRequest"
+	TimeSeriesTypeTypeDischargingEnergyRequest      TimeSeriesTypeType = "dischargingEnergyRequest"
+	TimeSeriesTypeTypeConsumptionLimitCurve         TimeSeriesTypeType = "consumptionLimitCurve"
+	TimeSeriesTypeTypeProductionLimitCurve          TimeSeriesTypeType = "productionLimitCurve"
+	TimeSeriesTypeTypeFallbackConsumptionLimitCurve TimeSeriesTypeType = "fallbackConsumptionLimitCurve"
+	TimeSeriesTypeTypeFallbackProductionLimitCurve  TimeSeriesTypeType = "fallbackProductionLimitCurve"
+	TimeSeriesTypeTypePowerRequest                  TimeSeriesTypeType = "powerRequest"
+)
+
+type TimeSeriesStateType string
+
+const (
+	TimeSeriesStateTypeRequest               TimeSeriesStateType = "request"
+	TimeSeriesStateTypeRequestAccepted       TimeSeriesStateType = "requestAccepted"
+	TimeSeriesStateTypeRequestRejected       TimeSeriesStateType = "requestRejected"
+	TimeSeriesStateTypeCancelRequest         TimeSeriesStateType = "cancelRequest"
+	TimeSeriesStateTypeCancelRequestAccepted TimeSeriesStateType = "cancelRequestAccepted"
+	TimeSeriesStateTypeCancelRequestRejected TimeSeriesStateType = "cancelRequestRejected"
+	TimeSeriesStateTypeRequestCancelled      TimeSeriesStateType = "requestCancelled"
 )
 
 type TimeSeriesSlotType struct {
@@ -39,15 +54,17 @@ type TimeSeriesSlotElementsType struct {
 }
 
 type TimeSeriesDataType struct {
-	TimeSeriesId   *TimeSeriesIdType    `json:"timeSeriesId,omitempty" eebus:"key"`
-	TimePeriod     *TimePeriodType      `json:"timePeriod,omitempty"`
-	TimeSeriesSlot []TimeSeriesSlotType `json:"timeSeriesSlot"`
+	TimeSeriesId    *TimeSeriesIdType    `json:"timeSeriesId,omitempty" eebus:"key"`
+	TimePeriod      *TimePeriodType      `json:"timePeriod,omitempty"`
+	TimeSeriesSlot  []TimeSeriesSlotType `json:"timeSeriesSlot"`
+	TimeSeriesState *TimeSeriesStateType `json:"timeSeriesState,omitempty"`
 }
 
 type TimeSeriesDataElementsType struct {
-	TimeSeriesId   *ElementTagType             `json:"timeSeriesId,omitempty"`
-	TimePeriod     *TimePeriodElementsType     `json:"timePeriod,omitempty"`
-	TimeSeriesSlot *TimeSeriesSlotElementsType `json:"timeSeriesSlot"`
+	TimeSeriesId    *ElementTagType             `json:"timeSeriesId,omitempty"`
+	TimePeriod      *TimePeriodElementsType     `json:"timePeriod,omitempty"`
+	TimeSeriesSlot  *TimeSeriesSlotElementsType `json:"timeSeriesSlot"`
+	TimeSeriesState *ElementTagType             `json:"timeSeriesState,omitempty"`
 }
 
 type TimeSeriesListDataType struct {
