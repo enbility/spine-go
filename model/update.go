@@ -88,7 +88,7 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		if HasNoIdentifiers(item) {
 			// no identifiers specified --> copy data to all existing items
 			// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
-			updatedData, noErrors = copyToAllData(remoteWrite, updatedData, &item)
+			updatedData, noErrors = copyToAllData(remoteWrite, updatedData, &item) // #nosec G601 pointers are dereferenced within each loop iteration via reflection, no aliasing can occur and since go1.22 aliasing doesn't happen in loops regardless
 			if !noErrors {
 				success = false
 			}
