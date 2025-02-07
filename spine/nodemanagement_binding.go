@@ -51,7 +51,7 @@ func (r *NodeManagement) processReadBindingData(message *api.Message) error {
 
 func (r *NodeManagement) handleMsgBindingData(message *api.Message) error {
 	switch message.CmdClassifier {
-	case model.CmdClassifierTypeCall:
+	case model.CmdClassifierTypeRead:
 		return r.processReadBindingData(message)
 
 	default:

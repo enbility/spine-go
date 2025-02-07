@@ -51,7 +51,7 @@ func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error
 
 func (r *NodeManagement) handleMsgSubscriptionData(message *api.Message) error {
 	switch message.CmdClassifier {
-	case model.CmdClassifierTypeCall:
+	case model.CmdClassifierTypeRead:
 		return r.processReadSubscriptionData(message)
 
 	default:

@@ -45,7 +45,8 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		return err
 	}
 
-	// a local feature can only have one remote binding
+	// a local feature can only have one remote binding for now
+	// see also https://github.com/enbility/spine-go/issues/25
 	bindings := c.BindingsOnFeature(*serverFeature.Address())
 	if len(bindings) > 0 {
 		return errors.New("the server feature already has a binding")
