@@ -101,8 +101,6 @@ type FeatureLocalInterface interface {
 	SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a subscription removal request for a given feature remote address
 	RemoveRemoteSubscription(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
-	// Trigger subscription removal requests for all subscriptions of this feature
-	RemoveAllRemoteSubscriptions()
 
 	// Check if there already is a binding to a given feature remote address
 	HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool
@@ -110,8 +108,6 @@ type FeatureLocalInterface interface {
 	BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
 	// Trigger a binding removal request for a given feature remote address
 	RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType)
-	// Trigger binding removal requests for all subscriptions of this feature
-	RemoveAllRemoteBindings()
 
 	// Handle an incoming SPINE message for this feature
 	HandleMessage(message *Message) *model.ErrorType

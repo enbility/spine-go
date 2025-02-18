@@ -17,9 +17,11 @@ func CreateFunctionData[F any](featureType model.FeatureTypeType) []F {
 
 	if featureType == model.FeatureTypeTypeNodeManagement {
 		result = []F{
+			createFunctionData[model.NodeManagementBindingDataType, F](model.FunctionTypeNodeManagementBindingData),
 			createFunctionData[model.NodeManagementDestinationListDataType, F](model.FunctionTypeNodeManagementDestinationListData),
 			createFunctionData[model.NodeManagementDetailedDiscoveryDataType, F](model.FunctionTypeNodeManagementDetailedDiscoveryData),
 			createFunctionData[model.NodeManagementUseCaseDataType, F](model.FunctionTypeNodeManagementUseCaseData),
+			createFunctionData[model.NodeManagementSubscriptionDataType, F](model.FunctionTypeNodeManagementSubscriptionData),
 		}
 
 		return result

@@ -286,11 +286,11 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 
 				// remove all subscriptions for this entity
 				subscriptionMgr := r.Device().SubscriptionManager()
-				subscriptionMgr.RemoveSubscriptionsForEntity(removedEntity)
+				subscriptionMgr.RemoveSubscriptionsForRemoteEntity(removedEntity)
 
 				// remove all bindings for this entity
 				bindingMgr := r.Device().BindingManager()
-				bindingMgr.RemoveBindingsForEntity(removedEntity)
+				bindingMgr.RemoveBindingsForRemoteEntity(removedEntity)
 
 				// remove all feature caches for this entity
 				r.Device().CleanRemoteEntityCaches(removedEntity.Address())

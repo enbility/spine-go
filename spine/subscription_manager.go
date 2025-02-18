@@ -1,71 +1,59 @@
 package spine
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
-	"sync"
-	"sync/atomic"
 
-	"github.com/ahmetb/go-linq/v3"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
-	"github.com/enbility/spine-go/util"
 )
 
 type SubscriptionManager struct {
 	localDevice api.DeviceLocalInterface
-
-	subscriptionNum     uint64
-	subscriptionEntries []*api.SubscriptionEntry
-
-	mux sync.Mutex
-	// TODO: add persistence
 }
 
 func NewSubscriptionManager(localDevice api.DeviceLocalInterface) *SubscriptionManager {
 	c := &SubscriptionManager{
-		subscriptionNum: 0,
-		localDevice:     localDevice,
+		localDevice: localDevice,
 	}
 
 	return c
 }
 
-// is sent from the client (remote device) to the server (local device)
+// Add a subscription between a client and server feature where one of each is local and the other one is remote
+//
+// Note: The device values of both addresses may not be nil
 func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementRequestCallType) error {
-	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
-	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
+	if c.HasSubscription(data.ClientAddress, data.ServerAddress) {
+		return nil
 	}
-	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, *data.ServerFeatureType); err != nil {
+
+	localFeature, remoteFeature, localRole, remoteRole, err := addressDetails(c.localDevice, remoteDevice, data.ClientAddress, data.ServerAddress)
+	if err != nil {
 		return err
 	}
 
-	clientFeature := remoteDevice.FeatureByAddress(data.ClientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", data.ClientAddress, *remoteDevice.Address())
-	}
-	if err := c.checkRoleAndType(clientFeature, model.RoleTypeClient, *data.ServerFeatureType); err != nil {
-		return err
-	}
-
-	subscriptionEntry := &api.SubscriptionEntry{
-		Id:            c.subscriptionId(),
-		ServerFeature: serverFeature,
-		ClientFeature: clientFeature,
-	}
-
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	for _, item := range c.subscriptionEntries {
-		if reflect.DeepEqual(item.ServerFeature, serverFeature) && reflect.DeepEqual(item.ClientFeature, clientFeature) {
-			return fmt.Errorf("requested subscription is already present")
+	// the server feature is optional, only validate it if it is set
+	serverFeatureType := data.ServerFeatureType
+	if serverFeatureType != nil {
+		if err := c.checkRoleAndType(localFeature, localRole, *serverFeatureType); err != nil {
+			return err
+		}
+		if err := c.checkRoleAndType(remoteFeature, remoteRole, *serverFeatureType); err != nil {
+			return err
 		}
 	}
 
-	c.subscriptionEntries = append(c.subscriptionEntries, subscriptionEntry)
+	subscriptionEntry := model.SubscriptionManagementEntryDataType{
+		ClientAddress: data.ClientAddress,
+		ServerAddress: data.ServerAddress,
+	}
+
+	nodeMgmt := c.localDevice.NodeManagement()
+	subscriptionData := c.subscriptionData()
+	subscriptionData.SubscriptionEntry = append(subscriptionData.SubscriptionEntry, subscriptionEntry)
+
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementSubscriptionData, subscriptionData)
 
 	payload := api.EventPayload{
 		Ski:          remoteDevice.Ski(),
@@ -73,153 +61,222 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 		ChangeType:   api.ElementChangeAdd,
 		Data:         data,
 		Device:       remoteDevice,
-		Entity:       clientFeature.Entity(),
-		Feature:      clientFeature,
-		LocalFeature: serverFeature,
+		Entity:       remoteFeature.Entity(),
+		Feature:      remoteFeature,
+		LocalFeature: localFeature,
 	}
 	Events.Publish(payload)
 
 	return nil
 }
 
-// Remove a specific subscription that is provided by a delete message from a remote device
-func (c *SubscriptionManager) RemoveSubscription(data model.SubscriptionManagementDeleteCallType, remoteDevice api.DeviceRemoteInterface) error {
-	var newSubscriptionEntries []*api.SubscriptionEntry
+// Remove a subscription between a client and server feature where one of each is local and the other one is remote
+//
+// Note: The device values of both addresses may not be nil
+func (c *SubscriptionManager) RemoveSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementDeleteCallType) error {
+	subscriptionData := c.subscriptionData()
 
-	// according to the spec 7.4.4
-	// a. The absence of "subscriptionDelete. clientAddress. device" SHALL be treated as if it was
-	//    present and set to the sender's "device" address part.
-	// b. The absence of "subscriptionDelete. serverAddress. device" SHALL be treated as if it was
-	//    present and set to the recipient's "device" address part.
-
-	var clientAddress, serverAddress model.FeatureAddressType
-	util.DeepCopy(data.ClientAddress, &clientAddress)
-	if data.ClientAddress.Device == nil {
-		clientAddress.Device = remoteDevice.Address()
+	newSubscriptionData := &model.NodeManagementSubscriptionDataType{
+		SubscriptionEntry: []model.SubscriptionManagementEntryDataType{},
 	}
-	util.DeepCopy(data.ServerAddress, &serverAddress)
-	if data.ServerAddress.Device == nil {
-		serverAddress.Device = c.localDevice.Address()
+	deletedSubscriptions := []model.SubscriptionManagementEntryDataType{}
+
+	for _, item := range subscriptionData.SubscriptionEntry {
+		// remove a specific subscription
+		if data.ClientAddress.Feature != nil &&
+			reflect.DeepEqual(item.ClientAddress, data.ClientAddress) &&
+			reflect.DeepEqual(item.ServerAddress, data.ServerAddress) {
+			deletedSubscriptions = append(deletedSubscriptions, item)
+			continue
+		}
+
+		// remove all subscriptions for a specific entity with the same "role-relation"
+		if data.ClientAddress.Feature == nil &&
+			data.ClientAddress.Entity != nil &&
+			reflect.DeepEqual(item.ClientAddress.Device, data.ClientAddress.Device) &&
+			reflect.DeepEqual(item.ServerAddress.Device, data.ServerAddress.Device) &&
+			reflect.DeepEqual(item.ClientAddress.Entity, data.ClientAddress.Entity) &&
+			reflect.DeepEqual(item.ServerAddress.Entity, data.ServerAddress.Entity) {
+			deletedSubscriptions = append(deletedSubscriptions, item)
+			continue
+		}
+
+		// remove all subscriptions for a specific device with the same "role-relation"
+		if data.ClientAddress.Feature == nil &&
+			data.ClientAddress.Entity == nil &&
+			reflect.DeepEqual(item.ClientAddress.Device, data.ClientAddress.Device) &&
+			reflect.DeepEqual(item.ServerAddress.Device, data.ServerAddress.Device) {
+			deletedSubscriptions = append(deletedSubscriptions, item)
+			continue
+		}
+
+		newSubscriptionData.SubscriptionEntry = append(newSubscriptionData.SubscriptionEntry, item)
 	}
 
-	clientFeature := remoteDevice.FeatureByAddress(&clientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", &clientAddress, *remoteDevice.Address())
+	// we did not find any subscription to delete, so all is good from our end
+	if len(deletedSubscriptions) == 0 {
+		return nil
 	}
 
-	serverFeature := c.localDevice.FeatureByAddress(&serverAddress)
-	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", &serverAddress, *c.localDevice.Address())
-	}
+	nodeMgmt := c.localDevice.NodeManagement()
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementSubscriptionData, newSubscriptionData)
 
-	for _, item := range c.subscriptionEntries {
-		itemClientAddress := item.ClientFeature.Address()
-		itemServerAddress := item.ServerFeature.Address()
-
-		if !reflect.DeepEqual(*itemClientAddress, clientAddress) ||
-			!reflect.DeepEqual(*itemServerAddress, serverAddress) {
-			newSubscriptionEntries = append(newSubscriptionEntries, item)
+	// inform about every deleted subscription
+	for _, item := range deletedSubscriptions {
+		if localFeature, remoteFeature, _, _, err := addressDetails(c.localDevice, remoteDevice, item.ClientAddress, item.ServerAddress); err == nil {
+			payload := api.EventPayload{
+				Ski:          remoteDevice.Ski(),
+				EventType:    api.EventTypeSubscriptionChange,
+				ChangeType:   api.ElementChangeRemove,
+				Data:         data,
+				Device:       remoteDevice,
+				Entity:       remoteFeature.Entity(),
+				Feature:      remoteFeature,
+				LocalFeature: localFeature,
+			}
+			Events.Publish(payload)
 		}
 	}
-
-	if len(newSubscriptionEntries) == len(c.subscriptionEntries) {
-		return errors.New("could not find requested SubscriptionId to be removed")
-	}
-
-	c.subscriptionEntries = newSubscriptionEntries
-
-	payload := api.EventPayload{
-		Ski:          remoteDevice.Ski(),
-		EventType:    api.EventTypeSubscriptionChange,
-		ChangeType:   api.ElementChangeRemove,
-		Data:         data,
-		Device:       remoteDevice,
-		Entity:       clientFeature.Entity(),
-		Feature:      clientFeature,
-		LocalFeature: serverFeature,
-	}
-	Events.Publish(payload)
 
 	return nil
 }
 
 // Remove all existing subscriptions for a given remote device
-func (c *SubscriptionManager) RemoveSubscriptionsForDevice(remoteDevice api.DeviceRemoteInterface) {
+func (c *SubscriptionManager) RemoveSubscriptionsForRemoteDevice(remoteDevice api.DeviceRemoteInterface) {
 	if remoteDevice == nil {
 		return
 	}
 
 	for _, entity := range remoteDevice.Entities() {
-		c.RemoveSubscriptionsForEntity(entity)
+		c.RemoveSubscriptionsForRemoteEntity(entity)
 	}
 }
 
 // Remove all existing subscriptions for a given remote device entity
-func (c *SubscriptionManager) RemoveSubscriptionsForEntity(remoteEntity api.EntityRemoteInterface) {
+func (c *SubscriptionManager) RemoveSubscriptionsForRemoteEntity(remoteEntity api.EntityRemoteInterface) {
 	if remoteEntity == nil {
 		return
 	}
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	subscriptionData := c.subscriptionData()
 
-	var newSubscriptionEntries []*api.SubscriptionEntry
-	for _, item := range c.subscriptionEntries {
-		if !reflect.DeepEqual(item.ClientFeature.Address().Device, remoteEntity.Address().Device) ||
-			!reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
-			newSubscriptionEntries = append(newSubscriptionEntries, item)
+	remoteDeviceAddress := remoteEntity.Device().Address()
+	remoteEntityAddress := remoteEntity.Address().Entity
+
+	for _, subscription := range subscriptionData.SubscriptionEntry {
+		// check if this subscription contains the remote device
+		if !reflect.DeepEqual(subscription.ClientAddress.Device, remoteDeviceAddress) &&
+			!reflect.DeepEqual(subscription.ServerAddress.Device, remoteDeviceAddress) {
 			continue
 		}
 
-		serverFeature := c.localDevice.FeatureByAddress(item.ServerFeature.Address())
-		clientFeature := remoteEntity.FeatureOfAddress(item.ClientFeature.Address().Feature)
-		payload := api.EventPayload{
-			Ski:          remoteEntity.Device().Ski(),
-			EventType:    api.EventTypeSubscriptionChange,
-			ChangeType:   api.ElementChangeRemove,
-			Device:       remoteEntity.Device(),
-			Entity:       remoteEntity,
-			Feature:      clientFeature,
-			LocalFeature: serverFeature,
+		// check if this subscription contains the remote entity
+		if !reflect.DeepEqual(subscription.ClientAddress.Entity, remoteEntityAddress) &&
+			!reflect.DeepEqual(subscription.ServerAddress.Entity, remoteEntityAddress) {
+			continue
 		}
-		Events.Publish(payload)
+
+		_ = c.RemoveSubscription(remoteEntity.Device(), model.SubscriptionManagementDeleteCallType{
+			ClientAddress: subscription.ClientAddress,
+			ServerAddress: subscription.ServerAddress,
+		})
+	}
+}
+
+// Remove all existing subscriptions for a given local device entity
+func (c *SubscriptionManager) RemoveSubscriptionsForLocalEntity(localEntity api.EntityLocalInterface) {
+	if localEntity == nil {
+		return
 	}
 
-	c.subscriptionEntries = newSubscriptionEntries
+	subscriptionData := c.subscriptionData()
+
+	localDeviceAddress := localEntity.Device().Address()
+	localEntityAddress := localEntity.Address().Entity
+
+	for _, subscription := range subscriptionData.SubscriptionEntry {
+		// check if this subscription contains the remote device
+		if !reflect.DeepEqual(subscription.ClientAddress.Device, localDeviceAddress) &&
+			!reflect.DeepEqual(subscription.ServerAddress.Device, localDeviceAddress) {
+			continue
+		}
+
+		// check if this subscription contains the remote entity
+		if !reflect.DeepEqual(subscription.ClientAddress.Entity, localEntityAddress) &&
+			!reflect.DeepEqual(subscription.ServerAddress.Entity, localEntityAddress) {
+			continue
+		}
+
+		var remoteDevice api.DeviceRemoteInterface
+
+		if reflect.DeepEqual(subscription.ClientAddress.Device, localDeviceAddress) {
+			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ServerAddress.Device)
+		} else {
+			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
+		}
+
+		_ = c.RemoveSubscription(remoteDevice, model.SubscriptionManagementDeleteCallType{
+			ClientAddress: subscription.ClientAddress,
+			ServerAddress: subscription.ServerAddress,
+		})
+	}
 }
 
-func (c *SubscriptionManager) Subscriptions(remoteDevice api.DeviceRemoteInterface) []*api.SubscriptionEntry {
-	var result []*api.SubscriptionEntry
+// Checks if a binding between the client and server feature exists
+func (c *SubscriptionManager) HasSubscription(clientAddress, serverAddress *model.FeatureAddressType) bool {
+	subscriptionData := c.subscriptionData()
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	for _, item := range subscriptionData.SubscriptionEntry {
+		if reflect.DeepEqual(item.ClientAddress, clientAddress) &&
+			reflect.DeepEqual(item.ServerAddress, serverAddress) {
+			return true
+		}
+	}
 
-	linq.From(c.subscriptionEntries).WhereT(func(s *api.SubscriptionEntry) bool {
-		return s.ClientFeature.Device().Ski() == remoteDevice.Ski()
-	}).ToSlice(&result)
-
-	return result
+	return false
 }
 
-func (c *SubscriptionManager) SubscriptionsOnFeature(featureAddress model.FeatureAddressType) []*api.SubscriptionEntry {
-	var result []*api.SubscriptionEntry
+// Return all stored subscriptions for a given remote device
+func (c *SubscriptionManager) SubscriptionsForRemoteDevice(remoteDevice api.DeviceRemoteInterface) []model.SubscriptionManagementEntryDataType {
+	subscriptionData := c.subscriptionData()
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	filteredSubscriptions := []model.SubscriptionManagementEntryDataType{}
 
-	linq.From(c.subscriptionEntries).WhereT(func(s *api.SubscriptionEntry) bool {
-		return reflect.DeepEqual(*s.ServerFeature.Address(), featureAddress)
-	}).ToSlice(&result)
+	if subscriptionData != nil {
+		for _, subscription := range subscriptionData.SubscriptionEntry {
+			if reflect.DeepEqual(subscription.ClientAddress.Device, remoteDevice.Address()) ||
+				reflect.DeepEqual(subscription.ServerAddress.Device, remoteDevice.Address()) {
+				filteredSubscriptions = append(filteredSubscriptions, subscription)
+			}
+		}
+	}
 
-	return result
+	return filteredSubscriptions
 }
 
-func (c *SubscriptionManager) subscriptionId() uint64 {
-	i := atomic.AddUint64(&c.subscriptionNum, 1)
-	return i
+// Return all stored subscriptions for a given feature address
+func (c *SubscriptionManager) SubscriptionsForFeatureAddress(featureAddress model.FeatureAddressType) []model.SubscriptionManagementEntryDataType {
+	subscriptionData := c.subscriptionData()
+
+	filteredSubscriptions := []model.SubscriptionManagementEntryDataType{}
+
+	if subscriptionData != nil {
+		for _, subscription := range subscriptionData.SubscriptionEntry {
+			if reflect.DeepEqual(*subscription.ClientAddress, featureAddress) ||
+				reflect.DeepEqual(*subscription.ServerAddress, featureAddress) {
+				filteredSubscriptions = append(filteredSubscriptions, subscription)
+			}
+		}
+	}
+
+	return filteredSubscriptions
+}
+
+func (c *SubscriptionManager) subscriptionData() *model.NodeManagementSubscriptionDataType {
+	nodeMgmt := c.localDevice.NodeManagement()
+	subscriptionDataCopy := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementSubscriptionData)
+	return subscriptionDataCopy.(*model.NodeManagementSubscriptionDataType)
 }
 
 func (c *SubscriptionManager) checkRoleAndType(feature api.FeatureInterface, role model.RoleType, featureType model.FeatureTypeType) error {

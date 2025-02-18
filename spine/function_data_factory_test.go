@@ -88,7 +88,7 @@ func TestFunctionDataFactory_FunctionDataCmd(t *testing.T) {
 
 func TestFunctionDataFactory_NodeMgmtFeatureType(t *testing.T) {
 	result := CreateFunctionData[api.FunctionDataCmdInterface](model.FeatureTypeTypeNodeManagement)
-	assert.Equal(t, 3, len(result))
+	assert.Equal(t, 5, len(result))
 }
 
 func TestFunctionDataFactory_unknownFunctionDataType(t *testing.T) {

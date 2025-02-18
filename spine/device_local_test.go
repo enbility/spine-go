@@ -55,17 +55,26 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	localEntity.AddFeature(f)
 	f = NewFeatureLocal(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	localEntity.AddFeature(f)
+	f = NewFeatureLocal(3, localEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeClient)
+	localEntity.AddFeature(f)
 
 	ski := "test"
-	remote := sut.RemoteDeviceForSki(ski)
-	assert.Nil(d.T(), remote)
+	remoteI := sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), remoteI)
 
 	devices := sut.RemoteDevices()
 	assert.Equal(d.T(), 0, len(devices))
 
 	_ = sut.SetupRemoteDevice(ski, d)
-	remote = sut.RemoteDeviceForSki(ski)
-	assert.NotNil(d.T(), remote)
+	remoteI = sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), remoteI)
+	remote := remoteI.(*DeviceRemote)
+	remote.address = util.Ptr(model.AddressDeviceType("remoteDevice"))
+
+	re := NewEntityRemote(remote, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	rf := NewFeatureRemote(1, re, model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	re.AddFeature(rf)
+	remote.AddEntity(re)
 
 	devices = sut.RemoteDevices()
 	assert.Equal(d.T(), 1, len(devices))
@@ -76,7 +85,13 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	entity1 := sut.Entity([]model.AddressEntityType{1})
 	assert.NotNil(d.T(), entity1)
 
+	entity1 = sut.EntityForType(model.EntityTypeTypeCEM)
+	assert.NotNil(d.T(), entity1)
+
 	entity2 := sut.Entity([]model.AddressEntityType{2})
+	assert.Nil(d.T(), entity2)
+
+	entity2 = sut.EntityForType(model.EntityTypeTypeGridGuard)
 	assert.Nil(d.T(), entity2)
 
 	featureAddress := &model.FeatureAddressType{
@@ -109,16 +124,25 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	newSubEntity.AddFeature(f)
 
 	sut.AddEntity(newSubEntity)
+
 	// A notification should have been sent
-	expectedNotifyMsg := `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":2,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"added"}}],"featureInformation":[{"description":{"featureAddress":{"device":"address","entity":[1,1],"feature":1},"featureType":"LoadControl","role":"server","supportedFunction":[{"function":"loadControlLimitListData","possibleOperations":{"read":{},"write":{"partial":{}}}}]}}]}}]}}}`
+	expectedNotifyMsg := `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":2,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"added"}}],"featureInformation":[{"description":{"featureAddress":{"device":"address","entity":[1,1],"feature":1},"featureType":"LoadControl","role":"server","supportedFunction":[{"function":"loadControlLimitListData","possibleOperations":{"read":{},"write":{"partial":{}}}}]}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
 	assert.Equal(d.T(), 3, len(entities))
 
+	binding := model.BindingManagementRequestCallType{
+		ClientAddress:     rf.Address(),
+		ServerAddress:     f.Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeLoadControl),
+	}
+	err = sut.BindingManager().AddBinding(remote, binding)
+	assert.Nil(d.T(), err)
+
 	sut.RemoveEntity(newSubEntity)
 	// A notification should have been sent
-	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":3,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"removed"}}]}}]}}}`
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":3,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"removed"}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
@@ -126,15 +150,15 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 
 	sut.RemoveEntity(entity1)
 	// A notification should have been sent
-	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":4,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1]},"entityType":"CEM","lastStateChange":"removed"}}]}}]}}}`
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":4,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1]},"entityType":"CEM","lastStateChange":"removed"}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
 	assert.Equal(d.T(), 1, len(entities))
 
 	sut.RemoveRemoteDevice(ski)
-	remote = sut.RemoteDeviceForSki(ski)
-	assert.Nil(d.T(), remote)
+	remoteI = sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), remoteI)
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
