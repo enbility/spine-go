@@ -34,7 +34,7 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		return err
 	}
 
-	// the server feature is optional, only validate it if it is set
+	// the server feature type is optional, only validate it if it is set
 	if data.ServerFeatureType != nil {
 		if err := c.checkRoleAndType(localFeature, localRole, *data.ServerFeatureType); err != nil {
 			return err
