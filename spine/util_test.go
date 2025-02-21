@@ -6,6 +6,7 @@ import (
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
+	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,6 +23,127 @@ type UtilsSuite struct {
 }
 
 func (s *UtilsSuite) WriteShipMessageWithPayload([]byte) {}
+
+func (s *UtilsSuite) Test_isMatchingClientOrServerByDeviceAndEntity() {
+	result := isMatchingClientOrServerByDeviceAndEntity(nil, nil, nil, nil)
+	assert.False(s.T(), result)
+
+	clientAddress := &model.FeatureAddressType{}
+	serverAddress := &model.FeatureAddressType{}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, nil, nil)
+	assert.False(s.T(), result)
+
+	clientAddress = &model.FeatureAddressType{
+		Device:  util.Ptr(model.AddressDeviceType("Device1")),
+		Entity:  []model.AddressEntityType{1},
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+	serverAddress = &model.FeatureAddressType{
+		Device:  util.Ptr(model.AddressDeviceType("Device2")),
+		Entity:  []model.AddressEntityType{1},
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+	deviceAddress := util.Ptr(model.AddressDeviceType("Device1"))
+	entityAddress := []model.AddressEntityType{2}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.False(s.T(), result)
+
+	entityAddress = []model.AddressEntityType{1}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.True(s.T(), result)
+
+	deviceAddress = util.Ptr(model.AddressDeviceType("Device2"))
+	entityAddress = []model.AddressEntityType{2}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.False(s.T(), result)
+
+	entityAddress = []model.AddressEntityType{1}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.True(s.T(), result)
+}
+
+func (s *UtilsSuite) Test_addressDetails() {
+	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	remoteSki := "TestRemoteSki"
+	sender := NewSender(s)
+	remoteDevice := NewDeviceRemote(s.localDevice, remoteSki, sender)
+	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
+
+	lF, rF, lR, rR, err := addressDetails(s.localDevice, remoteDevice, nil, nil)
+	assert.Nil(s.T(), lF)
+	assert.Nil(s.T(), rF)
+	assert.Equal(s.T(), "", string(lR))
+	assert.Equal(s.T(), "", string(rR))
+	assert.NotNil(s.T(), err)
+
+	clientAddress := &model.FeatureAddressType{}
+	serverAddress := &model.FeatureAddressType{}
+	lF, rF, lR, rR, err = addressDetails(s.localDevice, remoteDevice, clientAddress, serverAddress)
+	assert.Nil(s.T(), lF)
+	assert.Nil(s.T(), rF)
+	assert.Equal(s.T(), "", string(lR))
+	assert.Equal(s.T(), "", string(rR))
+	assert.NotNil(s.T(), err)
+
+	// setup local device
+	entity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
+	localClientFeature := entity.GetOrAddFeature(model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	localServerFeature := entity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	s.localDevice.AddEntity(entity)
+
+	// setup remote device
+	remoteDeviceAddress := *remoteDevice.Address()
+	remoteEntity := NewEntityRemote(remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
+
+	remoteClientFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	remoteClientFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+	remoteEntity.AddFeature(remoteClientFeature)
+
+	remoteServerFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	remoteServerFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+	remoteEntity.AddFeature(remoteServerFeature)
+
+	remoteDevice.AddEntity(remoteEntity)
+
+	clientAddress = &model.FeatureAddressType{
+		Device:  remoteClientFeature.Address().Device,
+		Entity:  remoteClientFeature.Address().Entity,
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+	serverAddress = &model.FeatureAddressType{
+		Device:  localServerFeature.Address().Device,
+		Entity:  localServerFeature.Address().Entity,
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+
+	lF, rF, lR, rR, err = addressDetails(s.localDevice, remoteDevice, clientAddress, serverAddress)
+	assert.Nil(s.T(), lF)
+	assert.Nil(s.T(), rF)
+	assert.Equal(s.T(), model.RoleTypeServer, lR)
+	assert.Equal(s.T(), model.RoleTypeClient, rR)
+	assert.NotNil(s.T(), err)
+
+	clientAddress = remoteClientFeature.Address()
+	serverAddress = localServerFeature.Address()
+
+	lF, rF, lR, rR, err = addressDetails(s.localDevice, remoteDevice, clientAddress, serverAddress)
+	assert.Equal(s.T(), localServerFeature, lF)
+	assert.Equal(s.T(), remoteClientFeature, rF)
+	assert.Equal(s.T(), model.RoleTypeServer, lR)
+	assert.Equal(s.T(), model.RoleTypeClient, rR)
+	assert.Nil(s.T(), err)
+
+	clientAddress = localClientFeature.Address()
+	serverAddress = remoteServerFeature.Address()
+
+	lF, rF, lR, rR, err = addressDetails(s.localDevice, remoteDevice, clientAddress, serverAddress)
+	assert.Equal(s.T(), localClientFeature, lF)
+	assert.Equal(s.T(), remoteServerFeature, rF)
+	assert.Equal(s.T(), model.RoleTypeClient, lR)
+	assert.Equal(s.T(), model.RoleTypeServer, rR)
+	assert.Nil(s.T(), err)
+}
 
 func (s *UtilsSuite) Test_DataCopyOfType() {
 	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)

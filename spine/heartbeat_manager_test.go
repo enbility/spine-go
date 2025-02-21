@@ -21,7 +21,7 @@ type HeartBeatManagerSuite struct {
 	localDevice api.DeviceLocalInterface
 	localEntity api.EntityLocalInterface
 
-	remoteDevice api.DeviceRemoteInterface
+	remoteDevice *DeviceRemote
 	sut          api.HeartbeatManagerInterface
 }
 
@@ -35,8 +35,10 @@ func (s *HeartBeatManagerSuite) BeforeTest(suiteName, testName string) {
 	ski := "test"
 	sender := NewSender(s)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
+	s.remoteDevice.address = util.Ptr(model.AddressDeviceType("remoteDevice"))
 
 	_ = s.localDevice.SetupRemoteDevice(ski, s)
+	s.localDevice.AddRemoteDeviceForSki(ski, s.remoteDevice)
 
 	s.sut = s.localEntity.HeartbeatManager()
 }

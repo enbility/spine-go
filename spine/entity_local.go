@@ -231,20 +231,6 @@ func (r *EntityLocal) RemoveAllUseCaseSupports() {
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
-// Remove all subscriptions
-func (r *EntityLocal) RemoveAllSubscriptions() {
-	for _, item := range r.features {
-		item.RemoveAllRemoteSubscriptions()
-	}
-}
-
-// Remove all bindings
-func (r *EntityLocal) RemoveAllBindings() {
-	for _, item := range r.features {
-		item.RemoveAllRemoteBindings()
-	}
-}
-
 func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
 	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
 		Description: &model.NetworkManagementEntityDescriptionDataType{

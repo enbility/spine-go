@@ -58,12 +58,6 @@ type EntityLocalInterface interface {
 	// Remove all usecases
 	RemoveAllUseCaseSupports()
 
-	// Remove all subscriptions
-	RemoveAllSubscriptions()
-
-	// Remove all bindings
-	RemoveAllBindings()
-
 	// Get the SPINE data structure for NodeManagementDetailDiscoveryData messages for this entity
 	Information() *model.NodeManagementDetailedDiscoveryEntityInformationType
 }

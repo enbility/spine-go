@@ -127,7 +127,4 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 
 	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), false, hasUC)
-
-	entity.RemoveAllBindings()
-	entity.RemoveAllSubscriptions()
 }

@@ -24,7 +24,8 @@
             "cmd": [
                 {
                     "resultData": {
-                        "errorNumber": 0
+                        "errorNumber": 1,
+                        "description": "invalid addresses"
                     }
                 }
             ]
