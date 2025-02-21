@@ -125,7 +125,7 @@ func (s *BindingManagerSuite) Test_Bindings() {
 	subs := bindingMgr.BindingsForRemoteDevice(s.remoteDevice)
 	assert.Equal(s.T(), 1, len(subs))
 
-        // adding a binding that already exists isn't an error
+	// adding a binding that already exists isn't an error
 	err = bindingMgr.AddBinding(s.remoteDevice, bindingRequest)
 	assert.Nil(s.T(), err)
 
@@ -184,7 +184,7 @@ func (s *BindingManagerSuite) Test_Bindings() {
 			Feature: util.Ptr(model.AddressFeatureType(1000)),
 		}),
 	}
-        // removing a binding that doesn't exist is considered a success
+	// removing a binding that doesn't exist is considered a success
 	err = bindingMgr.RemoveBinding(s.remoteDevice, bindingDelete)
 	assert.Nil(s.T(), err)
 
