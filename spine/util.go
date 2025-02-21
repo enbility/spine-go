@@ -11,6 +11,32 @@ import (
 
 var notFoundError = errors.New("data not found")
 
+// check if a client or server feature address matches
+// a combination of a deviceAddress and entityAddress
+func isMatchingClientOrServerByDeviceAndEntity(
+	clientAddress, serverAddress *model.FeatureAddressType,
+	deviceAddress *model.AddressDeviceType,
+	entityAddress []model.AddressEntityType,
+) bool {
+	if deviceAddress == nil || entityAddress == nil {
+		return false
+	}
+
+	if clientAddress != nil &&
+		reflect.DeepEqual(clientAddress.Device, deviceAddress) &&
+		reflect.DeepEqual(clientAddress.Entity, entityAddress) {
+		return true
+	}
+
+	if serverAddress != nil &&
+		reflect.DeepEqual(serverAddress.Device, deviceAddress) &&
+		reflect.DeepEqual(serverAddress.Entity, entityAddress) {
+		return true
+	}
+
+	return false
+}
+
 // return details for a given remoteDevice of a client and server address
 //
 // Note: when the feature address and/or entity address is not given,

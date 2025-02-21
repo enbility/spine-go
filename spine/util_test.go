@@ -24,6 +24,44 @@ type UtilsSuite struct {
 
 func (s *UtilsSuite) WriteShipMessageWithPayload([]byte) {}
 
+func (s *UtilsSuite) Test_isMatchingClientOrServerByDeviceAndEntity() {
+	result := isMatchingClientOrServerByDeviceAndEntity(nil, nil, nil, nil)
+	assert.False(s.T(), result)
+
+	clientAddress := &model.FeatureAddressType{}
+	serverAddress := &model.FeatureAddressType{}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, nil, nil)
+	assert.False(s.T(), result)
+
+	clientAddress = &model.FeatureAddressType{
+		Device:  util.Ptr(model.AddressDeviceType("Device1")),
+		Entity:  []model.AddressEntityType{1},
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+	serverAddress = &model.FeatureAddressType{
+		Device:  util.Ptr(model.AddressDeviceType("Device2")),
+		Entity:  []model.AddressEntityType{1},
+		Feature: util.Ptr(model.AddressFeatureType(100)),
+	}
+	deviceAddress := util.Ptr(model.AddressDeviceType("Device1"))
+	entityAddress := []model.AddressEntityType{2}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.False(s.T(), result)
+
+	entityAddress = []model.AddressEntityType{1}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.True(s.T(), result)
+
+	deviceAddress = util.Ptr(model.AddressDeviceType("Device2"))
+	entityAddress = []model.AddressEntityType{2}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.False(s.T(), result)
+
+	entityAddress = []model.AddressEntityType{1}
+	result = isMatchingClientOrServerByDeviceAndEntity(clientAddress, serverAddress, deviceAddress, entityAddress)
+	assert.True(s.T(), result)
+}
+
 func (s *UtilsSuite) Test_addressDetails() {
 	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 

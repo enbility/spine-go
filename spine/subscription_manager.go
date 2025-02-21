@@ -168,15 +168,10 @@ func (c *SubscriptionManager) RemoveSubscriptionsForRemoteEntity(remoteEntity ap
 	remoteEntityAddress := remoteEntity.Address().Entity
 
 	for _, subscription := range subscriptionData.SubscriptionEntry {
-		// check if this subscription contains the remote device
-		if !reflect.DeepEqual(subscription.ClientAddress.Device, remoteDeviceAddress) &&
-			!reflect.DeepEqual(subscription.ServerAddress.Device, remoteDeviceAddress) {
-			continue
-		}
-
-		// check if this subscription contains the remote entity
-		if !reflect.DeepEqual(subscription.ClientAddress.Entity, remoteEntityAddress) &&
-			!reflect.DeepEqual(subscription.ServerAddress.Entity, remoteEntityAddress) {
+		// check if subscription matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			subscription.ClientAddress, subscription.ServerAddress,
+			remoteDeviceAddress, remoteEntityAddress) {
 			continue
 		}
 
@@ -199,15 +194,10 @@ func (c *SubscriptionManager) RemoveSubscriptionsForLocalEntity(localEntity api.
 	localEntityAddress := localEntity.Address().Entity
 
 	for _, subscription := range subscriptionData.SubscriptionEntry {
-		// check if this subscription contains the remote device
-		if !reflect.DeepEqual(subscription.ClientAddress.Device, localDeviceAddress) &&
-			!reflect.DeepEqual(subscription.ServerAddress.Device, localDeviceAddress) {
-			continue
-		}
-
-		// check if this subscription contains the remote entity
-		if !reflect.DeepEqual(subscription.ClientAddress.Entity, localEntityAddress) &&
-			!reflect.DeepEqual(subscription.ServerAddress.Entity, localEntityAddress) {
+		// check if subscription matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			subscription.ClientAddress, subscription.ServerAddress,
+			localDeviceAddress, localEntityAddress) {
 			continue
 		}
 

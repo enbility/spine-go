@@ -177,15 +177,10 @@ func (c *BindingManager) RemoveBindingsForRemoteEntity(remoteEntity api.EntityRe
 	remoteEntityAddress := remoteEntity.Address().Entity
 
 	for _, binding := range bindingData.BindingEntry {
-		// check if this binding contains the remote device
-		if !reflect.DeepEqual(binding.ClientAddress.Device, remoteDeviceAddress) &&
-			!reflect.DeepEqual(binding.ServerAddress.Device, remoteDeviceAddress) {
-			continue
-		}
-
-		// check if this binding contains the remote entity
-		if !reflect.DeepEqual(binding.ClientAddress.Entity, remoteEntityAddress) &&
-			!reflect.DeepEqual(binding.ServerAddress.Entity, remoteEntityAddress) {
+		// check if binding matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			binding.ClientAddress, binding.ServerAddress,
+			remoteDeviceAddress, remoteEntityAddress) {
 			continue
 		}
 
@@ -208,15 +203,10 @@ func (c *BindingManager) RemoveBindingsForLocalEntity(localEntity api.EntityLoca
 	localEntityAddress := localEntity.Address().Entity
 
 	for _, binding := range bindingData.BindingEntry {
-		// check if this binding contains the local device
-		if !reflect.DeepEqual(binding.ClientAddress.Device, localDeviceAddress) &&
-			!reflect.DeepEqual(binding.ServerAddress.Device, localDeviceAddress) {
-			continue
-		}
-
-		// check if this binding contains the local entity
-		if !reflect.DeepEqual(binding.ClientAddress.Entity, localEntityAddress) &&
-			!reflect.DeepEqual(binding.ServerAddress.Entity, localEntityAddress) {
+		// check if binding matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			binding.ClientAddress, binding.ServerAddress,
+			localDeviceAddress, localEntityAddress) {
 			continue
 		}
 
