@@ -4,71 +4,67 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"sync"
-	"sync/atomic"
 
-	"github.com/ahmetb/go-linq/v3"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
-	"github.com/enbility/spine-go/util"
 )
 
 type BindingManager struct {
 	localDevice api.DeviceLocalInterface
-
-	bindingNum     uint64
-	bindingEntries []*api.BindingEntry
-
-	mux sync.Mutex
-	// TODO: add persistence
 }
 
 func NewBindingManager(localDevice api.DeviceLocalInterface) *BindingManager {
 	c := &BindingManager{
-		bindingNum:  0,
 		localDevice: localDevice,
 	}
 
 	return c
 }
 
-// is sent from the client (remote device) to the server (local device)
+// Add a binding between a client and server feature where one of each is local and the other one is remote
+//
+// Note: The device values of both addresses may not be nil
 func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementRequestCallType) error {
-	serverFeature := c.localDevice.FeatureByAddress(data.ServerAddress)
-	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", data.ServerAddress, *c.localDevice.Address())
+	// binding already exists, we're already in the desired state
+	// return success to indicate that the binding exists and simplify synchronization between local and remote device
+	if c.HasBinding(data.ClientAddress, data.ServerAddress) {
+		return nil
 	}
-	if data.ServerFeatureType == nil {
-		return errors.New("serverFeatureType is missing but required")
-	}
-	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, *data.ServerFeatureType); err != nil {
+
+	localFeature, remoteFeature, localRole, remoteRole, err := addressDetails(c.localDevice, remoteDevice, data.ClientAddress, data.ServerAddress)
+	if err != nil {
 		return err
 	}
 
-	// a local feature can only have one remote binding
-	bindings := c.BindingsOnFeature(*serverFeature.Address())
-	if len(bindings) > 0 {
-		return errors.New("the server feature already has a binding")
+	// the server feature type is optional, only validate it if it is set
+	if data.ServerFeatureType != nil {
+		if err := c.checkRoleAndType(localFeature, localRole, *data.ServerFeatureType); err != nil {
+			return err
+		}
+		if err := c.checkRoleAndType(remoteFeature, remoteRole, *data.ServerFeatureType); err != nil {
+			return err
+		}
 	}
 
-	clientFeature := remoteDevice.FeatureByAddress(data.ClientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", data.ClientAddress, *remoteDevice.Address())
-	}
-	if err := c.checkRoleAndType(clientFeature, model.RoleTypeClient, *data.ServerFeatureType); err != nil {
-		return err
-	}
-
-	bindingEntry := &api.BindingEntry{
-		Id:            c.bindingId(),
-		ServerFeature: serverFeature,
-		ClientFeature: clientFeature,
+	// a local feature can only have one remote binding for now
+	// see also https://github.com/enbility/spine-go/issues/25
+	if localRole == model.RoleTypeServer {
+		bindings := c.BindingsForFeatureAddress(*localFeature.Address())
+		if len(bindings) > 0 {
+			return errors.New("the server feature already has a binding")
+		}
 	}
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	bindingEntry := model.BindingManagementEntryDataType{
+		ClientAddress: data.ClientAddress,
+		ServerAddress: data.ServerAddress,
+	}
 
-	c.bindingEntries = append(c.bindingEntries, bindingEntry)
+	nodeMgmt := c.localDevice.NodeManagement()
+	bindingData := c.bindingData()
+	bindingData.BindingEntry = append(bindingData.BindingEntry, bindingEntry)
+
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementBindingData, bindingData)
 
 	payload := api.EventPayload{
 		Ski:          remoteDevice.Ski(),
@@ -76,150 +72,166 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		ChangeType:   api.ElementChangeAdd,
 		Data:         data,
 		Device:       remoteDevice,
-		Entity:       clientFeature.Entity(),
-		Feature:      clientFeature,
-		LocalFeature: serverFeature,
+		Entity:       remoteFeature.Entity(),
+		Feature:      remoteFeature,
+		LocalFeature: localFeature,
 	}
 	Events.Publish(payload)
 
 	return nil
 }
 
-func (c *BindingManager) RemoveBinding(data model.BindingManagementDeleteCallType, remoteDevice api.DeviceRemoteInterface) error {
-	var newBindingEntries []*api.BindingEntry
+// Remove a binding between a client and server feature where one of each is local and the other one is remote
+//
+// Note: The device values of both addresses may not be nil
+func (c *BindingManager) RemoveBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementDeleteCallType) error {
+	bindingData := c.bindingData()
 
-	// according to the spec 7.4.4
-	// a. The absence of "bindingDelete. clientAddress. device" SHALL be treated as if it was
-	//    present and set to the sender's "device" address part.
-	// b. The absence of "bindingDelete. serverAddress. device" SHALL be treated as if it was
-	//    present and set to the recipient's "device" address part.
-
-	var clientAddress, serverAddress model.FeatureAddressType
-	util.DeepCopy(data.ClientAddress, &clientAddress)
-	if data.ClientAddress.Device == nil {
-		clientAddress.Device = remoteDevice.Address()
+	newBindingData := &model.NodeManagementBindingDataType{
+		BindingEntry: []model.BindingManagementEntryDataType{},
 	}
-	util.DeepCopy(data.ServerAddress, &serverAddress)
-	if data.ServerAddress.Device == nil {
-		serverAddress.Device = c.localDevice.Address()
+	deletedBindings := []model.BindingManagementEntryDataType{}
+
+	for _, item := range bindingData.BindingEntry {
+		// remove a specific binding
+		if data.ClientAddress.Feature != nil &&
+			reflect.DeepEqual(item.ClientAddress, data.ClientAddress) &&
+			reflect.DeepEqual(item.ServerAddress, data.ServerAddress) {
+			deletedBindings = append(deletedBindings, item)
+			continue
+		}
+
+		// remove all bindings for a specific entity with the same "role-relation"
+		if data.ClientAddress.Feature == nil &&
+			data.ClientAddress.Entity != nil &&
+			reflect.DeepEqual(item.ClientAddress.Device, data.ClientAddress.Device) &&
+			reflect.DeepEqual(item.ServerAddress.Device, data.ServerAddress.Device) &&
+			reflect.DeepEqual(item.ClientAddress.Entity, data.ClientAddress.Entity) &&
+			reflect.DeepEqual(item.ServerAddress.Entity, data.ServerAddress.Entity) {
+			deletedBindings = append(deletedBindings, item)
+			continue
+		}
+
+		// remove all bindings for a specific device with the same "role-relation"
+		if data.ClientAddress.Feature == nil &&
+			data.ClientAddress.Entity == nil &&
+			reflect.DeepEqual(item.ClientAddress.Device, data.ClientAddress.Device) &&
+			reflect.DeepEqual(item.ServerAddress.Device, data.ServerAddress.Device) {
+			deletedBindings = append(deletedBindings, item)
+			continue
+		}
+
+		newBindingData.BindingEntry = append(newBindingData.BindingEntry, item)
 	}
 
-	clientFeature := remoteDevice.FeatureByAddress(&clientAddress)
-	if clientFeature == nil {
-		return fmt.Errorf("client feature '%s' in remote device '%s' not found", &clientAddress, *remoteDevice.Address())
+	// we did not find any binding to delete, so we're already in the desired state
+	// return success to indicate that the binding doesn't exist and simplify synchronization between local and remote device
+	if len(deletedBindings) == 0 {
+		return nil
 	}
 
-	serverFeature := c.localDevice.FeatureByAddress(&serverAddress)
-	if serverFeature == nil {
-		return fmt.Errorf("server feature '%s' in local device '%s' not found", &serverAddress, *c.localDevice.Address())
-	}
+	nodeMgmt := c.localDevice.NodeManagement()
 
-	if err := c.checkRoleAndType(serverFeature, model.RoleTypeServer, serverFeature.Type()); err != nil {
-		return err
-	}
+	nodeMgmt.SetData(model.FunctionTypeNodeManagementBindingData, newBindingData)
 
-	if !c.HasLocalFeatureRemoteBinding(serverFeature.Address(), clientFeature.Address()) {
-		return fmt.Errorf("the feature '%s' address has no binding", &clientAddress)
-	}
-
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	for _, item := range c.bindingEntries {
-		itemClientAddress := item.ClientFeature.Address()
-		itemServerAddress := item.ServerFeature.Address()
-
-		if !reflect.DeepEqual(*itemClientAddress, clientAddress) ||
-			!reflect.DeepEqual(*itemServerAddress, serverAddress) {
-			newBindingEntries = append(newBindingEntries, item)
+	for _, item := range deletedBindings {
+		// inform about every deleted binding
+		if localFeature, remoteFeature, _, _, err := addressDetails(c.localDevice, remoteDevice, item.ClientAddress, item.ServerAddress); err == nil {
+			payload := api.EventPayload{
+				Ski:          remoteDevice.Ski(),
+				EventType:    api.EventTypeBindingChange,
+				ChangeType:   api.ElementChangeRemove,
+				Data:         data,
+				Device:       remoteDevice,
+				Entity:       remoteFeature.Entity(),
+				Feature:      remoteFeature,
+				LocalFeature: localFeature,
+			}
+			Events.Publish(payload)
 		}
 	}
 
-	if len(newBindingEntries) == len(c.bindingEntries) {
-		return errors.New("could not find requested binding to be removed")
-	}
-
-	c.bindingEntries = newBindingEntries
-
-	payload := api.EventPayload{
-		Ski:          remoteDevice.Ski(),
-		EventType:    api.EventTypeBindingChange,
-		ChangeType:   api.ElementChangeRemove,
-		Data:         data,
-		Device:       remoteDevice,
-		Entity:       clientFeature.Entity(),
-		Feature:      clientFeature,
-		LocalFeature: serverFeature,
-	}
-	Events.Publish(payload)
-
 	return nil
 }
 
-// Remove all existing bindings for a given remote device
-func (c *BindingManager) RemoveBindingsForDevice(remoteDevice api.DeviceRemoteInterface) {
+// Remove all stored bindings for a given remote device
+func (c *BindingManager) RemoveBindingsForRemoteDevice(remoteDevice api.DeviceRemoteInterface) {
 	if remoteDevice == nil {
 		return
 	}
 
 	for _, entity := range remoteDevice.Entities() {
-		c.RemoveBindingsForEntity(entity)
+		c.RemoveBindingsForRemoteEntity(entity)
 	}
 }
 
-// Remove all existing bindings for a given remote device entity
-func (c *BindingManager) RemoveBindingsForEntity(remoteEntity api.EntityRemoteInterface) {
+// Remove all stored bindings for a given remote device entity
+func (c *BindingManager) RemoveBindingsForRemoteEntity(remoteEntity api.EntityRemoteInterface) {
 	if remoteEntity == nil {
 		return
 	}
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	bindingData := c.bindingData()
 
-	var newBindingEntries []*api.BindingEntry
-	for _, item := range c.bindingEntries {
-		if !reflect.DeepEqual(item.ClientFeature.Address().Device, remoteEntity.Address().Device) ||
-			!reflect.DeepEqual(item.ClientFeature.Address().Entity, remoteEntity.Address().Entity) {
-			newBindingEntries = append(newBindingEntries, item)
+	remoteDeviceAddress := remoteEntity.Device().Address()
+	remoteEntityAddress := remoteEntity.Address().Entity
+
+	for _, binding := range bindingData.BindingEntry {
+		// check if binding matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			binding.ClientAddress, binding.ServerAddress,
+			remoteDeviceAddress, remoteEntityAddress) {
 			continue
 		}
 
-		serverFeature := c.localDevice.FeatureByAddress(item.ServerFeature.Address())
-		clientFeature := remoteEntity.FeatureOfAddress(item.ClientFeature.Address().Feature)
-		payload := api.EventPayload{
-			Ski:          remoteEntity.Device().Ski(),
-			EventType:    api.EventTypeBindingChange,
-			ChangeType:   api.ElementChangeRemove,
-			Device:       remoteEntity.Device(),
-			Entity:       remoteEntity,
-			Feature:      clientFeature,
-			LocalFeature: serverFeature,
-		}
-		Events.Publish(payload)
+		_ = c.RemoveBinding(remoteEntity.Device(), model.BindingManagementDeleteCallType{
+			ClientAddress: binding.ClientAddress,
+			ServerAddress: binding.ServerAddress,
+		})
+	}
+}
+
+// Remove all stored bindings for a given local device entity
+func (c *BindingManager) RemoveBindingsForLocalEntity(localEntity api.EntityLocalInterface) {
+	if localEntity == nil {
+		return
 	}
 
-	c.bindingEntries = newBindingEntries
+	bindingData := c.bindingData()
+
+	localDeviceAddress := localEntity.Device().Address()
+	localEntityAddress := localEntity.Address().Entity
+
+	for _, binding := range bindingData.BindingEntry {
+		// check if binding matches ClientAddress or ServerAddress
+		if !isMatchingClientOrServerByDeviceAndEntity(
+			binding.ClientAddress, binding.ServerAddress,
+			localDeviceAddress, localEntityAddress) {
+			continue
+		}
+
+		var remoteDevice api.DeviceRemoteInterface
+
+		if reflect.DeepEqual(binding.ClientAddress.Device, localDeviceAddress) {
+			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ServerAddress.Device)
+		} else {
+			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ClientAddress.Device)
+		}
+
+		_ = c.RemoveBinding(remoteDevice, model.BindingManagementDeleteCallType{
+			ClientAddress: binding.ClientAddress,
+			ServerAddress: binding.ServerAddress,
+		})
+	}
 }
 
-func (c *BindingManager) Bindings(remoteDevice api.DeviceRemoteInterface) []*api.BindingEntry {
-	var result []*api.BindingEntry
+// Checks if a binding between the client and server feature exists
+func (c *BindingManager) HasBinding(clientAddress, serverAddress *model.FeatureAddressType) bool {
+	bindingData := c.bindingData()
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	linq.From(c.bindingEntries).WhereT(func(s *api.BindingEntry) bool {
-		return s.ClientFeature.Device().Ski() == remoteDevice.Ski()
-	}).ToSlice(&result)
-
-	return result
-}
-
-// checks if a remote address has a binding on the local feature
-func (c *BindingManager) HasLocalFeatureRemoteBinding(localAddress, remoteAddress *model.FeatureAddressType) bool {
-	bindings := c.BindingsOnFeature(*localAddress)
-
-	for _, item := range bindings {
-		if reflect.DeepEqual(item.ClientFeature.Address(), remoteAddress) {
+	for _, item := range bindingData.BindingEntry {
+		if reflect.DeepEqual(item.ClientAddress, clientAddress) &&
+			reflect.DeepEqual(item.ServerAddress, serverAddress) {
 			return true
 		}
 	}
@@ -227,22 +239,46 @@ func (c *BindingManager) HasLocalFeatureRemoteBinding(localAddress, remoteAddres
 	return false
 }
 
-func (c *BindingManager) BindingsOnFeature(featureAddress model.FeatureAddressType) []*api.BindingEntry {
-	var result []*api.BindingEntry
+// Return all stored bindings for a given remote device
+func (c *BindingManager) BindingsForRemoteDevice(remoteDevice api.DeviceRemoteInterface) []model.BindingManagementEntryDataType {
+	bindingData := c.bindingData()
 
-	c.mux.Lock()
-	defer c.mux.Unlock()
+	filteredBindings := []model.BindingManagementEntryDataType{}
 
-	linq.From(c.bindingEntries).WhereT(func(s *api.BindingEntry) bool {
-		return reflect.DeepEqual(*s.ServerFeature.Address(), featureAddress)
-	}).ToSlice(&result)
+	if bindingData != nil {
+		for _, binding := range bindingData.BindingEntry {
+			if reflect.DeepEqual(binding.ClientAddress.Device, remoteDevice.Address()) ||
+				reflect.DeepEqual(binding.ServerAddress.Device, remoteDevice.Address()) {
+				filteredBindings = append(filteredBindings, binding)
+			}
+		}
+	}
 
-	return result
+	return filteredBindings
 }
 
-func (c *BindingManager) bindingId() uint64 {
-	i := atomic.AddUint64(&c.bindingNum, 1)
-	return i
+// Return all stored bindings for a given feature address
+func (c *BindingManager) BindingsForFeatureAddress(featureAddress model.FeatureAddressType) []model.BindingManagementEntryDataType {
+	bindingData := c.bindingData()
+
+	filteredBindings := []model.BindingManagementEntryDataType{}
+
+	if bindingData != nil {
+		for _, binding := range bindingData.BindingEntry {
+			if reflect.DeepEqual(*binding.ClientAddress, featureAddress) ||
+				reflect.DeepEqual(*binding.ServerAddress, featureAddress) {
+				filteredBindings = append(filteredBindings, binding)
+			}
+		}
+	}
+
+	return filteredBindings
+}
+
+func (c *BindingManager) bindingData() *model.NodeManagementBindingDataType {
+	nodeMgmt := c.localDevice.NodeManagement()
+	bindingDataCopy := nodeMgmt.DataCopy(model.FunctionTypeNodeManagementBindingData)
+	return bindingDataCopy.(*model.NodeManagementBindingDataType)
 }
 
 func (c *BindingManager) checkRoleAndType(feature api.FeatureInterface, role model.RoleType, featureType model.FeatureTypeType) error {

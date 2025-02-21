@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"sync"
 	"time"
 
@@ -27,9 +28,6 @@ type FeatureLocal struct {
 	muxWriteReceived       sync.Mutex
 	writeApprovalReceived  map[string]map[model.MsgCounterType]int
 	pendingWriteApprovals  map[string]map[model.MsgCounterType]*time.Timer
-
-	bindings      []*model.FeatureAddressType // bindings to remote features
-	subscriptions []*model.FeatureAddressType // subscriptions to remote features
 
 	mux sync.Mutex
 }
@@ -106,7 +104,7 @@ func (r *FeatureLocal) Functions() []model.FunctionType {
 
 // Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
 //
-// Returns an error if there is already a callback for the msgCounter set
+// Returns an error if the provided callback function for the msgCounter is already set
 func (r *FeatureLocal) AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResponseMessage)) error {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
@@ -277,30 +275,9 @@ func (r *FeatureLocal) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddres
 		return
 	}
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	var subscriptions []*model.FeatureAddressType
-
-	for _, item := range r.subscriptions {
-		if item.Device == nil ||
-			*item.Device != *remoteAddress.Device {
-			subscriptions = append(subscriptions, item)
-		}
-	}
-
-	r.subscriptions = subscriptions
-
-	var bindings []*model.FeatureAddressType
-
-	for _, item := range r.bindings {
-		if item.Device == nil ||
-			*item.Device != *remoteAddress.Device {
-			bindings = append(bindings, item)
-		}
-	}
-
-	r.bindings = bindings
+	remoteDevice := r.Device().RemoteDeviceForAddress(*remoteAddress.Device)
+	r.Device().BindingManager().RemoveBindingsForRemoteDevice(remoteDevice)
+	r.Device().SubscriptionManager().RemoveSubscriptionsForRemoteDevice(remoteDevice)
 }
 
 // Remove subscriptions and bindings from local cache for a remote entity
@@ -312,32 +289,16 @@ func (r *FeatureLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddres
 		return
 	}
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	var subscriptions []*model.FeatureAddressType
-
-	for _, item := range r.subscriptions {
-		if item.Device == nil || item.Entity == nil ||
-			*item.Device != *remoteAddress.Device ||
-			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
-			subscriptions = append(subscriptions, item)
-		}
+	remoteDevice := r.Device().RemoteDeviceForAddress(*remoteAddress.Device)
+	if remoteDevice == nil {
+		return
 	}
-
-	r.subscriptions = subscriptions
-
-	var bindings []*model.FeatureAddressType
-
-	for _, item := range r.bindings {
-		if item.Device == nil || item.Entity == nil ||
-			*item.Device != *remoteAddress.Device ||
-			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
-			bindings = append(bindings, item)
-		}
+	remoteEntity := remoteDevice.Entity(remoteAddress.Entity)
+	if remoteEntity == nil {
+		return
 	}
-
-	r.bindings = bindings
+	r.Device().BindingManager().RemoveBindingsForRemoteEntity(remoteEntity)
+	r.Device().SubscriptionManager().RemoveSubscriptionsForRemoteEntity(remoteEntity)
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -360,7 +321,21 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	}
 
 	if fctData != nil && err == nil {
-		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+		// do not notify subscribers for the following data functions:
+		// - FunctionTypeNodeManagementBindingData
+		// - FunctionTypeNodeManagementSubscriptionData
+		// because the send out data would have to be filtered for the recipient,
+		// partial data for the models aren't supported and filtering on top of this
+		// is also not supported. Also no other implementations uses this data or
+		// provides it.
+		ignoreNotify := []model.FunctionType{
+			model.FunctionTypeNodeManagementBindingData,
+			model.FunctionTypeNodeManagementSubscriptionData,
+		}
+
+		if !slices.Contains(ignoreNotify, function) {
+			r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+		}
 	}
 }
 
@@ -442,19 +417,18 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 
 // check if there already is a subscription to a remote feature
 func (r *FeatureLocal) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.subscriptions {
-		if reflect.DeepEqual(*remoteAddress, *item) {
-			return true
-		}
-	}
-
-	return false
+	// subscriptions are also valid on NodeManagement, which has role Special
+	// so to cover all cases, any of the combinations of client/server roles should be checked
+	asClient := r.Device().SubscriptionManager().HasSubscription(r.Address(), remoteAddress)
+	asServer := r.Device().SubscriptionManager().HasSubscription(remoteAddress, r.Address())
+	return asClient || asServer
 }
 
 // SubscribeToRemote to a remote feature
+//
+// Returns:
+// - msgCounter: the message counter reference for the request, nil if the subscription already exists or an error occurred
+// - error: an error if creating the subscription request failed or sending failed, or nil if the subscription already exists or sending the request was possible
 func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -468,16 +442,51 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a subscription", r.Feature.String()))
 	}
 
-	msgCounter, err := remoteDevice.Sender().Subscribe(r.Address(), remoteAddress, r.ftype)
+	// check if we already have this subscription
+	if r.HasSubscriptionToRemote(remoteAddress) {
+		return nil, nil
+	}
+
+	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	remoteFeatureType := remoteFeature.Type()
+	if remoteFeature.Role() == model.RoleTypeClient {
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
+	}
+
+	msgCounter, err := remoteDevice.Sender().Subscribe(r.Address(), remoteAddress, remoteFeatureType)
 	if err != nil {
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	r.mux.Lock()
-	r.subscriptions = append(r.subscriptions, remoteAddress)
-	r.mux.Unlock()
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.subscribeResponseCallback(remoteDevice, remoteAddress, remoteFeatureType, msg)
+	})
 
 	return msgCounter, nil
+}
+
+func (r *FeatureLocal) subscribeResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	fType model.FeatureTypeType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only add the subscription if it was successful
+	if *resultData.ErrorNumber == 0 {
+		data := model.SubscriptionManagementRequestCallType{
+			ClientAddress:     r.Address(),
+			ServerAddress:     remoteAddress,
+			ServerFeatureType: &fType,
+		}
+
+		if err := r.Device().SubscriptionManager().AddSubscription(remoteDevice, data); err != nil {
+			logging.Log().Debug("Adding accepted remote subscription failed", err)
+		}
+	}
 }
 
 // Remove a subscriptions to a remote feature
@@ -495,46 +504,54 @@ func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddr
 		return nil, model.NewErrorTypeFromString("device not found")
 	}
 
-	var subscriptions []*model.FeatureAddressType
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.subscriptions {
-		if reflect.DeepEqual(item, remoteAddress) {
-			continue
-		}
-
-		subscriptions = append(subscriptions, item)
-	}
-
-	r.subscriptions = subscriptions
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.unsubscribeResponseCallback(remoteDevice, remoteAddress, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllRemoteSubscriptions() {
-	for _, item := range r.subscriptions {
-		_, _ = r.RemoveRemoteSubscription(item)
+func (r *FeatureLocal) unsubscribeResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only remove the subscription if the removal was successful
+	if *resultData.ErrorNumber == 0 {
+		var data model.SubscriptionManagementDeleteCallType
+
+		if r.role == model.RoleTypeServer {
+			data.ClientAddress = remoteAddress
+			data.ServerAddress = r.Address()
+		} else {
+			data.ClientAddress = r.Address()
+			data.ServerAddress = remoteAddress
+		}
+
+		if err := r.Device().SubscriptionManager().RemoveSubscription(remoteDevice, data); err != nil {
+			logging.Log().Debug("Removing binding to remote feature failed", err)
+		}
 	}
 }
 
 // check if there already is a binding to a remote feature
 func (r *FeatureLocal) HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.bindings {
-		if reflect.DeepEqual(*remoteAddress, *item) {
-			return true
-		}
+	if r.role == model.RoleTypeClient {
+		return r.Device().BindingManager().HasBinding(r.Address(), remoteAddress)
 	}
 
-	return false
+	return r.Device().BindingManager().HasBinding(remoteAddress, r.Address())
 }
 
-// BindToRemote to a remote feature
+// Request a binding to a remote feature
+//
+// Returns:
+// - msgCounter: the message counter reference for the request, nil if the binding already exists or an error occurred
+// - error: an error if creating the binding request failed or sending failed, or nil if the binding already exists or sending the request was possible
 func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -548,19 +565,54 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a binding", r.Feature.String()))
 	}
 
-	msgCounter, err := remoteDevice.Sender().Bind(r.Address(), remoteAddress, r.ftype)
+	// check if we already have this binding
+	if r.HasBindingToRemote(remoteAddress) {
+		return nil, nil
+	}
+
+	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	remoteFeatureType := remoteFeature.Type()
+	if remoteFeature.Role() == model.RoleTypeClient {
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
+	}
+
+	msgCounter, err := remoteDevice.Sender().Bind(r.Address(), remoteAddress, remoteFeatureType)
 	if err != nil {
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	r.mux.Lock()
-	r.bindings = append(r.bindings, remoteAddress)
-	r.mux.Unlock()
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.bindResponseCallback(remoteDevice, remoteAddress, remoteFeatureType, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove a binding to a remote feature
+func (r *FeatureLocal) bindResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	fType model.FeatureTypeType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only add the binding if it was successful
+	if *resultData.ErrorNumber == 0 {
+		data := model.BindingManagementRequestCallType{
+			ClientAddress:     r.Address(),
+			ServerAddress:     remoteAddress,
+			ServerFeatureType: &fType,
+		}
+
+		if err := r.Device().BindingManager().AddBinding(remoteDevice, data); err != nil {
+			logging.Log().Debug("Adding accepted remote binding failed", err)
+		}
+	}
+}
+
+// Send a request to remove a binding with a remote feature
 func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -575,28 +627,37 @@ func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressTy
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	var bindings []*model.FeatureAddressType
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.bindings {
-		if reflect.DeepEqual(item, remoteAddress) {
-			continue
-		}
-
-		bindings = append(bindings, item)
-	}
-
-	r.bindings = bindings
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.unbindResponseCallback(remoteDevice, remoteAddress, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllRemoteBindings() {
-	for _, item := range r.bindings {
-		_, _ = r.RemoveRemoteBinding(item)
+func (r *FeatureLocal) unbindResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only remove the binding if the removal was successful
+	if *resultData.ErrorNumber == 0 {
+		var data model.BindingManagementDeleteCallType
+
+		if r.Role() == model.RoleTypeServer {
+			data.ClientAddress = remoteAddress
+			data.ServerAddress = r.Address()
+		} else {
+			data.ClientAddress = r.Address()
+			data.ServerAddress = remoteAddress
+		}
+
+		if err := r.Device().BindingManager().RemoveBinding(remoteDevice, data); err != nil {
+			logging.Log().Debug("Removing binding to remote feature failed", err)
+		}
 	}
 }
 

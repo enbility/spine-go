@@ -167,11 +167,11 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 
 	// remove all subscriptions for this device
 	subscriptionMgr := r.SubscriptionManager()
-	subscriptionMgr.RemoveSubscriptionsForDevice(remoteDevice)
+	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
 
 	// remove all bindings for this device
 	bindingMgr := r.BindingManager()
-	bindingMgr.RemoveBindingsForDevice(remoteDevice)
+	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
 
 	r.mux.Lock()
 
@@ -240,8 +240,10 @@ func (r *DeviceLocal) AddEntity(entity api.EntityLocalInterface) {
 
 func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllUseCaseSupports()
-	entity.RemoveAllSubscriptions()
-	entity.RemoveAllBindings()
+
+	// do not wait for responses to delete the subscriptions and bindings
+	r.subscriptionManager.RemoveSubscriptionsForLocalEntity(entity)
+	r.bindingManager.RemoveBindingsForLocalEntity(entity)
 
 	if heartbeatMgr := entity.HeartbeatManager(); heartbeatMgr != nil {
 		heartbeatMgr.StopHeartbeat()
@@ -376,8 +378,8 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			return errors.New(err.String())
 		}
 
-		if !r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
-			err := model.NewErrorTypeFromString("write denied due to missing binding")
+		if !r.BindingManager().HasBinding(remoteFeature.Address(), localFeature.Address()) {
+			err := model.NewErrorType(model.ErrorNumberTypeBindingIsNecessaryForThisCommand, "write denied due to missing binding")
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
@@ -444,10 +446,17 @@ func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDevice
 }
 
 func (r *DeviceLocal) NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType) {
-	subscriptions := r.SubscriptionManager().SubscriptionsOnFeature(*featureAddress)
+	subscriptions := r.SubscriptionManager().SubscriptionsForFeatureAddress(*featureAddress)
 	for _, subscription := range subscriptions {
+		// get the server feature, it has to be a local feature
+		serverFeature := r.FeatureByAddress(subscription.ServerAddress)
+		remoteDevice := r.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
+		if serverFeature == nil || remoteDevice == nil {
+			continue
+		}
+
 		// TODO: error handling
-		_, _ = subscription.ClientFeature.Device().Sender().Notify(subscription.ServerFeature.Address(), subscription.ClientFeature.Address(), cmd)
+		_, _ = remoteDevice.Sender().Notify(subscription.ServerAddress, subscription.ClientAddress, cmd)
 	}
 }
 
@@ -485,6 +494,14 @@ func (r *DeviceLocal) addDeviceInformation() {
 
 	{
 		r.nodeManagement = NewNodeManagement(entity.NextFeatureId(), entity)
+
+		r.nodeManagement.SetData(model.FunctionTypeNodeManagementBindingData, &model.NodeManagementBindingDataType{
+			BindingEntry: []model.BindingManagementEntryDataType{},
+		})
+		r.nodeManagement.SetData(model.FunctionTypeNodeManagementSubscriptionData, &model.NodeManagementSubscriptionDataType{
+			SubscriptionEntry: []model.SubscriptionManagementEntryDataType{},
+		})
+
 		entity.AddFeature(r.nodeManagement)
 	}
 	{

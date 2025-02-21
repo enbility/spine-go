@@ -3,7 +3,6 @@ module github.com/enbility/spine-go
 go 1.22.0
 
 require (
-	github.com/ahmetb/go-linq/v3 v3.2.0
 	github.com/enbility/ship-go v0.0.0-20241006160314-3a4325a1a6d6
 	github.com/golanguzb70/lrucache v1.2.0
 	github.com/google/go-cmp v0.6.0

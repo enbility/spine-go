@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/ahmetb/go-linq/v3"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
@@ -110,7 +109,9 @@ func NewEntityAddressType(deviceName string, entityIds []uint) *model.EntityAddr
 
 func NewAddressEntityType(entityIds []uint) []model.AddressEntityType {
 	var addressEntity []model.AddressEntityType
-	linq.From(entityIds).SelectT(func(i uint) model.AddressEntityType { return model.AddressEntityType(i) }).ToSlice(&addressEntity)
+	for _, item := range entityIds {
+		addressEntity = append(addressEntity, model.AddressEntityType(item))
+	}
 	return addressEntity
 }
 
