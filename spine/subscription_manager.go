@@ -24,6 +24,8 @@ func NewSubscriptionManager(localDevice api.DeviceLocalInterface) *SubscriptionM
 //
 // Note: The device values of both addresses may not be nil
 func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementRequestCallType) error {
+	// subscription already exists, we're already in the desired state
+	// return success to indicate that the subscription exists and simplify synchronization between local and remote device
 	if c.HasSubscription(data.ClientAddress, data.ServerAddress) {
 		return nil
 	}
@@ -33,7 +35,7 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 		return err
 	}
 
-	// the server feature is optional, only validate it if it is set
+	// the server feature type is optional, only validate it if it is set
 	serverFeatureType := data.ServerFeatureType
 	if serverFeatureType != nil {
 		if err := c.checkRoleAndType(localFeature, localRole, *serverFeatureType); err != nil {
@@ -113,7 +115,8 @@ func (c *SubscriptionManager) RemoveSubscription(remoteDevice api.DeviceRemoteIn
 		newSubscriptionData.SubscriptionEntry = append(newSubscriptionData.SubscriptionEntry, item)
 	}
 
-	// we did not find any subscription to delete, so all is good from our end
+	// we did not find any subscription to delete, so we're already in the desired state
+	// return success to indicate that the subscription doesn't exist and simplify synchronization between local and remote device
 	if len(deletedSubscriptions) == 0 {
 		return nil
 	}

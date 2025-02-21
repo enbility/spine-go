@@ -25,6 +25,8 @@ func NewBindingManager(localDevice api.DeviceLocalInterface) *BindingManager {
 //
 // Note: The device values of both addresses may not be nil
 func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementRequestCallType) error {
+	// binding already exists, we're already in the desired state
+	// return success to indicate that the binding exists and simplify synchronization between local and remote device
 	if c.HasBinding(data.ClientAddress, data.ServerAddress) {
 		return nil
 	}
@@ -122,7 +124,8 @@ func (c *BindingManager) RemoveBinding(remoteDevice api.DeviceRemoteInterface, d
 		newBindingData.BindingEntry = append(newBindingData.BindingEntry, item)
 	}
 
-	// we did not find any binding to delete, so all is good from our end
+	// we did not find any binding to delete, so we're already in the desired state
+	// return success to indicate that the binding doesn't exist and simplify synchronization between local and remote device
 	if len(deletedBindings) == 0 {
 		return nil
 	}
