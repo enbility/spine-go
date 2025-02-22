@@ -91,15 +91,33 @@ func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 	//revive:disable-next-line
 	switch payload.Data.(type) {
 	case *model.NodeManagementDetailedDiscoveryDataType:
-		address := payload.Feature.Address()
-		if address.Device == nil {
-			address.Device = remoteDevice.Address()
+		// get the node management feature of the remote device, so we can send a subscription request
+		if nodeMgmtFeature := r.remoteNodeManagementFeature(remoteDevice); nodeMgmtFeature != nil {
+			address := nodeMgmtFeature.Address()
+			if address.Device == nil {
+				address.Device = remoteDevice.Address()
+			}
+			_, _ = r.nodeManagement.SubscribeToRemote(address)
 		}
-		_, _ = r.nodeManagement.SubscribeToRemote(address)
 
 		// Request Use Case Data
 		_, _ = r.nodeManagement.RequestUseCaseData(payload.Device.Ski(), remoteDevice.Address(), payload.Device.Sender())
 	}
+}
+
+// provide the node management feature of a remote device
+func (r *DeviceLocal) remoteNodeManagementFeature(remoteDevice api.DeviceRemoteInterface) api.FeatureRemoteInterface {
+	if remoteDevice == nil {
+		return nil
+	}
+
+	entityDeviceInformation := remoteDevice.Entity([]model.AddressEntityType{0})
+	if entityDeviceInformation == nil {
+		return nil
+	}
+
+	nodeMgmtFeature := entityDeviceInformation.FeatureOfTypeAndRole(model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
+	return nodeMgmtFeature
 }
 
 var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)

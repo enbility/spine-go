@@ -71,7 +71,6 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 		EventType:  api.EventTypeDeviceChange,
 		ChangeType: api.ElementChangeAdd,
 		Device:     remoteDevice,
-		Feature:    message.FeatureRemote,
 		Data:       data,
 	}
 	Events.Publish(payload)

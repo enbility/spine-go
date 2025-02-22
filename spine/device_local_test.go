@@ -27,6 +27,23 @@ func (d *DeviceLocalTestSuite) WriteShipMessageWithPayload(msg []byte) {
 	d.lastMessage = string(msg)
 }
 
+func (d *DeviceLocalTestSuite) Test_remoteNodeManagementFeature() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	feature := sut.remoteNodeManagementFeature(nil)
+	assert.Nil(d.T(), feature)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+	remoteDevice := sut.RemoteDeviceForSki(ski)
+
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.NotNil(d.T(), feature)
+
+	remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{0})
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.Nil(d.T(), feature)
+}
+
 func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
