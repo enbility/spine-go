@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 // TimePeriodType
@@ -187,7 +187,7 @@ func (d *DateTimeType) GetTime() (time.Time, error) {
 // DurationType
 
 func NewDurationType(duration time.Duration) *DurationType {
-	d, _ := period.NewOf(duration)
+	d := period.NewOf(duration)
 	value := DurationType(d.String())
 	return &value
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 const defaultMaxResponseDelay = time.Duration(time.Second * 10)
