@@ -1,9 +1,11 @@
 module github.com/enbility/spine-go
 
-go 1.22.0
+go 1.23.0
+
+toolchain go1.24.4
 
 require (
-	github.com/enbility/ship-go v0.0.0-20241006160314-3a4325a1a6d6
+	github.com/enbility/ship-go v0.0.0-20250703103055-20e80b88a9aa
 	github.com/golanguzb70/lrucache v1.2.0
 	github.com/google/go-cmp v0.7.0
 	github.com/rickb777/period v1.0.9
