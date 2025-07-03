@@ -5,6 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=dev)](https://coveralls.io/github/enbility/spine-go?branch=dev)
 [![Go report](https://goreportcard.com/badge/github.com/enbility/spine-go)](https://goreportcard.com/report/github.com/enbility/spine-go)
 [![CodeFactor](https://www.codefactor.io/repository/github/enbility/spine-go/badge)](https://www.codefactor.io/repository/github/enbility/spine-go)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/enbility/spine-go)
 
 ## Introduction
 
