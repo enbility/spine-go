@@ -17,6 +17,26 @@ This repository was started as part of the [eebus-go](https://github.com/enbilit
 
 __Important:__ In contrast to the EEBUS recommendation to use a "Generic" client feature, this library does not support this for the local device! Instead one should create a feature type with the client role for every required feature.
 
+## Documentation
+
+### Technical Analysis
+
+The `analysis-docs/` directory contains comprehensive technical analysis of the SPINE-go implementation:
+
+- **[Start Here](analysis-docs/README_START_HERE.md)** - Navigation guide for different audiences
+- **[Executive Summary](analysis-docs/EXECUTIVE_SUMMARY.md)** - High-level overview for business stakeholders
+- **Detailed Analysis** - In-depth technical documentation covering:
+  - SPINE specification analysis and critical issues
+  - Implementation quality assessment
+  - Specification deviations and undefined behaviors
+  - Improvement roadmap with prioritized recommendations
+- **Specific Issues** - Focused analysis of key implementation topics:
+  - Binding and orchestration patterns
+  - Version management architecture
+  - Identifier validation and update semantics
+
+This documentation provides essential insights for production deployments, multi-vendor compatibility considerations, and understanding the safety features built into spine-go.
+
 ## Packages
 
 ### api
