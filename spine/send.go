@@ -47,7 +47,7 @@ func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInter
 	}
 }
 
-// return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
+// return the datagram for a given msgCounter (only availabe for Notify messages!), error if not found
 func (c *Sender) DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error) {
 	c.muxNotifyCache.RLock()
 	defer c.muxNotifyCache.RUnlock()

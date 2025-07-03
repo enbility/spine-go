@@ -36,7 +36,7 @@ func (r *NodeManagement) processReadSubscriptionData(message *api.Message) error
 		},
 	}
 
-	return message.FeatureRemote.Device().Sender().Reply(message.RequestHeader, r.Address(), cmd)
+	return message.DeviceRemote.Sender().Reply(message.RequestHeader, r.Address(), cmd)
 }
 
 func (r *NodeManagement) handleMsgSubscriptionData(message *api.Message) error {

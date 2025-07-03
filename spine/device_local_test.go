@@ -27,6 +27,23 @@ func (d *DeviceLocalTestSuite) WriteShipMessageWithPayload(msg []byte) {
 	d.lastMessage = string(msg)
 }
 
+func (d *DeviceLocalTestSuite) Test_remoteNodeManagementFeature() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	feature := sut.remoteNodeManagementFeature(nil)
+	assert.Nil(d.T(), feature)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+	remoteDevice := sut.RemoteDeviceForSki(ski)
+
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.NotNil(d.T(), feature)
+
+	remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{0})
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.Nil(d.T(), feature)
+}
+
 func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
@@ -275,6 +292,14 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	remote := sut.RemoteDeviceForSki(ski)
 	assert.NotNil(d.T(), remote)
 
+	entityAddress1 := &model.EntityAddressType{
+		Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+		Entity: []model.AddressEntityType{1},
+	}
+	entityAddress2 := &model.EntityAddressType{
+		Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+		Entity: []model.AddressEntityType{2},
+	}
 	detailedData := &model.NodeManagementDetailedDiscoveryDataType{
 		DeviceInformation: &model.NodeManagementDetailedDiscoveryDeviceInformationType{
 			Description: &model.NetworkManagementDeviceDescriptionDataType{
@@ -286,11 +311,16 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 		EntityInformation: []model.NodeManagementDetailedDiscoveryEntityInformationType{
 			{
 				Description: &model.NetworkManagementEntityDescriptionDataType{
-					EntityAddress: &model.EntityAddressType{
-						Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
-						Entity: []model.AddressEntityType{1},
-					},
-					EntityType: util.Ptr(model.EntityTypeTypeEVSE),
+					EntityAddress:   entityAddress1,
+					EntityType:      util.Ptr(model.EntityTypeTypeEVSE),
+					LastStateChange: util.Ptr(model.NetworkManagementStateChangeTypeAdded),
+				},
+			},
+			{
+				Description: &model.NetworkManagementEntityDescriptionDataType{
+					EntityAddress:   entityAddress2,
+					EntityType:      util.Ptr(model.EntityTypeTypeEVSE),
+					LastStateChange: util.Ptr(model.NetworkManagementStateChangeTypeAdded),
 				},
 			},
 		},
@@ -306,9 +336,20 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 					Role:        util.Ptr(model.RoleTypeServer),
 				},
 			},
+			{
+				Description: &model.NetworkManagementFeatureDescriptionDataType{
+					FeatureAddress: &model.FeatureAddressType{
+						Device:  util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+						Entity:  []model.AddressEntityType{2},
+						Feature: util.Ptr(model.AddressFeatureType(1)),
+					},
+					FeatureType: util.Ptr(model.FeatureTypeTypeElectricalConnection),
+					Role:        util.Ptr(model.RoleTypeServer),
+				},
+			},
 		},
 	}
-	_, err := remote.AddEntityAndFeatures(true, detailedData)
+	_, err := remote.AddEntityAndFeatures(true, detailedData, entityAddress1)
 	assert.Nil(d.T(), err)
 
 	datagram := model.DatagramType{
