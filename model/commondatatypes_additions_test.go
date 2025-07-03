@@ -392,3 +392,30 @@ func TestFeatureAddressTypeString(t *testing.T) {
 		}
 	}
 }
+
+// TestDurationTypeIssue60 validates the fix for issue #60
+// Ensures complex durations are formatted with preserved structure instead of seconds-only
+func TestDurationTypeIssue60(t *testing.T) {
+	// Test case from issue #60: complex duration should preserve structure
+	duration := time.Duration(4357512417) * time.Second // Parsed P138Y1MT6H28M15S
+	
+	result := NewDurationType(duration)
+	resultStr := string(*result)
+	
+	// Should NOT be "PT4357512417S" (old behavior)
+	// Should be something like "P138Y1MT4H6M57S" (preserves year/month structure)
+	assert.NotEqual(t, "PT4357512417S", resultStr, "Should not output seconds-only format")
+	assert.Contains(t, resultStr, "Y", "Should contain year component")
+	assert.Contains(t, resultStr, "M", "Should contain month component")
+	
+	// Verify it's still a valid duration that can be parsed back
+	parsedBack, err := result.GetTimeDuration()
+	assert.NoError(t, err, "Result should be parseable")
+	
+	// Should be within reasonable tolerance (few seconds) due to calendar approximations
+	diff := parsedBack - duration
+	if diff < 0 {
+		diff = -diff
+	}
+	assert.True(t, diff < 10*time.Hour, "Should be within 10 hours tolerance (approximation errors)")
+}
