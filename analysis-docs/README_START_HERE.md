@@ -46,7 +46,8 @@
   ├── BINDING_AND_ORCHESTRATION.md
   ├── VERSION_MANAGEMENT.md
   ├── IDENTIFIER_VALIDATION_AND_UPDATES.md
-  └── MSGCOUNTER_IMPLEMENTATION.md
+  ├── MSGCOUNTER_IMPLEMENTATION.md
+  └── XSD_RESTRICTION_ANALYSIS.md
 
 📁 meta/                                   ← Analysis history and process
   └── ANALYSIS_HISTORY.md
@@ -75,6 +76,7 @@
 **Version Management:** [specific-issues/VERSION_MANAGEMENT.md](./specific-issues/VERSION_MANAGEMENT.md)
 **Identifier Validation:** [specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md](./specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md)
 **msgCounter Implementation:** [specific-issues/MSGCOUNTER_IMPLEMENTATION.md](./specific-issues/MSGCOUNTER_IMPLEMENTATION.md)
+**XSD Restrictions:** [specific-issues/XSD_RESTRICTION_ANALYSIS.md](./specific-issues/XSD_RESTRICTION_ANALYSIS.md)
 
 ### "I want complete technical understanding"
 1. [UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md](./UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md) - **Complete explanation with conclusions**
@@ -105,16 +107,22 @@
 
 ---
 
-**Last Updated:** 2025-06-26  
-**Analysis Version:** Comprehensive review of SPINE v1.3.0 and spine-go implementation
+**Last Updated:** 2025-07-04  
+**Analysis Scope:** Comprehensive review of SPINE v1.3.0 and spine-go implementation
 
 ---
 
-## Version History
+## Document History
+
+### 2025-07-04
+- Added XSD_RESTRICTION_ANALYSIS.md with comprehensive analysis of XSD complex type restrictions
+- Added MSGCOUNTER_IMPLEMENTATION.md analyzing msgCounter tracking requirements
+- Updated SPEC_DEVIATIONS.md with XSD restriction deviation documentation
+- Updated navigation to include new analysis documents
 
 ### 2025-06-26
-- Added reference to IDENTIFIER_VALIDATION_AND_UPDATES.md in specific technical issues
-- Updated last updated date
+- Added IDENTIFIER_VALIDATION_AND_UPDATES.md with comprehensive identifier validation analysis
+- Updated SPEC_DEVIATIONS.md with identifier validation findings
 
 ### 2025-06-25
 - Initial navigation guide created

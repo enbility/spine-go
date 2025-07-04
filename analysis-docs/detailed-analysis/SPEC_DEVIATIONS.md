@@ -1,8 +1,7 @@
 # SPINE Specification Deviations
 
-**Document Version:** v1.1  
 **Created:** 2025-06-25  
-**Updated:** 2025-06-26  
+**Updated:** 2025-07-04  
 **Implementation:** spine-go  
 **Specification Version:** SPINE v1.3.0  
 **Purpose:** Comprehensive analysis of implementation deviations from SPINE specification
@@ -80,6 +79,45 @@ func (d *DeviceLocal) ProcessCmd(datagram model.DatagramType, ...) error {
 - DoS vulnerability
 
 ## Minor Deviations
+
+### 5. XSD Complex Type Restrictions Not Enforced 📝
+
+**Specification Requirement:**
+> SPINE XSD schemas define context-specific restrictions on complex types to omit redundant fields
+
+**Examples:**
+- `NodeManagementDetailedDiscoveryEntityInformationType` restricts `EntityAddress` to only include `entity` field (omits `device`)
+- Various restrictions in `IncentiveTable` and `SmartEnergyManagementPs` features
+
+**Implementation:**
+```go
+// Full EntityAddressType used everywhere, including:
+type NodeManagementDetailedDiscoveryEntityInformationType struct {
+    Description *NetworkManagementEntityDescriptionDataType `json:"description,omitempty"`
+    // EntityAddress includes both device and entity fields
+}
+```
+
+**Output Difference:**
+```json
+// spine-go sends:
+{"entityAddress": {"device": "TestDevice", "entity": [0,1]}}
+
+// XSD expects:
+{"entityAddress": {"entity": [0,1]}}
+```
+
+**Consequences:**
+- ✅ **No functional impact** - Receiving systems ignore extra fields per JSON best practices
+- ✅ **Better compatibility** - Works with implementations that expect full addresses
+- ⚠️ **Slightly larger messages** - Includes contextually redundant data
+- ❌ **Not XSD compliant** - Strict validators would reject
+
+**Rationale:**
+- Implementing each restriction would add ~360 lines of code (duplicate types, conversion methods, custom marshaling)
+- Only 3 XSD files have complex type restrictions across entire SPINE spec
+- Zero reported production issues from this deviation
+- Maintains code simplicity and maintainability
 
 ### 6. Error Response Timing Not Enforced
 
@@ -361,16 +399,22 @@ The most serious issues are missing protocol version validation and no loop dete
 
 ---
 
-## Version History
+## Document History
 
-### v1.1 (2025-06-26)
+### 2025-07-04
+- Added section 5: "XSD Complex Type Restrictions Not Enforced" under minor deviations
+- Documented rationale for not implementing context-specific field omissions
+- Clarified that only 3 XSD files have complex type restrictions in entire spec
+- Confirmed zero production impact from this deviation
+
+### 2025-06-26
 - Added section 4: "Identifier Validation for List Updates" under implementation choices
 - Updated section 4 with comprehensive testing results showing spine-go is correct per spec
 - Identified root cause of duplicates as edge case data entry, not UpdateList behavior
 - Documented spine-go's lenient approach to handling incomplete identifiers
 - Explained rationale for accepting non-compliant messages for compatibility
 
-### v1.0 (2025-06-25)
+### 2025-06-25
 - Initial deviation analysis comparing spine-go implementation with SPINE v1.3.0
 - Categorized deviations as critical, major, minor, and implementation choices
 - Included compatibility impact matrix and recommendations
