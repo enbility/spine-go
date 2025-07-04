@@ -82,11 +82,11 @@ func TestMsgCounterType_Overflow(t *testing.T) {
 	// Test that MsgCounterType (uint64) wraps from max to 0
 	maxValue := MsgCounterType(^uint64(0)) // 2^64-1
 	assert.Equal(t, MsgCounterType(18446744073709551615), maxValue)
-	
+
 	// Simulate overflow by adding 1 to max value
 	overflowValue := maxValue + 1
 	assert.Equal(t, MsgCounterType(0), overflowValue, "MsgCounterType should wrap from max (2^64-1) to 0")
-	
+
 	// Test a few more increments after overflow
 	assert.Equal(t, MsgCounterType(1), overflowValue+1)
 	assert.Equal(t, MsgCounterType(2), overflowValue+2)

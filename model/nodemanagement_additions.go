@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -206,4 +207,33 @@ func (n *NodeManagementUseCaseDataType) RemoveUseCaseDataForAddress(address Feat
 	}
 
 	n.UseCaseInformation = usecaseInfo
+}
+
+// XSD Compliance Factory Functions and Validation
+
+// NewEntityInformationForNodeManagement creates XSD-compliant NodeManagementDetailedDiscoveryEntityInformationType
+// Per XSD specification, EntityAddress in this context should only contain the 'entity' field (device field omitted)
+func NewEntityInformationForNodeManagement(
+	entityAddr []AddressEntityType,
+	entityType EntityTypeType,
+) *NodeManagementDetailedDiscoveryEntityInformationType {
+	return &NodeManagementDetailedDiscoveryEntityInformationType{
+		Description: &NetworkManagementEntityDescriptionDataType{
+			EntityAddress: &EntityAddressType{
+				// Device field intentionally omitted for XSD compliance
+				Entity: entityAddr,
+			},
+			EntityType: &entityType,
+		},
+	}
+}
+
+// ValidateXSD validates that the NodeManagementDetailedDiscoveryEntityInformationType complies with XSD restrictions
+func (e *NodeManagementDetailedDiscoveryEntityInformationType) ValidateXSD() error {
+	if e.Description != nil &&
+		e.Description.EntityAddress != nil &&
+		e.Description.EntityAddress.Device != nil {
+		return fmt.Errorf("XSD violation: Device field not allowed in NodeManagementDetailedDiscovery context")
+	}
+	return nil
 }
