@@ -987,3 +987,256 @@ func (s *LocalFeatureTestSuite) Test_Set_Update() {
 	assert.False(s.T(), *modelData.LoadControlLimitData[1].IsLimitChangeable)
 	assert.Nil(s.T(), modelData.LoadControlLimitData[1].TimePeriod)
 }
+
+// Test that read requests with partial filters return full data (spec-compliant behavior)
+func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_ReturnsFullData() {
+	// Set up test data in server feature
+	testData := &model.LoadControlLimitListDataType{
+		LoadControlLimitData: []model.LoadControlLimitDataType{
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(1)),
+				IsLimitActive: util.Ptr(false),
+				Value:         model.NewScaledNumberType(1000),
+			},
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(2)),
+				IsLimitActive: util.Ptr(true),
+				Value:         model.NewScaledNumberType(2000),
+			},
+		},
+	}
+	s.localServerFeatureWrite.SetData(s.serverWriteFunction, testData)
+
+	// Create partial filter (requesting only specific elements)
+	partialFilter := &model.FilterType{
+		CmdControl: &model.CmdControlType{
+			Partial: &model.ElementTagType{},
+		},
+		LoadControlLimitDataElements: &model.LoadControlLimitDataElementsType{
+			LimitId: &model.ElementTagType{},
+		},
+	}
+
+	// Create read message with partial filter
+	msg := &api.Message{
+		FeatureRemote: s.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		FilterPartial: partialFilter,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+			Filter: []model.FilterType{*partialFilter},
+		},
+	}
+
+	// Expect full data reply (should NOT respect partial filter)
+	s.senderMock.EXPECT().Reply(
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(func(cmd model.CmdType) bool {
+			// Verify reply contains full data, not partial
+			if cmd.LoadControlLimitListData == nil {
+				return false
+			}
+			// Should contain all data, not just LimitId
+			data := cmd.LoadControlLimitListData
+			if len(data.LoadControlLimitData) != 2 {
+				return false
+			}
+			// Both entries should have all fields (full data)
+			entry1 := data.LoadControlLimitData[0]
+			entry2 := data.LoadControlLimitData[1]
+			return entry1.LimitId != nil && entry1.IsLimitActive != nil && entry1.Value != nil &&
+				entry2.LimitId != nil && entry2.IsLimitActive != nil && entry2.Value != nil
+		}),
+	).Return(nil)
+
+	// Handle the message
+	err := s.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(s.T(), err)
+}
+
+// Test that read requests with selector filters return all data (ignore selectors)
+func (s *LocalFeatureTestSuite) Test_Read_WithSelectorFilter_ReturnsAllData() {
+	// Set up test data with multiple entries
+	testData := &model.LoadControlLimitListDataType{
+		LoadControlLimitData: []model.LoadControlLimitDataType{
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(1)),
+				IsLimitActive: util.Ptr(false),
+			},
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(2)),
+				IsLimitActive: util.Ptr(true),
+			},
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(3)),
+				IsLimitActive: util.Ptr(false),
+			},
+		},
+	}
+	s.localServerFeatureWrite.SetData(s.serverWriteFunction, testData)
+
+	// Create selector filter (requesting only specific item)
+	selectorFilter := &model.FilterType{
+		CmdControl: &model.CmdControlType{
+			Partial: &model.ElementTagType{},
+		},
+		LoadControlLimitListDataSelectors: &model.LoadControlLimitListDataSelectorsType{
+			LimitId: util.Ptr(model.LoadControlLimitIdType(1)), // Only request item with ID 1
+		},
+	}
+
+	// Create read message with selector filter
+	msg := &api.Message{
+		FeatureRemote: s.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		FilterPartial: selectorFilter,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+			Filter: []model.FilterType{*selectorFilter},
+		},
+	}
+
+	// Expect all data (should ignore selector filter)
+	s.senderMock.EXPECT().Reply(
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(func(cmd model.CmdType) bool {
+			// Verify reply contains ALL data, not just selected item
+			if cmd.LoadControlLimitListData == nil {
+				return false
+			}
+			data := cmd.LoadControlLimitListData
+			// Should contain all 3 entries, not just the one with ID 1
+			return len(data.LoadControlLimitData) == 3
+		}),
+	).Return(nil)
+
+	// Handle the message
+	err := s.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(s.T(), err)
+}
+
+// Test that read requests with combined element and selector filters return full data
+func (s *LocalFeatureTestSuite) Test_Read_WithCombinedFilters_ReturnsFullData() {
+	// Set up test data
+	testData := &model.LoadControlLimitListDataType{
+		LoadControlLimitData: []model.LoadControlLimitDataType{
+			{
+				LimitId:           util.Ptr(model.LoadControlLimitIdType(1)),
+				IsLimitActive:     util.Ptr(false),
+				IsLimitChangeable: util.Ptr(true),
+				Value:             model.NewScaledNumberType(1000),
+			},
+			{
+				LimitId:           util.Ptr(model.LoadControlLimitIdType(2)),
+				IsLimitActive:     util.Ptr(true),
+				IsLimitChangeable: util.Ptr(false),
+				Value:             model.NewScaledNumberType(2000),
+			},
+		},
+	}
+	s.localServerFeatureWrite.SetData(s.serverWriteFunction, testData)
+
+	// Create combined filter (selector + elements)
+	combinedFilter := &model.FilterType{
+		CmdControl: &model.CmdControlType{
+			Partial: &model.ElementTagType{},
+		},
+		LoadControlLimitListDataSelectors: &model.LoadControlLimitListDataSelectorsType{
+			LimitId: util.Ptr(model.LoadControlLimitIdType(1)),
+		},
+		LoadControlLimitDataElements: &model.LoadControlLimitDataElementsType{
+			LimitId:       &model.ElementTagType{},
+			IsLimitActive: &model.ElementTagType{},
+		},
+	}
+
+	// Create read message with combined filter
+	msg := &api.Message{
+		FeatureRemote: s.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		FilterPartial: combinedFilter,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+			Filter: []model.FilterType{*combinedFilter},
+		},
+	}
+
+	// Expect full data (should ignore both selector and element filters)
+	s.senderMock.EXPECT().Reply(
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(func(cmd model.CmdType) bool {
+			// Verify reply contains full data
+			if cmd.LoadControlLimitListData == nil {
+				return false
+			}
+			data := cmd.LoadControlLimitListData
+			if len(data.LoadControlLimitData) != 2 {
+				return false
+			}
+			// Both entries should have all fields
+			entry1 := data.LoadControlLimitData[0]
+			entry2 := data.LoadControlLimitData[1]
+			return entry1.LimitId != nil && entry1.IsLimitActive != nil && entry1.IsLimitChangeable != nil && entry1.Value != nil &&
+				entry2.LimitId != nil && entry2.IsLimitActive != nil && entry2.IsLimitChangeable != nil && entry2.Value != nil
+		}),
+	).Return(nil)
+
+	// Handle the message
+	err := s.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(s.T(), err)
+}
+
+// Test that no errors are returned when partial filters are provided
+func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_NoErrors() {
+	// Set up minimal test data
+	testData := &model.LoadControlLimitListDataType{
+		LoadControlLimitData: []model.LoadControlLimitDataType{
+			{
+				LimitId:       util.Ptr(model.LoadControlLimitIdType(1)),
+				IsLimitActive: util.Ptr(false),
+			},
+		},
+	}
+	s.localServerFeatureWrite.SetData(s.serverWriteFunction, testData)
+
+	// Create various partial filters to test
+	partialFilter := &model.FilterType{
+		CmdControl: &model.CmdControlType{
+			Partial: &model.ElementTagType{},
+		},
+		LoadControlLimitDataElements: &model.LoadControlLimitDataElementsType{
+			LimitId: &model.ElementTagType{},
+		},
+	}
+
+	// Create read message with partial filter
+	msg := &api.Message{
+		FeatureRemote: s.remoteFeature,
+		CmdClassifier: model.CmdClassifierTypeRead,
+		FilterPartial: partialFilter,
+		Cmd: model.CmdType{
+			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+			Filter: []model.FilterType{*partialFilter},
+		},
+	}
+
+	// Expect successful reply (no errors)
+	s.senderMock.EXPECT().Reply(mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	// Handle the message - should not return any errors
+	err := s.localServerFeatureWrite.HandleMessage(msg)
+	assert.Nil(s.T(), err)
+}
+
+// Test that partial read capability is correctly reported as false
+func (s *LocalFeatureTestSuite) Test_Operations_NoPartialReadSupport() {
+	operations := s.localServerFeatureWrite.Operations()
+	
+	// Verify that partial read is not supported
+	operation, exists := operations[s.serverWriteFunction]
+	assert.True(s.T(), exists)
+	assert.False(s.T(), operation.ReadPartial())
+}
