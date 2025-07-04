@@ -232,12 +232,6 @@ func (r *EntityLocal) RemoveAllUseCaseSupports() {
 }
 
 func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
-	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
-		Description: &model.NetworkManagementEntityDescriptionDataType{
-			EntityAddress: r.Address(),
-			EntityType:    &r.eType,
-		},
-	}
-
-	return res
+	// Use XSD-compliant factory function to ensure Device field is omitted
+	return model.NewEntityInformationForNodeManagement(r.address.Entity, r.eType)
 }

@@ -214,12 +214,12 @@ func NewDurationType(duration time.Duration) *DurationType {
 		value := DurationType(negativeResult)
 		return &value
 	}
-	
+
 	// For relative durations, always calculate from "now" to preserve calendar structure
 	// This gives us accurate year/month representation instead of just seconds
 	now := time.Now()
 	target := now.Add(duration)
-	
+
 	// Calculate calendar units between now and target
 	years := 0
 	months := 0
@@ -227,42 +227,42 @@ func NewDurationType(duration time.Duration) *DurationType {
 	hours := 0
 	minutes := 0
 	seconds := 0
-	
+
 	// Calculate years first
 	for now.AddDate(years+1, 0, 0).Before(target) || now.AddDate(years+1, 0, 0).Equal(target) {
 		years++
 	}
-	
+
 	// Then months
 	tempTime := now.AddDate(years, 0, 0)
 	for tempTime.AddDate(0, months+1, 0).Before(target) || tempTime.AddDate(0, months+1, 0).Equal(target) {
 		months++
 	}
-	
+
 	// Then days
 	tempTime = now.AddDate(years, months, 0)
 	for tempTime.AddDate(0, 0, days+1).Before(target) || tempTime.AddDate(0, 0, days+1).Equal(target) {
 		days++
 	}
-	
+
 	// Now handle time components
 	tempTime = now.AddDate(years, months, days)
 	remainingDuration := target.Sub(tempTime)
-	
+
 	// Extract hours, minutes, seconds from remaining duration
 	totalSeconds := int64(remainingDuration.Seconds())
 	hours = int(totalSeconds / 3600)
 	totalSeconds %= 3600
 	minutes = int(totalSeconds / 60)
 	seconds = int(totalSeconds % 60)
-	
+
 	// Handle nanoseconds for sub-second precision
 	nanos := remainingDuration.Nanoseconds() % 1e9
-	
+
 	// Build ISO 8601 duration string
 	var result strings.Builder
 	result.WriteString("P")
-	
+
 	// Date part
 	if years > 0 {
 		result.WriteString(fmt.Sprintf("%dY", years))
@@ -273,7 +273,7 @@ func NewDurationType(duration time.Duration) *DurationType {
 	if days > 0 {
 		result.WriteString(fmt.Sprintf("%dD", days))
 	}
-	
+
 	// Time part
 	if hours > 0 || minutes > 0 || seconds > 0 || nanos > 0 {
 		result.WriteString("T")
@@ -293,13 +293,13 @@ func NewDurationType(duration time.Duration) *DurationType {
 			}
 		}
 	}
-	
+
 	// Handle edge case of zero duration
 	if result.String() == "P" {
 		// ISO 8601 specifies P0D for zero duration, though PT0S is also valid
 		result.WriteString("0D")
 	}
-	
+
 	value := DurationType(result.String())
 	return &value
 }

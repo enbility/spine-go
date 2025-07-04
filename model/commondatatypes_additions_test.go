@@ -399,20 +399,20 @@ func TestFeatureAddressTypeString(t *testing.T) {
 func TestDurationTypeIssue60(t *testing.T) {
 	// Test case from issue #60: complex duration should preserve structure
 	duration := time.Duration(4357512417) * time.Second // Parsed P138Y1MT6H28M15S
-	
+
 	result := NewDurationType(duration)
 	resultStr := string(*result)
-	
+
 	// Should NOT be "PT4357512417S" (old behavior)
 	// Should be something like "P138Y1MT4H6M57S" (preserves year/month structure)
 	assert.NotEqual(t, "PT4357512417S", resultStr, "Should not output seconds-only format")
 	assert.Contains(t, resultStr, "Y", "Should contain year component")
 	assert.Contains(t, resultStr, "M", "Should contain month component")
-	
+
 	// Verify it's still a valid duration that can be parsed back
 	parsedBack, err := result.GetTimeDuration()
 	assert.NoError(t, err, "Result should be parseable")
-	
+
 	// Should be within reasonable tolerance (few seconds) due to calendar approximations
 	diff := parsedBack - duration
 	if diff < 0 {
@@ -495,9 +495,9 @@ func TestNewDurationTypeEdgeCases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
-			
+
 			assert.Regexp(t, tt.expectedRegex, resultStr, tt.description)
-			
+
 			// Verify it can be parsed back (within tolerance for calendar operations)
 			parsedBack, err := result.GetTimeDuration()
 			if tt.duration == 1*time.Nanosecond {
@@ -509,7 +509,7 @@ func TestNewDurationTypeEdgeCases(t *testing.T) {
 				}
 			}
 			assert.NoError(t, err, "Result should be parseable")
-			
+
 			// For small durations (< 1 day), expect exact matches (except very small ones)
 			// For larger durations, allow for calendar approximation errors
 			if tt.duration < 24*time.Hour {
@@ -568,9 +568,9 @@ func TestNewDurationTypeNegative(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
-			
+
 			assert.Equal(t, tt.expectedSign, resultStr)
-			
+
 			// Verify parsing back gives the same duration
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
@@ -617,15 +617,15 @@ func TestNewDurationTypeLeapYearBoundaries(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
-			
+
 			// Verify the structure makes sense
 			if tt.minYears > 0 || tt.maxYears > 0 {
 				assert.Contains(t, resultStr, "Y", "Should contain year component for ~yearly durations")
 			}
-			
+
 			// Should not be seconds-only format
 			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Should not be seconds-only format")
-			
+
 			// Should be parseable
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
@@ -638,20 +638,20 @@ func TestNewDurationTypeLeapYearBoundaries(t *testing.T) {
 func TestNewDurationTypeMonthBoundaries(t *testing.T) {
 	// Test durations around month boundaries
 	monthLengths := []int{28, 29, 30, 31} // Different month lengths
-	
+
 	for _, days := range monthLengths {
 		t.Run(fmt.Sprintf("%d days", days), func(t *testing.T) {
 			duration := time.Duration(days) * 24 * time.Hour
 			result := NewDurationType(duration)
 			resultStr := string(*result)
-			
+
 			// Should be in a reasonable format (days or month + days)
 			assert.Regexp(t, "^P(\\d+M)?(\\d+D)?(T.*)?$", resultStr, "Should be valid ISO 8601 format")
-			
+
 			// Should be parseable
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
-			
+
 			// For durations around month boundaries, allow for calendar approximation errors
 			diff := parsedBack - duration
 			if diff < 0 {
@@ -677,7 +677,7 @@ func TestNewDurationTypeLargeValues(t *testing.T) {
 			expectM:  false,
 		},
 		{
-			name:     "100 years", 
+			name:     "100 years",
 			duration: 100 * 365 * 24 * time.Hour,
 			expectY:  true,
 			expectM:  false,
@@ -697,20 +697,20 @@ func TestNewDurationTypeLargeValues(t *testing.T) {
 				t.Skip("Duration overflows time.Duration")
 				return
 			}
-			
+
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
-			
+
 			if tt.expectY {
 				assert.Contains(t, resultStr, "Y", "Should contain year component")
 			}
 			if tt.expectM {
-				assert.Contains(t, resultStr, "M", "Should contain month component") 
+				assert.Contains(t, resultStr, "M", "Should contain month component")
 			}
-			
+
 			// Should not be seconds-only
 			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Large durations should not be seconds-only")
-			
+
 			// Should be parseable (even if with approximation errors)
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
@@ -729,11 +729,11 @@ func TestNewDurationTypeRoundTrip(t *testing.T) {
 		2 * time.Hour,
 		6 * time.Hour,
 		12 * time.Hour,
-		1 * 24 * time.Hour,       // 1 day
-		3 * 24 * time.Hour,       // 3 days
-		7 * 24 * time.Hour,       // 1 week (in days)
-		14 * 24 * time.Hour,      // 2 weeks
-		28 * 24 * time.Hour,      // 4 weeks (close to month)
+		1 * 24 * time.Hour,  // 1 day
+		3 * 24 * time.Hour,  // 3 days
+		7 * 24 * time.Hour,  // 1 week (in days)
+		14 * 24 * time.Hour, // 2 weeks
+		28 * 24 * time.Hour, // 4 weeks (close to month)
 	}
 
 	for _, original := range exactDurations {
@@ -741,11 +741,11 @@ func TestNewDurationTypeRoundTrip(t *testing.T) {
 			// Format to ISO 8601
 			durType := NewDurationType(original)
 			isoStr := string(*durType)
-			
+
 			// Parse back
 			parsed, err := durType.GetTimeDuration()
 			assert.NoError(t, err)
-			
+
 			// For durations using only weeks/days/hours/minutes/seconds,
 			// we should get exact round-trip
 			if original <= 28*24*time.Hour {
@@ -754,8 +754,8 @@ func TestNewDurationTypeRoundTrip(t *testing.T) {
 				if diff < 0 {
 					diff = -diff
 				}
-				assert.True(t, diff <= tolerance, 
-					"Round-trip should be exact for duration %v, got %v (diff: %v, iso: %s)", 
+				assert.True(t, diff <= tolerance,
+					"Round-trip should be exact for duration %v, got %v (diff: %v, iso: %s)",
 					original, parsed, diff, isoStr)
 			}
 		})
@@ -766,33 +766,33 @@ func TestNewDurationTypeRoundTrip(t *testing.T) {
 func TestNewDurationTypeStructurePreservation(t *testing.T) {
 	// Test cases that would have been "PT...S" in the old implementation
 	testCases := []struct {
-		name            string
-		inputSeconds    int64
-		mustContain     []string
-		mustNotContain  []string
+		name           string
+		inputSeconds   int64
+		mustContain    []string
+		mustNotContain []string
 	}{
 		{
-			name:         "1 year in seconds",
-			inputSeconds: 31556952, // ~1 year
-			mustContain:  []string{"Y"},
+			name:           "1 year in seconds",
+			inputSeconds:   31556952, // ~1 year
+			mustContain:    []string{"Y"},
 			mustNotContain: []string{"PT31556952S"},
 		},
 		{
-			name:         "1 month in seconds", 
-			inputSeconds: 2629746, // ~1 month
-			mustContain:  []string{"D"}, // Should be days or month+days
+			name:           "1 month in seconds",
+			inputSeconds:   2629746,       // ~1 month
+			mustContain:    []string{"D"}, // Should be days or month+days
 			mustNotContain: []string{"PT2629746S"},
 		},
 		{
-			name:         "issue 60 duration",
-			inputSeconds: 4357512417,
-			mustContain:  []string{"Y", "M"},
+			name:           "issue 60 duration",
+			inputSeconds:   4357512417,
+			mustContain:    []string{"Y", "M"},
 			mustNotContain: []string{"PT4357512417S"},
 		},
 		{
-			name:         "6 months in seconds",
-			inputSeconds: 15778476, // ~6 months  
-			mustContain:  []string{"M"}, // Should contain months
+			name:           "6 months in seconds",
+			inputSeconds:   15778476,      // ~6 months
+			mustContain:    []string{"M"}, // Should contain months
 			mustNotContain: []string{"PT15778476S"},
 		},
 	}
@@ -802,20 +802,20 @@ func TestNewDurationTypeStructurePreservation(t *testing.T) {
 			duration := time.Duration(tc.inputSeconds) * time.Second
 			result := NewDurationType(duration)
 			resultStr := string(*result)
-			
+
 			for _, mustHave := range tc.mustContain {
-				assert.Contains(t, resultStr, mustHave, 
+				assert.Contains(t, resultStr, mustHave,
 					"Result should contain %s: %s", mustHave, resultStr)
 			}
-			
+
 			for _, mustNotHave := range tc.mustNotContain {
 				assert.NotEqual(t, mustNotHave, resultStr,
 					"Result should not be the old seconds-only format")
 			}
-			
+
 			// Verify it's valid ISO 8601
 			assert.Regexp(t, "^-?P", resultStr, "Should start with P (or -P)")
-			
+
 			// Verify it can be parsed
 			parsed, err := result.GetTimeDuration()
 			assert.NoError(t, err)
@@ -873,24 +873,24 @@ func TestNewDurationTypeSPINERealistic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := NewDurationType(tc.duration)
 			resultStr := string(*result)
-			
+
 			// Should produce human-readable format
-			assert.NotRegexp(t, "^PT\\d{4,}S$", resultStr, 
+			assert.NotRegexp(t, "^PT\\d{4,}S$", resultStr,
 				"SPINE durations should not be large second counts")
-			
+
 			// Should be parseable with high accuracy (SPINE needs precision)
 			parsed, err := result.GetTimeDuration()
 			assert.NoError(t, err)
-			
+
 			// For SPINE use cases, accuracy is critical
 			diff := parsed - tc.duration
 			if diff < 0 {
 				diff = -diff
 			}
-			
+
 			// Most SPINE durations should be exact or very close
 			if tc.duration <= 7*24*time.Hour {
-				assert.True(t, diff <= 1*time.Second, 
+				assert.True(t, diff <= 1*time.Second,
 					"SPINE duration %s should be very accurate (diff: %v)", tc.context, diff)
 			} else {
 				assert.True(t, diff <= 1*time.Hour,

@@ -42,7 +42,6 @@
                             {
                                 "description": {
                                     "entityAddress": {
-                                        "device": "TestDeviceAddress",
                                         "entity": [
                                             0
                                         ]
