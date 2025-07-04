@@ -42,6 +42,56 @@ func TestFilterType_Selector_SetDataForFunction(t *testing.T) {
 	assert.NotNil(t, cmd.ElectricalConnectionDescriptionListDataSelectors)
 }
 
+func TestMsgCounterType_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		counter  *MsgCounterType
+		expected string
+	}{
+		{
+			name:     "nil counter",
+			counter:  nil,
+			expected: "",
+		},
+		{
+			name:     "zero value",
+			counter:  util.Ptr(MsgCounterType(0)),
+			expected: "0",
+		},
+		{
+			name:     "normal value",
+			counter:  util.Ptr(MsgCounterType(42)),
+			expected: "42",
+		},
+		{
+			name:     "large value",
+			counter:  util.Ptr(MsgCounterType(18446744073709551615)), // max uint64
+			expected: "18446744073709551615",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.counter.String()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMsgCounterType_Overflow(t *testing.T) {
+	// Test that MsgCounterType (uint64) wraps from max to 0
+	maxValue := MsgCounterType(^uint64(0)) // 2^64-1
+	assert.Equal(t, MsgCounterType(18446744073709551615), maxValue)
+	
+	// Simulate overflow by adding 1 to max value
+	overflowValue := maxValue + 1
+	assert.Equal(t, MsgCounterType(0), overflowValue, "MsgCounterType should wrap from max (2^64-1) to 0")
+	
+	// Test a few more increments after overflow
+	assert.Equal(t, MsgCounterType(1), overflowValue+1)
+	assert.Equal(t, MsgCounterType(2), overflowValue+2)
+}
+
 func TestFilterType_Elements_Data(t *testing.T) {
 	data := &ElectricalConnectionDescriptionDataElementsType{
 		ElectricalConnectionId: util.Ptr(ElementTagType{}),

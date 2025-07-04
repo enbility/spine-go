@@ -98,6 +98,21 @@ func (d *DeviceLocal) ProcessCmd(datagram model.DatagramType, ...) error {
 - DoS through large messages
 - Memory exhaustion
 
+### 8. Incoming msgCounter Tracking Not Implemented ℹ️
+
+**Specification (Section 5.2.3.1):**
+> "If a SPINE device 'A' receives a message 'X' from SPINE device 'B' with a msgCounter less or equal than the last msgCounter received from device 'B', 'A' SHALL process the message 'X' as usual. Afterwards, device 'A' SHALL use the unexpectedly low msgCounter value as the last msgCounter received from device 'B'."
+
+**Implementation:** No tracking of last received msgCounter per device
+
+**Analysis:** This is a **diagnostic-only requirement with no functional impact**:
+- Messages are processed identically regardless of msgCounter value
+- The ONLY specified use is optional: "MAY report this to the user"
+- No duplicate detection, replay prevention, or ordering enforcement
+- See detailed analysis: [MSGCOUNTER_IMPLEMENTATION.md](../specific-issues/MSGCOUNTER_IMPLEMENTATION.md)
+
+**Impact:** None - purely diagnostic feature
+
 ## Implementation Choices (Spec Allows)
 
 ### 1. Single Binding Limitation ✅

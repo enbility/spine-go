@@ -44,7 +44,9 @@
 
 📁 specific-issues/                        ← Focused deep dives
   ├── BINDING_AND_ORCHESTRATION.md
-  └── VERSION_MANAGEMENT.md
+  ├── VERSION_MANAGEMENT.md
+  ├── IDENTIFIER_VALIDATION_AND_UPDATES.md
+  └── MSGCOUNTER_IMPLEMENTATION.md
 
 📁 meta/                                   ← Analysis history and process
   └── ANALYSIS_HISTORY.md
@@ -72,6 +74,7 @@
 **Binding/Control Issues:** [specific-issues/BINDING_AND_ORCHESTRATION.md](./specific-issues/BINDING_AND_ORCHESTRATION.md)
 **Version Management:** [specific-issues/VERSION_MANAGEMENT.md](./specific-issues/VERSION_MANAGEMENT.md)
 **Identifier Validation:** [specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md](./specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md)
+**msgCounter Implementation:** [specific-issues/MSGCOUNTER_IMPLEMENTATION.md](./specific-issues/MSGCOUNTER_IMPLEMENTATION.md)
 
 ### "I want complete technical understanding"
 1. [UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md](./UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md) - **Complete explanation with conclusions**

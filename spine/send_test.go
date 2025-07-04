@@ -2,6 +2,7 @@ package spine
 
 import (
 	"encoding/json"
+	"sync"
 	"testing"
 
 	"github.com/enbility/spine-go/model"
@@ -277,4 +278,130 @@ func TestSender_Unbind_MsgCounter(t *testing.T) {
 	sentBytes = temp.LastMessage()
 	assert.NoError(t, json.Unmarshal(sentBytes, &sentDatagram))
 	assert.Equal(t, expectedMsgCounter, int(*sentDatagram.Datagram.Header.MsgCounter))
+}
+
+// Comprehensive msgCounter Verification Tests
+
+// TestSender_MsgCounter_ThreadSafety verifies thread-safe msgCounter generation
+func TestSender_MsgCounter_ThreadSafety(t *testing.T) {
+	temp := &WriteMessageHandler{}
+	sut := NewSender(temp)
+	senderImpl := sut.(*Sender)
+
+	const numGoroutines = 100
+	const msgsPerGoroutine = 100
+	totalMessages := numGoroutines * msgsPerGoroutine
+
+	// Channel to collect all msgCounters
+	countersChan := make(chan model.MsgCounterType, totalMessages)
+	
+	// WaitGroup to synchronize goroutines
+	var wg sync.WaitGroup
+	wg.Add(numGoroutines)
+
+	// Launch concurrent goroutines
+	for i := 0; i < numGoroutines; i++ {
+		go func() {
+			defer wg.Done()
+			for j := 0; j < msgsPerGoroutine; j++ {
+				counter := senderImpl.getMsgCounter()
+				countersChan <- *counter
+			}
+		}()
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(countersChan)
+
+	// Collect all counters
+	counters := make([]model.MsgCounterType, 0, totalMessages)
+	for counter := range countersChan {
+		counters = append(counters, counter)
+	}
+
+	// Verify we got all counters
+	assert.Equal(t, totalMessages, len(counters), "Should have all counters")
+
+	// Check for uniqueness
+	seen := make(map[model.MsgCounterType]bool)
+	for _, counter := range counters {
+		assert.False(t, seen[counter], "msgCounter %d should be unique", counter)
+		seen[counter] = true
+	}
+
+	// All values should be between 1 and totalMessages
+	for _, counter := range counters {
+		assert.GreaterOrEqual(t, counter, model.MsgCounterType(1))
+		assert.LessOrEqual(t, counter, model.MsgCounterType(totalMessages))
+	}
+}
+
+// TestSender_MsgCounter_Uniqueness verifies msgCounters are unique within window
+func TestSender_MsgCounter_Uniqueness(t *testing.T) {
+	temp := &WriteMessageHandler{}
+	sut := NewSender(temp)
+	senderImpl := sut.(*Sender)
+
+	const numMessages = 10000
+	counters := make([]model.MsgCounterType, numMessages)
+
+	// Generate many msgCounters
+	for i := 0; i < numMessages; i++ {
+		counter := senderImpl.getMsgCounter()
+		counters[i] = *counter
+	}
+
+	// Check for uniqueness
+	seen := make(map[model.MsgCounterType]bool)
+	for i, counter := range counters {
+		assert.False(t, seen[counter], "msgCounter %d at position %d should be unique", counter, i)
+		seen[counter] = true
+	}
+
+	// Verify ascending order (allowing gaps per spec)
+	for i := 1; i < numMessages; i++ {
+		assert.Greater(t, counters[i], counters[i-1], 
+			"msgCounter at position %d (%d) should be greater than position %d (%d)", 
+			i, counters[i], i-1, counters[i-1])
+	}
+}
+
+// TestSender_MsgCounter_StartingValue verifies msgCounter starts from 1
+func TestSender_MsgCounter_StartingValue(t *testing.T) {
+	// Create multiple new senders to verify consistent behavior
+	for i := 0; i < 5; i++ {
+		temp := &WriteMessageHandler{}
+		sut := NewSender(temp)
+		senderImpl := sut.(*Sender)
+		
+		counter := senderImpl.getMsgCounter()
+		assert.Equal(t, model.MsgCounterType(1), *counter, 
+			"First msgCounter for new sender %d should always be 1", i)
+	}
+}
+
+// TestSender_MsgCounter_OverflowSimulation simulates overflow behavior at implementation level
+func TestSender_MsgCounter_OverflowSimulation(t *testing.T) {
+	temp := &WriteMessageHandler{}
+	sut := NewSender(temp)
+	senderImpl := sut.(*Sender)
+	
+	// Set msgNum to max value - 1 to test overflow
+	maxValue := ^uint64(0) - 1 // 2^64-2
+	senderImpl.msgNum = maxValue
+	
+	// Next counter should be max value (2^64-1)
+	counter1 := senderImpl.getMsgCounter()
+	assert.Equal(t, model.MsgCounterType(maxValue+1), *counter1)
+	assert.Equal(t, model.MsgCounterType(18446744073709551615), *counter1)
+	
+	// Next counter should overflow to 0
+	counter2 := senderImpl.getMsgCounter()
+	assert.Equal(t, model.MsgCounterType(0), *counter2, 
+		"msgCounter should overflow from max (2^64-1) to 0 per SPINE spec")
+	
+	// Verify continued counting after overflow
+	counter3 := senderImpl.getMsgCounter()
+	assert.Equal(t, model.MsgCounterType(1), *counter3)
 }
