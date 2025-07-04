@@ -186,9 +186,121 @@ func (d *DateTimeType) GetTime() (time.Time, error) {
 
 // DurationType
 
+// IMPORTANT: Duration Parsing Limitations
+//
+// The period library used for parsing ISO 8601 durations (getTimeDurationFromString)
+// uses fixed approximations that introduce errors for month and year components:
+//   - 1 year ≈ 365.2425 days (actual: 365 or 366)
+//   - 1 month ≈ 30.4369 days (actual: 28-31)
+//
+// Error Magnitude:
+//   - NO ERRORS: Durations using only weeks, days, hours, minutes, seconds
+//     Examples: P1W, P7D, PT24H, P1W2DT3H4M5S
+//   - SIGNIFICANT ERRORS: Durations using months or years
+//     Examples: P1M (error: 11-33 hours), P1Y (error: ~6 hours)
+//
+// For SPINE use cases (typically seconds to hours), this is not a concern.
+// However, for monthly/yearly scheduling, use calendar-based calculations instead.
+//
+// See: https://github.com/enbility/spine-go/issues/60
+
 func NewDurationType(duration time.Duration) *DurationType {
-	d := period.NewOf(duration)
-	value := DurationType(d.String())
+	// Handle negative durations
+	if duration < 0 {
+		// For negative durations, we need to work backwards
+		positiveDuration := -duration
+		result := NewDurationType(positiveDuration)
+		negativeResult := "-" + string(*result)
+		value := DurationType(negativeResult)
+		return &value
+	}
+	
+	// For relative durations, always calculate from "now" to preserve calendar structure
+	// This gives us accurate year/month representation instead of just seconds
+	now := time.Now()
+	target := now.Add(duration)
+	
+	// Calculate calendar units between now and target
+	years := 0
+	months := 0
+	days := 0
+	hours := 0
+	minutes := 0
+	seconds := 0
+	
+	// Calculate years first
+	for now.AddDate(years+1, 0, 0).Before(target) || now.AddDate(years+1, 0, 0).Equal(target) {
+		years++
+	}
+	
+	// Then months
+	tempTime := now.AddDate(years, 0, 0)
+	for tempTime.AddDate(0, months+1, 0).Before(target) || tempTime.AddDate(0, months+1, 0).Equal(target) {
+		months++
+	}
+	
+	// Then days
+	tempTime = now.AddDate(years, months, 0)
+	for tempTime.AddDate(0, 0, days+1).Before(target) || tempTime.AddDate(0, 0, days+1).Equal(target) {
+		days++
+	}
+	
+	// Now handle time components
+	tempTime = now.AddDate(years, months, days)
+	remainingDuration := target.Sub(tempTime)
+	
+	// Extract hours, minutes, seconds from remaining duration
+	totalSeconds := int64(remainingDuration.Seconds())
+	hours = int(totalSeconds / 3600)
+	totalSeconds %= 3600
+	minutes = int(totalSeconds / 60)
+	seconds = int(totalSeconds % 60)
+	
+	// Handle nanoseconds for sub-second precision
+	nanos := remainingDuration.Nanoseconds() % 1e9
+	
+	// Build ISO 8601 duration string
+	var result strings.Builder
+	result.WriteString("P")
+	
+	// Date part
+	if years > 0 {
+		result.WriteString(fmt.Sprintf("%dY", years))
+	}
+	if months > 0 {
+		result.WriteString(fmt.Sprintf("%dM", months))
+	}
+	if days > 0 {
+		result.WriteString(fmt.Sprintf("%dD", days))
+	}
+	
+	// Time part
+	if hours > 0 || minutes > 0 || seconds > 0 || nanos > 0 {
+		result.WriteString("T")
+		if hours > 0 {
+			result.WriteString(fmt.Sprintf("%dH", hours))
+		}
+		if minutes > 0 {
+			result.WriteString(fmt.Sprintf("%dM", minutes))
+		}
+		if seconds > 0 || nanos > 0 {
+			if nanos > 0 {
+				// Format seconds with fractional part
+				fractionalSeconds := float64(seconds) + float64(nanos)/1e9
+				result.WriteString(fmt.Sprintf("%gS", fractionalSeconds))
+			} else {
+				result.WriteString(fmt.Sprintf("%dS", seconds))
+			}
+		}
+	}
+	
+	// Handle edge case of zero duration
+	if result.String() == "P" {
+		// ISO 8601 specifies P0D for zero duration, though PT0S is also valid
+		result.WriteString("0D")
+	}
+	
+	value := DurationType(result.String())
 	return &value
 }
 
@@ -197,6 +309,16 @@ func (d *DurationType) GetTimeDuration() (time.Duration, error) {
 }
 
 // helper for DurationType and AbsoluteOrRelativeTimeType
+//
+// WARNING: This function uses period.DurationApprox() which has limitations:
+//   - EXACT for: weeks, days, hours, minutes, seconds (P1W, P7D, PT1H)
+//   - APPROXIMATE for: years, months (P1Y ≈ 365.2425 days, P1M ≈ 30.4369 days)
+//
+// The approximation errors for month/year durations can be significant:
+//   - P1M: 11-33 hours error depending on actual month
+//   - P1Y: ~6 hours error
+//
+// For precise calendar operations with months/years, use time.AddDate() instead.
 func getTimeDurationFromString(s string) (time.Duration, error) {
 	p, err := period.Parse(string(s))
 	if err != nil {
