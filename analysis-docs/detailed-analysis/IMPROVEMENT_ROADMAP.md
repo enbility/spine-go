@@ -1,11 +1,35 @@
 # SPINE Implementation Improvement Suggestions
 
-**Document Version:** v1.1  
-**Created:** 2025-06-25  
-**Updated:** 2025-06-26  
+**Last Updated:** 2025-07-05  
+**Status:** Active  
 **Target:** spine-go implementation  
 **Based on:** SPINE Specification v1.3.0 Analysis  
 **Purpose:** Prioritized improvement roadmap with implementation guidance, timelines, and risk mitigation strategies
+
+## Change History
+
+### 2025-07-05
+- Major restructuring to fix significant document inconsistencies and errors
+- Moved "Multiple Binding Support" from P1 to P3 with comprehensive safety warnings
+- Added reference to BINDING_AND_ORCHESTRATION.md analysis
+- Fixed document structure issues (removed duplicate code sections)
+- Corrected "Protocol Version Negotiation" to "Protocol Version Validation" throughout
+- Clarified RFE section title to "Extend RFE for Complex Nested Structures"
+- Added "Completed Items" section documenting already-implemented features
+- Added "Won't Fix Items" section with clear rationale for spec deviations
+- Fixed mixed-up code examples in wrong sections
+- Updated implementation roadmap to reflect corrected priorities
+- Enhanced Multiple Binding section with extensive warnings and DO NOT IMPLEMENT recommendation
+
+### 2025-06-26
+- Added new P1 priority: "Add Identifier Validation and Update Semantics Handling" (section 6)
+- Included detailed implementation suggestions for handling incomplete identifiers
+- Added code examples for composite key management and update matching
+
+### 2025-06-25
+- Initial improvement roadmap based on SPINE v1.3.0 specification analysis
+- Prioritized improvements from P0 (critical) to P3 (low priority)
+- Included implementation guidance, timelines, and risk mitigation strategies
 
 ## Table of Contents
 
@@ -28,23 +52,60 @@
 
 **Note:** Use case version negotiation is not included in priorities as it's the responsibility of use case implementations (e.g., eebus-go), not the foundation library.
 
----
+## Completed Items
 
-## Version History
+These items have already been implemented in spine-go:
 
-### v1.1 (2025-06-26)
-- Added new P1 priority: "Add Identifier Validation and Update Semantics Handling" (section 6)
-- Included detailed implementation suggestions for handling incomplete identifiers
-- Added code examples for composite key management and update matching
+### ✅ Basic RFE Implementation
+- **Status:** 100% Complete
+- **Details:** All 7 cmdOption combinations implemented correctly
+- **Evidence:** Proper atomicity through `if success && persist` pattern
+- **Note:** Complex nested structures (e.g., SmartEnergyManagementPs) could benefit from extensions
 
-### v1.0 (2025-06-25)
-- Initial improvement roadmap based on SPINE v1.3.0 specification analysis
-- Prioritized improvements from P0 (critical) to P3 (low priority)
-- Included implementation guidance, timelines, and risk mitigation strategies
+### ✅ Unknown Function Error Handling
+- **Status:** Fixed
+- **Details:** Now correctly returns error code 6 (CommandNotSupported) for unknown functions
+- **Previous:** Incorrectly returned error code 1 (GeneralError)
+- **Compliance:** Follows SPINE best practice for unknown function handling
+
+### ✅ Single Binding Safety Feature
+- **Status:** Correctly Implemented
+- **Details:** Server features limited to one binding per feature
+- **Rationale:** Prevents control conflicts and notification loops
+- **Note:** This is a FEATURE, not a limitation
+
+## Won't Fix Items
+
+These items are intentionally not implemented with clear rationale:
+
+### ❌ msgCounter Tracking
+- **Spec Requirement:** SHALL track last received msgCounter per device
+- **Why Not Fixed:** 
+  - Purely diagnostic feature with NO functional impact
+  - Messages processed identically regardless of msgCounter
+  - Only use is optional "MAY report" device resets
+  - No duplicate detection, replay prevention, or ordering enforcement
+- **Impact:** ZERO functional impact - purely optional diagnostic
+
+### ❌ Partial Read Support
+- **Current Status:** Explicitly disabled (readPartial always false)
+- **Why Not Fixed:**
+  - Current behavior is 100% spec-compliant
+  - Spec section 5.3.4.5 allows ignoring unsupported cmdOptions
+  - Returning full data ensures interoperability
+  - Prevents inconsistency in multi-vendor scenarios
+- **Impact:** None - clients handle full data responses correctly
+
+### ❌ Use Case Version Negotiation
+- **Why Not Fixed:**
+  - Architectural responsibility of use case layers (e.g., eebus-go)
+  - spine-go correctly provides transport primitives only
+  - Adding negotiation would violate layer separation
+- **Correct Approach:** Use case implementations handle their own version logic
 
 ## Critical Improvements (P0)
 
-### 1. Implement Protocol Version Negotiation
+### 1. Implement Protocol Version Validation
 
 **Priority:** P0  
 **Severity:** CRITICAL - SPEC REQUIREMENT  
@@ -52,7 +113,7 @@
 **Effort:** 3-4 weeks
 
 **Problem:**
-Current implementation lacks protocol version negotiation as required by SPINE specification. The specification mandates version checking and negotiation to ensure compatible communication between devices.
+Current implementation lacks protocol version validation as required by SPINE specification. The specification mandates version checking to ensure compatible communication between devices.
 
 **Solution:**
 ```go
@@ -128,8 +189,8 @@ func (pvm *ProtocolVersionManager) ValidateMessage(header *model.HeaderType) err
 1. Implement semantic version parser per specification
 2. Add version validation to message processing
 3. Store and track remote device versions
-4. Implement version negotiation during handshake
-5. Add version compatibility checks
+4. Implement version compatibility checks
+5. Add validation to handshake process
 
 **Testing:**
 - Unit tests for version parsing and comparison
@@ -138,293 +199,15 @@ func (pvm *ProtocolVersionManager) ValidateMessage(header *model.HeaderType) err
 
 ## High Priority Improvements (P1)
 
-### 2. Consider Multiple Binding Support Per Feature
+### 2. Implement Loop Detection and Prevention
 
 **Priority:** P1  
 **Severity:** HIGH  
-**Risk:** Limited functionality vs stability trade-off  
-**Effort:** 2-3 weeks
+**Risk:** System instability from notification loops  
+**Effort:** 1-2 weeks
 
 **Problem:**
-Current implementation limits server features to single CONTROL binding per feature. While the specification allows this ("MAY limit the number of bindings"), other implementations take different approaches.
-
-**Critical Understanding:** Implementation policies vary significantly:
-- **spine-go approach**: Restricts to single binding per server feature for safety
-- **Most common implementation**: Allows any binding request to succeed with no race condition prevention
-- **Specification flexibility**: "It is up to the SPINE proxy implementation only to decide" (line 3827)
-
-**Important:** Reading scenarios support unlimited concurrent clients (no bindings required). Multi-client scenarios ARE already supported when clients use different features. GitHub issue #25 tracks enhancement for multiple control bindings per single feature.
-
-**Solution:**
-```go
-// Protocol version management per specification
-type ProtocolVersionManager struct {
-    localVersion     Version
-    supportedVersions []Version
-    negotiatedVersions map[string]Version // Per remote device
-    mu               sync.RWMutex
-}
-
-// Version structure as per SPINE specification
-type Version struct {
-    Major int
-    Minor int
-    Patch int
-}
-
-func (v Version) String() string {
-    return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
-}
-
-func (v Version) IsCompatibleWith(other Version) bool {
-    // Per specification: same major version = compatible
-    return v.Major == other.Major
-}
-
-// Parse semantic version per specification format
-func ParseVersion(s string) (Version, error) {
-    parts := strings.Split(s, ".")
-    if len(parts) != 3 {
-        return Version{}, fmt.Errorf("invalid version format: %s", s)
-    }
-    
-    major, err := strconv.Atoi(parts[0])
-    if err != nil {
-        return Version{}, fmt.Errorf("invalid major version: %s", parts[0])
-    }
-    
-    minor, err := strconv.Atoi(parts[1])
-    if err != nil {
-        return Version{}, fmt.Errorf("invalid minor version: %s", parts[1])
-    }
-    
-    patch, err := strconv.Atoi(parts[2])
-    if err != nil {
-        return Version{}, fmt.Errorf("invalid patch version: %s", parts[2])
-    }
-    
-    return Version{Major: major, Minor: minor, Patch: patch}, nil
-}
-
-// Validate protocol version in messages
-func (pvm *ProtocolVersionManager) ValidateMessage(header *model.HeaderType) error {
-    if header.SpecificationVersion == nil {
-        return fmt.Errorf("missing specificationVersion")
-    }
-    
-    version, err := ParseVersion(*header.SpecificationVersion)
-    if err != nil {
-        return fmt.Errorf("invalid specificationVersion: %w", err)
-    }
-    
-    if !pvm.localVersion.IsCompatibleWith(version) {
-        return fmt.Errorf("incompatible protocol version: %s", version)
-    }
-    
-    return nil
-}
-```
-
-**Implementation Steps:**
-1. Implement semantic version parser per specification
-2. Add version validation to message processing
-3. Store and track remote device versions
-4. Implement version negotiation during handshake
-5. Add version compatibility checks
-
-**Testing:**
-- Unit tests for version parsing and comparison
-- Integration tests for version negotiation
-- Compatibility tests with different version combinations
-
-### 3. Extend RFE for Complex Use Cases
-
-**Priority:** P1  
-**Severity:** HIGH  
-**Risk:** Limited functionality for advanced use cases  
-**Effort:** 3-4 weeks
-
-**Problem:**
-Current RFE implementation handles basic cases but could be enhanced for complex nested structures and advanced filtering scenarios required by some use cases.
-
-**Note:** The SPINE specification DOES provide detailed selector mechanisms for SmartEnergyManagementPs partial updates (see specification tables 167 and 170 with comprehensive selector definitions). The specification is not lacking in this area.
-
-**Solution:**
-```go
-// Multiple binding support with CUSTOM conflict resolution
-// WARNING: SPINE spec provides NO standard for any of this!
-type MultiBindingManager struct {
-    bindings         map[string][]Binding
-    conflictResolver ConflictResolver  // CUSTOM - not in spec
-    reconnectPolicy  ReconnectPolicy   // CUSTOM - not in spec  
-    loopDetector     LoopDetector      // CRITICAL for safety
-    mu              sync.RWMutex
-}
-
-// Custom reconnection policy (spec provides NO guidance)
-type ReconnectPolicy struct {
-    gracePeriod     time.Duration  // How long to hold binding
-    priorityList    []string       // Device priority order
-    allowReclaim    bool          // Can disconnected client reclaim?
-}
-
-func (mbm *MultiBindingManager) AddBinding(binding Binding) error {
-    mbm.mu.Lock()
-    defer mbm.mu.Unlock()
-    
-    // CUSTOM: Check if this is a reconnection (spec doesn't define)
-    if mbm.reconnectPolicy.allowReclaim {
-        if mbm.wasRecentlyConnected(binding.ClientAddr) {
-            return mbm.reclaimBinding(binding)
-        }
-    }
-    
-    // Check for conflicts with existing bindings
-    if err := mbm.conflictResolver.CheckConflict(binding); err != nil {
-        return err
-    }
-    
-    mbm.bindings[binding.ServerAddr] = append(mbm.bindings[binding.ServerAddr], binding)
-    return nil
-}
-
-// Conflict resolution for multiple writers (ENTIRELY CUSTOM)
-// Spec quote: "It is up to the SPINE proxy implementation only to decide"
-type ConflictResolver struct {
-    strategy ConflictStrategy
-}
-
-func (cr *ConflictResolver) ResolveWrite(writes []WriteRequest) (WriteRequest, error) {
-    switch cr.strategy {
-    case LastWriteWins:      // Simple but unpredictable
-        return writes[len(writes)-1], nil
-    case PriorityBased:      // Requires device priority config
-        return cr.selectByPriority(writes)
-    case ConsensusRequired:  // All writers must agree
-        return cr.requireConsensus(writes)
-    case FirstBindingWins:   // Current spine-go behavior
-        return writes[0], nil
-    default:
-        return WriteRequest{}, fmt.Errorf("no conflict resolution strategy")
-    }
-}
-```
-
-**Trade-offs:**
-- ✅ Would enable multiple clients per single feature
-- ✅ Current implementation already supports multi-vendor scenarios with different features
-- ✅ Supports redundancy and failover
-- ✅ Control loops prevented by single binding safety feature
-- ❌ Conflict resolution not defined in spec - must invent custom solution
-- ❌ No standard reconnection behavior - implementation variations exist
-- ❌ Interoperability risk - some implementations allow any binding (no race prevention), others restrict
-- ❌ More complex testing and validation
-- ❌ User confusion when control authority changes unexpectedly
-
-**Critical Spec Gaps to Address:**
-1. **WHO gets binding?** - No rules for simultaneous requests
-2. **Reconnection priority?** - No mechanism for previous holders
-3. **Grace periods?** - No timeout definitions
-4. **Conflict resolution?** - No standard approach
-5. **Notification order?** - No rules for multi-writer scenarios
-
-**Recommendation:** Given implementation variations in binding policies and the complete absence of conflict resolution mechanisms in the specification, the current single binding approach remains the SAFEST and most RELIABLE choice. Some implementations allow any binding request to succeed with no mechanism to prevent race conditions, which creates reliability and interoperability challenges.
-
-**Implementation Steps (If Proceeding Despite Risks):**
-1. Define custom conflict resolution strategy
-2. Define custom reconnection policy with grace periods
-3. Extend binding manager with custom policies
-4. Extensive testing including multi-vendor scenarios (especially with permissive implementations)
-5. Clear documentation of all custom behaviors
-6. Update GitHub issue #25 with approach and interoperability analysis
-7. Consider proposing standardization to SPINE working group
-
-### 4. Implement Authorization for Write Operations
-
-**Priority:** P1  
-**Severity:** HIGH  
-**Risk:** Unauthorized device control, security vulnerabilities  
-**Effort:** 1 week
-
-**Problem:**
-Current implementation only checks if a client has a binding, but doesn't validate if the client is authorized for specific operations.
-
-**Solution:**
-```go
-// Extended RFE processor for complex structures
-type ExtendedRFEProcessor struct {
-    basicProcessor  *RFEProcessor
-    nestedHandler   *NestedStructureHandler
-    arrayProcessor  *ArrayUpdateProcessor
-}
-
-// Support deep nested structure updates
-type NestedStructureHandler struct {
-    pathResolver *PathResolver
-}
-
-func (nsh *NestedStructureHandler) UpdateNestedField(
-    data interface{}, 
-    path []string, 
-    value interface{},
-) error {
-    current := data
-    
-    // Navigate to target field
-    for i, segment := range path[:len(path)-1] {
-        next, err := nsh.pathResolver.Resolve(current, segment)
-        if err != nil {
-            return fmt.Errorf("failed at path segment %d (%s): %w", i, segment, err)
-        }
-        current = next
-    }
-    
-    // Update final field
-    return nsh.pathResolver.SetField(current, path[len(path)-1], value)
-}
-
-// Handle complex array operations
-type ArrayUpdateProcessor struct {
-    matcher *ElementMatcher
-}
-
-func (aup *ArrayUpdateProcessor) UpdateArrayElements(
-    array interface{}, 
-    selector FilterSelector,
-    updates map[string]interface{},
-) error {
-    // Match elements based on selector
-    matches := aup.matcher.FindMatches(array, selector)
-    
-    // Apply updates to matched elements
-    for _, match := range matches {
-        for field, value := range updates {
-            if err := setField(match, field, value); err != nil {
-                return err
-            }
-        }
-    }
-    
-    return nil
-}
-```
-
-**Implementation Steps:**
-1. Extend path resolution for deep nested structures
-2. Add support for array element matching with complex selectors
-3. Implement partial updates for nested arrays
-4. Add validation for complex filter combinations
-5. Optimize performance for large nested structures
-
-### 5. Implement Authorization for Write Operations
-
-**Priority:** P1  
-**Severity:** HIGH  
-**Risk:** Unauthorized data modifications  
-**Effort:** 2 weeks
-
-**Problem:**
-Current implementation lacks proper authorization checks for write operations. The specification requires that only authorized clients can modify server data.
+Without loop detection, subscription notifications can create endless loops between devices, causing system crashes and network congestion.
 
 **Solution:**
 ```go
@@ -489,7 +272,259 @@ func (rl *RateLimiter) Allow(clientSKI string) bool {
 }
 ```
 
-### 6. Work Within SPINE's Communication-Only Model (REVISED)
+**Implementation Steps:**
+1. Add loop detection to subscription processing
+2. Implement rate limiting for rapid writes
+3. Add oscillation detection algorithms
+4. Create configurable thresholds
+5. Add monitoring and alerting
+
+**Testing:**
+- Unit tests for loop detection
+- Integration tests with circular subscriptions
+- Performance tests under high load
+
+### 3. Extend RFE for Complex Nested Structures
+
+**Priority:** P1  
+**Severity:** HIGH  
+**Risk:** Limited functionality for complex use cases like SmartEnergyManagementPs  
+**Effort:** 3-4 weeks
+
+**Problem:**
+While basic RFE implementation is 100% complete (all 7 cmdOptions), complex nested structures like SmartEnergyManagementPs require enhanced support. These structures have 3-4 levels of nested arrays (Alternatives → PowerSequence → PowerTimeSlot → Values) that need sophisticated partial update handling.
+
+**Note:** The SPINE specification DOES provide detailed selector mechanisms for SmartEnergyManagementPs partial updates (see specification tables 167 and 170 with comprehensive selector definitions). Basic RFE is fully implemented - this enhancement is for complex nested scenarios.
+
+**Solution:**
+```go
+// Extended RFE processor for complex nested structures
+type ExtendedRFEProcessor struct {
+    basicProcessor  *RFEProcessor      // Existing RFE (100% complete)
+    nestedHandler   *NestedStructureHandler
+    arrayProcessor  *ArrayUpdateProcessor
+}
+
+// Support deep nested structure updates (e.g., SmartEnergyManagementPs)
+type NestedStructureHandler struct {
+    pathResolver    *PathResolver
+    maxNestingDepth int  // Safety limit (e.g., 5 levels)
+}
+
+func (nsh *NestedStructureHandler) UpdateNestedField(
+    data interface{}, 
+    path []string,      // e.g., ["alternatives", "0", "powerSequence", "1", "values"]
+    value interface{},
+    filters []model.FilterType,
+) error {
+    if len(path) > nsh.maxNestingDepth {
+        return fmt.Errorf("nesting depth %d exceeds limit %d", len(path), nsh.maxNestingDepth)
+    }
+    
+    current := data
+    
+    // Navigate to target field using path segments
+    for i, segment := range path[:len(path)-1] {
+        next, err := nsh.pathResolver.Resolve(current, segment)
+        if err != nil {
+            return fmt.Errorf("failed at path segment %d (%s): %w", i, segment, err)
+        }
+        current = next
+    }
+    
+    // Apply filters if this is an array level
+    if filters != nil && isArray(current) {
+        current = nsh.applyFilters(current, filters)
+    }
+    
+    // Update final field
+    return nsh.pathResolver.SetField(current, path[len(path)-1], value)
+}
+
+// Handle complex array operations with selectors
+type ArrayUpdateProcessor struct {
+    matcher *ElementMatcher
+}
+
+// Example: Update specific PowerTimeSlot within PowerSequence
+func (aup *ArrayUpdateProcessor) UpdateArrayElements(
+    array interface{}, 
+    selector model.FilterType,    // SPINE-defined selectors
+    updates map[string]interface{},
+) error {
+    // Use SPINE selector semantics from tables 167/170
+    matches := aup.matcher.FindMatches(array, selector)
+    
+    if len(matches) == 0 {
+        return fmt.Errorf("no elements match selector")
+    }
+    
+    // Apply updates to matched elements
+    for _, match := range matches {
+        for field, value := range updates {
+            if err := setField(match, field, value); err != nil {
+                return fmt.Errorf("failed to update field %s: %w", field, err)
+            }
+        }
+    }
+    
+    return nil
+}
+
+// SmartEnergyManagementPs-specific helper
+func (erp *ExtendedRFEProcessor) UpdatePowerTimeSlot(
+    data *model.SmartEnergyManagementPsDataType,
+    alternativeId uint,
+    sequenceId uint, 
+    slotId uint,
+    newValues []model.ScaledNumberType,
+) error {
+    path := []string{
+        "alternatives", fmt.Sprintf("%d", alternativeId),
+        "powerSequence", fmt.Sprintf("%d", sequenceId),
+        "powerTimeSlot", fmt.Sprintf("%d", slotId),
+        "values",
+    }
+    
+    return erp.nestedHandler.UpdateNestedField(data, path, newValues, nil)
+}
+```
+
+**Implementation Steps:**
+1. Extend existing RFE processor (keep basic functionality intact)
+2. Add path resolution for deep nested structures
+3. Implement array element matching with SPINE selectors
+4. Add specific helpers for SmartEnergyManagementPs
+5. Maintain atomicity across nested updates
+6. Add comprehensive validation for complex structures
+
+**Testing:**
+- Unit tests for nested path resolution
+- Integration tests with SmartEnergyManagementPs data
+- Performance tests with large nested structures
+- Compatibility tests with existing RFE operations
+
+### 4. Implement Authorization for Write Operations
+
+**Priority:** P1  
+**Severity:** HIGH  
+**Risk:** Unauthorized device control, security vulnerabilities  
+**Effort:** 2 weeks
+
+**Problem:**
+Current implementation only checks if a client has a binding, but doesn't validate if the client is authorized for specific operations. The specification requires that only authorized clients can modify server data.
+
+**Solution:**
+```go
+// Authorization framework for write operations
+type WriteAuthorization struct {
+    bindings      BindingManager
+    roleChecker   RoleChecker
+    auditLogger   AuditLogger
+    mu            sync.RWMutex
+}
+
+// Check if client is authorized to write to server feature
+func (wa *WriteAuthorization) IsAuthorized(
+    clientAddr *model.FeatureAddressType,
+    serverAddr *model.FeatureAddressType,
+    operation string,
+    data interface{},
+) (bool, error) {
+    wa.mu.RLock()
+    defer wa.mu.RUnlock()
+    
+    // First check: Does binding exist?
+    bindings := wa.bindings.GetBindings(serverAddr)
+    hasBinding := false
+    
+    for _, binding := range bindings {
+        if binding.ClientAddress.Equals(clientAddr) {
+            hasBinding = true
+            break
+        }
+    }
+    
+    if !hasBinding {
+        wa.auditLogger.LogUnauthorized(clientAddr, serverAddr, "no binding")
+        return false, fmt.Errorf("no binding exists for write operation")
+    }
+    
+    // Second check: Role-based permissions
+    if !wa.roleChecker.HasPermission(clientAddr, serverAddr, operation) {
+        wa.auditLogger.LogUnauthorized(clientAddr, serverAddr, "insufficient permissions")
+        return false, fmt.Errorf("insufficient permissions for operation: %s", operation)
+    }
+    
+    // Third check: Data validation
+    if err := wa.validateWriteData(serverAddr, operation, data); err != nil {
+        wa.auditLogger.LogInvalidData(clientAddr, serverAddr, err)
+        return false, fmt.Errorf("invalid data: %w", err)
+    }
+    
+    wa.auditLogger.LogAuthorized(clientAddr, serverAddr, operation)
+    return true, nil
+}
+
+// Role-based access control
+type RoleChecker struct {
+    roles       map[string]Role
+    featureACL  map[model.FeatureTypeType][]Permission
+}
+
+type Role struct {
+    Name        string
+    Permissions []Permission
+}
+
+type Permission struct {
+    FeatureType model.FeatureTypeType
+    Operations  []string  // e.g., ["write", "delete", "partial_update"]
+}
+
+func (rc *RoleChecker) HasPermission(
+    client *model.FeatureAddressType,
+    resource *model.FeatureAddressType,
+    operation string,
+) bool {
+    // Get client role from feature type
+    role := rc.getClientRole(client)
+    if role == nil {
+        return false
+    }
+    
+    // Check feature-specific ACL
+    requiredPerms := rc.featureACL[resource.Feature]
+    
+    for _, perm := range role.Permissions {
+        if perm.FeatureType == resource.Feature {
+            for _, op := range perm.Operations {
+                if op == operation || op == "*" {
+                    return true
+                }
+            }
+        }
+    }
+    
+    return false
+}
+```
+
+**Implementation Steps:**
+1. Create authorization framework with binding checks
+2. Implement role-based access control (RBAC)
+3. Add audit logging for all authorization decisions
+4. Create data validation for write operations
+5. Add configuration for feature-specific permissions
+6. Integrate with existing binding manager
+
+**Testing:**
+- Unit tests for authorization logic
+- Integration tests with various client/server scenarios
+- Security tests for privilege escalation attempts
+- Performance tests under load
+
+### 5. Work Within SPINE's Communication-Only Model (REVISED)
 
 **Priority:** N/A - This is a specification constraint, not an implementation gap  
 **Severity:** SPECIFICATION LIMITATION  
@@ -683,94 +718,16 @@ func (um *UpdateMatcher) FindMatch(
 
 ### 7. Document Use Case Version Management Guidance
 
-**Priority:** P2  
-**Severity:** MEDIUM  
+**Priority:** P1  
+**Severity:** HIGH  
 **Risk:** Misunderstanding of architectural responsibilities  
 **Effort:** 1 week
 
 **Problem:**
-Developers may expect spine-go to handle use case version negotiation, but this belongs in use case implementations (e.g., eebus-go).
+Developers may expect spine-go to handle use case version negotiation, but this belongs in use case implementations (e.g., eebus-go). This architectural distinction must be clearly documented.
 
 **Solution:**
-```go
-// Authorization framework for write operations
-type WriteAuthorization struct {
-    bindings      BindingManager
-    roleChecker   RoleChecker
-    mu            sync.RWMutex
-}
-
-// Check if client is authorized to write to server feature
-func (wa *WriteAuthorization) IsAuthorized(
-    clientAddr *model.FeatureAddressType,
-    serverAddr *model.FeatureAddressType,
-    operation string,
-) bool {
-    wa.mu.RLock()
-    defer wa.mu.RUnlock()
-    
-    // Check if binding exists
-    bindings := wa.bindings.GetBindings(serverAddr)
-    authorized := false
-    
-    for _, binding := range bindings {
-        if binding.ClientAddress.Equals(clientAddr) {
-            authorized = true
-            break
-        }
-    }
-    
-    if !authorized {
-        return false
-    }
-    
-    // Check role-based permissions if applicable
-    return wa.roleChecker.HasPermission(clientAddr, serverAddr, operation)
-}
-
-// Role-based access control
-type RoleChecker struct {
-    roles map[string]Role
-}
-
-type Role struct {
-    Name        string
-    Permissions []Permission
-}
-
-func (rc *RoleChecker) HasPermission(
-    client *model.FeatureAddressType,
-    resource *model.FeatureAddressType,
-    operation string,
-) bool {
-    // Get client role from feature type or configuration
-    role := rc.getClientRole(client)
-    
-    // Check permissions
-    for _, perm := range role.Permissions {
-        if perm.Matches(resource, operation) {
-            return true
-        }
-    }
-    
-    return false
-}
-```
-
-## Medium Priority Improvements (P2)
-
-### 7. Add Comprehensive Input Validation
-
-**Priority:** P2  
-**Severity:** MEDIUM  
-**Risk:** Security vulnerabilities, crashes  
-**Effort:** 2 weeks
-
-**Problem:**
-Limited validation of incoming messages can lead to panics and security issues.
-
-**Solution:**
-Provide clear documentation and examples showing how use case implementations should handle version negotiation using spine-go's primitives.
+Create comprehensive documentation explaining the separation of concerns between foundation library and use case implementations.
 
 **Documentation Example:**
 ```markdown
@@ -821,119 +778,45 @@ Use case version negotiation belongs in use case implementations.
 
 ```go
 // In eebus-go or similar
-// Example: HEMS managing EVSEs (correct client-server relationship)
-type HEMSController struct {
+type EEBusController struct {
     spine     *spine.Service
     versions  map[string]model.SpecificationVersionType
 }
 
-func (h *HEMSController) OnEVSEDiscovered(evseEntity spine.Entity) {
-    // HEMS has CLIENT features that connect to EVSE SERVER features
-    // Get EVSE's supported use case versions (EVSE is the server)
-    remoteVersions := evseEntity.UseCaseSupport("evseUseCase")
+func (e *EEBusController) OnDeviceDiscovered(remoteEntity spine.Entity) {
+    // Get remote device's supported use case versions
+    remoteVersions := remoteEntity.UseCaseSupport("evse")
     
-    // Negotiate version for HEMS client to EVSE server communication
-    activeVersion, err := h.negotiateVersion(remoteVersions)
+    // Negotiate version
+    activeVersion, err := e.negotiateVersion(remoteVersions)
     if err != nil {
         // Handle incompatible versions
     }
     
-    // Track active version for this EVSE connection
-    h.versions[evseEntity.Address()] = activeVersion
+    // Track active version for this connection
+    e.versions[remoteEntity.Address()] = activeVersion
 }
 ```
-```
 
-**Implementation Steps:**
-1. Create comprehensive documentation for use case implementers
-2. Provide example code showing version negotiation patterns
-3. Document best practices for version compatibility
-4. Create integration guide for eebus-go
-5. Add examples to spine-go repository
+## Best Practices:
 
-### 8. Implement Error Recovery Mechanisms
+1. **Support ONE Version Per Entity** - Until spec provides negotiation
+2. **Use Semantic Versioning** - Major.Minor.Patch format
+3. **Define Clear Compatibility Rules** - Document what changes break compatibility
+4. **Handle Version Mismatches Gracefully** - Provide clear error messages
+5. **Track Active Versions** - Know which version is active per connection
+
+## Medium Priority Improvements (P2)
+
+### 8. Add Comprehensive Input Validation
 
 **Priority:** P2  
 **Severity:** MEDIUM  
-**Risk:** Poor reliability  
+**Risk:** Security vulnerabilities, crashes  
 **Effort:** 2 weeks
 
 **Problem:**
-Current implementation lacks robust error recovery mechanisms.
-
-**Solution:**
-```go
-// Configurable selector logic
-type SelectorLogic int
-
-const (
-    SelectorLogicAND SelectorLogic = iota
-    SelectorLogicOR
-    SelectorLogicCustom
-)
-
-type FilterProcessor struct {
-    defaultLogic SelectorLogic
-    customLogic  map[model.FeatureTypeType]SelectorLogic
-}
-
-func (fp *FilterProcessor) EvaluateSelectors(
-    selectors []model.FilterType,
-    data interface{},
-    featureType model.FeatureTypeType,
-) bool {
-    logic := fp.getLogic(featureType)
-    
-    switch logic {
-    case SelectorLogicAND:
-        // All selectors must match
-        for _, selector := range selectors {
-            if !fp.matches(selector, data) {
-                return false
-            }
-        }
-        return true
-        
-    case SelectorLogicOR:
-        // Any selector must match
-        for _, selector := range selectors {
-            if fp.matches(selector, data) {
-                return true
-            }
-        }
-        return false
-        
-    default:
-        // Custom logic per use case
-        return fp.evaluateCustom(selectors, data, featureType)
-    }
-}
-```
-
-**Implementation:**
-- Add configurable selector logic (default to AND for safety)
-- Allow per-feature-type configuration
-- Document the chosen approach clearly
-- Add interoperability notes
-
-## Long-term Improvements (P3)
-
-### 9. Implement Correct Filter Selector Logic (If/When Partial Read Support Added)
-
-**Priority:** P3  
-**Severity:** LOW - Not critical until partial read support is added  
-**Risk:** No current impact - spine-go doesn't announce partial read support  
-**Effort:** 2 weeks
-
-**Context:**
-spine-go explicitly does NOT announce partial read support (feature_local.go line 84: "partial reads are currently not supported!"). The readPartial parameter is always false in NewOperations calls. This makes filter selector logic implementation a LOW PRIORITY that only becomes relevant if/when partial read support is added.
-
-**Problem (Future):**
-Current implementation violates SPINE specification by using only AND logic for all selector matching. The specification explicitly defines (lines 1291, 1581):
-- OR logic between multiple SELECTORS elements
-- AND logic between fields within a single SELECTORS element
-
-**Note:** Complex structures like SmartEnergyManagementPs DO have defined selector semantics in the specification (tables 167 and 170), so the framework for partial updates exists when needed.
+Limited validation of incoming messages can lead to panics and security issues.
 
 **Solution:**
 ```go
@@ -945,7 +828,7 @@ type MessageValidator struct {
 }
 
 func (mv *MessageValidator) Validate(msg *model.DatagramType) error {
-    // Size validation
+    // Size validation first (prevent DoS)
     if err := mv.sizeValidator.Validate(msg); err != nil {
         return fmt.Errorf("size validation failed: %w", err)
     }
@@ -965,28 +848,278 @@ func (mv *MessageValidator) Validate(msg *model.DatagramType) error {
 
 // Prevent resource exhaustion
 type SizeValidator struct {
-    maxMessageSize   int
-    maxArrayElements int
-    maxStringLength  int
+    maxMessageSize   int      // e.g., 10MB
+    maxArrayElements int      // e.g., 1000
+    maxStringLength  int      // e.g., 64KB
+    maxNestingDepth  int      // e.g., 10 levels
 }
 
 func (sv *SizeValidator) Validate(msg interface{}) error {
-    // Check message size
+    // Check overall message size
     size := calculateSize(msg)
     if size > sv.maxMessageSize {
-        return fmt.Errorf("message too large: %d bytes", size)
+        return fmt.Errorf("message too large: %d bytes (max: %d)", size, sv.maxMessageSize)
     }
     
-    // Check array sizes
-    if err := sv.validateArrays(msg); err != nil {
-        return err
+    // Recursively check arrays and strings
+    return sv.validateStructure(msg, 0)
+}
+
+func (sv *SizeValidator) validateStructure(data interface{}, depth int) error {
+    if depth > sv.maxNestingDepth {
+        return fmt.Errorf("nesting depth %d exceeds limit %d", depth, sv.maxNestingDepth)
     }
     
+    v := reflect.ValueOf(data)
+    switch v.Kind() {
+    case reflect.Slice, reflect.Array:
+        if v.Len() > sv.maxArrayElements {
+            return fmt.Errorf("array too large: %d elements (max: %d)", v.Len(), sv.maxArrayElements)
+        }
+        for i := 0; i < v.Len(); i++ {
+            if err := sv.validateStructure(v.Index(i).Interface(), depth+1); err != nil {
+                return err
+            }
+        }
+    case reflect.String:
+        if v.Len() > sv.maxStringLength {
+            return fmt.Errorf("string too long: %d bytes (max: %d)", v.Len(), sv.maxStringLength)
+        }
+    case reflect.Struct:
+        for i := 0; i < v.NumField(); i++ {
+            if err := sv.validateStructure(v.Field(i).Interface(), depth+1); err != nil {
+                return err
+            }
+        }
+    }
     return nil
+}
+
+// Schema validation using SPINE XSD
+type SchemaValidator struct {
+    xsdCache map[string]*xsd.Schema
+}
+
+func (sv *SchemaValidator) Validate(msg interface{}) error {
+    // Validate against SPINE XSD schema
+    msgType := reflect.TypeOf(msg).Name()
+    schema, ok := sv.xsdCache[msgType]
+    if !ok {
+        return fmt.Errorf("no schema found for type: %s", msgType)
+    }
+    
+    return schema.Validate(msg)
 }
 ```
 
-**Solution (When Needed):**
+**Implementation Steps:**
+1. Implement size validation to prevent DoS attacks
+2. Add schema validation against SPINE XSD
+3. Create semantic validation for business rules
+4. Add configurable limits for all validators
+5. Integrate with message processing pipeline
+
+**Testing:**
+- Unit tests for each validator
+- Fuzzing tests with malformed inputs
+- Performance tests with large messages
+- Security tests for DoS prevention
+
+### 9. Implement Error Recovery Mechanisms
+
+**Priority:** P2  
+**Severity:** MEDIUM  
+**Risk:** Poor reliability under failure conditions  
+**Effort:** 2 weeks
+
+**Problem:**
+Current implementation lacks robust error recovery mechanisms, leading to potential system instability when errors occur.
+
+**Solution:**
+```go
+// Error recovery framework
+type ErrorRecovery struct {
+    retryPolicy      RetryPolicy
+    circuitBreaker   *CircuitBreaker
+    errorLogger      ErrorLogger
+    healthMonitor    *HealthMonitor
+}
+
+// Retry with exponential backoff
+type RetryPolicy struct {
+    MaxAttempts     int
+    InitialDelay    time.Duration
+    MaxDelay        time.Duration
+    BackoffFactor   float64
+    RetryableErrors map[error]bool
+}
+
+func (rp *RetryPolicy) Execute(ctx context.Context, fn func() error) error {
+    delay := rp.InitialDelay
+    
+    for attempt := 0; attempt < rp.MaxAttempts; attempt++ {
+        err := fn()
+        if err == nil {
+            return nil
+        }
+        
+        // Check if error is retryable
+        if !rp.isRetryable(err) {
+            return fmt.Errorf("non-retryable error: %w", err)
+        }
+        
+        // Check context cancellation
+        if ctx.Err() != nil {
+            return fmt.Errorf("context cancelled: %w", ctx.Err())
+        }
+        
+        if attempt < rp.MaxAttempts-1 {
+            select {
+            case <-time.After(delay):
+                delay = time.Duration(float64(delay) * rp.BackoffFactor)
+                if delay > rp.MaxDelay {
+                    delay = rp.MaxDelay
+                }
+            case <-ctx.Done():
+                return ctx.Err()
+            }
+        }
+    }
+    
+    return fmt.Errorf("max retry attempts (%d) exceeded", rp.MaxAttempts)
+}
+
+// Circuit breaker for failing services
+type CircuitBreaker struct {
+    failureThreshold  int
+    successThreshold  int
+    resetTimeout      time.Duration
+    halfOpenRequests  int
+    
+    failures      int
+    successes     int
+    lastFailure   time.Time
+    state         BreakerState
+    mu            sync.RWMutex
+}
+
+type BreakerState int
+
+const (
+    BreakerClosed BreakerState = iota
+    BreakerOpen
+    BreakerHalfOpen
+)
+
+func (cb *CircuitBreaker) Call(fn func() error) error {
+    cb.mu.Lock()
+    defer cb.mu.Unlock()
+    
+    // Check if circuit breaker should transition states
+    cb.checkStateTransition()
+    
+    switch cb.state {
+    case BreakerOpen:
+        return ErrCircuitBreakerOpen
+        
+    case BreakerHalfOpen:
+        if cb.halfOpenRequests <= 0 {
+            return ErrCircuitBreakerOpen
+        }
+        cb.halfOpenRequests--
+        
+    case BreakerClosed:
+        // Allow request
+    }
+    
+    // Execute function
+    err := fn()
+    
+    // Update metrics
+    if err != nil {
+        cb.onFailure()
+    } else {
+        cb.onSuccess()
+    }
+    
+    return err
+}
+
+func (cb *CircuitBreaker) checkStateTransition() {
+    switch cb.state {
+    case BreakerOpen:
+        if time.Since(cb.lastFailure) > cb.resetTimeout {
+            cb.state = BreakerHalfOpen
+            cb.halfOpenRequests = 3 // Allow limited requests
+            cb.failures = 0
+            cb.successes = 0
+        }
+        
+    case BreakerHalfOpen:
+        if cb.successes >= cb.successThreshold {
+            cb.state = BreakerClosed
+            cb.failures = 0
+        } else if cb.failures > 0 {
+            cb.state = BreakerOpen
+            cb.lastFailure = time.Now()
+        }
+    }
+}
+
+// Connection recovery for disconnected devices
+type ConnectionRecovery struct {
+    reconnectPolicy  ReconnectPolicy
+    deviceRegistry   *DeviceRegistry
+}
+
+func (cr *ConnectionRecovery) MonitorConnections(ctx context.Context) {
+    ticker := time.NewTicker(30 * time.Second)
+    defer ticker.Stop()
+    
+    for {
+        select {
+        case <-ticker.C:
+            cr.checkDisconnectedDevices()
+        case <-ctx.Done():
+            return
+        }
+    }
+}
+```
+
+**Implementation Steps:**
+1. Implement retry mechanism with exponential backoff
+2. Add circuit breaker for failing connections
+3. Create connection monitoring and recovery
+4. Add health checks for critical components
+5. Implement graceful degradation strategies
+
+**Testing:**
+- Unit tests for retry and circuit breaker logic
+- Chaos testing with network failures
+- Integration tests with device disconnections
+- Load tests under failure conditions
+
+## Long-term Improvements (P3)
+
+### 10. Implement Correct Filter Selector Logic (If/When Partial Read Support Added)
+
+**Priority:** P3  
+**Severity:** LOW - Not critical until partial read support is added  
+**Risk:** No current impact - spine-go doesn't announce partial read support  
+**Effort:** 2 weeks
+
+**Context:**
+spine-go explicitly does NOT announce partial read support (feature_local.go line 84: "partial reads are currently not supported!"). The readPartial parameter is always false in NewOperations calls. This makes filter selector logic implementation a LOW PRIORITY that only becomes relevant if/when partial read support is added.
+
+**Problem (Future):**
+Current implementation violates SPINE specification by using only AND logic for all selector matching. The specification explicitly defines (lines 1291, 1581):
+- OR logic between multiple SELECTORS elements
+- AND logic between fields within a single SELECTORS element
+
+**Note:** Complex structures like SmartEnergyManagementPs DO have defined selector semantics in the specification (tables 167 and 170), so the framework for partial updates exists when needed.
+
+**Solution (Only When Partial Read Support is Added):**
 ```go
 // Correct implementation per SPINE specification
 // ONLY IMPLEMENT WHEN PARTIAL READ SUPPORT IS ADDED
@@ -1032,90 +1165,7 @@ func (fp *FilterProcessor) matchSingleSelector(
 
 **Note:** writePartial functionality might be affected by filter logic, but read operations are the primary concern. Until partial read support is added, this remains a non-issue for interoperability.
 
-**Solution:**
-```go
-// Error recovery framework
-type ErrorRecovery struct {
-    retryPolicy    RetryPolicy
-    circuitBreaker CircuitBreaker
-    errorLogger    ErrorLogger
-}
-
-// Retry with exponential backoff
-type RetryPolicy struct {
-    MaxAttempts     int
-    InitialDelay    time.Duration
-    MaxDelay        time.Duration
-    BackoffFactor   float64
-}
-
-func (rp *RetryPolicy) Execute(fn func() error) error {
-    delay := rp.InitialDelay
-    
-    for attempt := 0; attempt < rp.MaxAttempts; attempt++ {
-        err := fn()
-        if err == nil {
-            return nil
-        }
-        
-        if !isRetryable(err) {
-            return err
-        }
-        
-        if attempt < rp.MaxAttempts-1 {
-            time.Sleep(delay)
-            delay = time.Duration(float64(delay) * rp.BackoffFactor)
-            if delay > rp.MaxDelay {
-                delay = rp.MaxDelay
-            }
-        }
-    }
-    
-    return fmt.Errorf("max retry attempts exceeded")
-}
-
-// Circuit breaker for failing services
-type CircuitBreaker struct {
-    failureThreshold int
-    resetTimeout     time.Duration
-    failures         int
-    lastFailure      time.Time
-    state            BreakerState
-    mu               sync.RWMutex
-}
-
-func (cb *CircuitBreaker) Call(fn func() error) error {
-    cb.mu.Lock()
-    defer cb.mu.Unlock()
-    
-    if cb.state == BreakerOpen {
-        if time.Since(cb.lastFailure) > cb.resetTimeout {
-            cb.state = BreakerHalfOpen
-            cb.failures = 0
-        } else {
-            return ErrCircuitBreakerOpen
-        }
-    }
-    
-    err := fn()
-    if err != nil {
-        cb.failures++
-        cb.lastFailure = time.Now()
-        
-        if cb.failures >= cb.failureThreshold {
-            cb.state = BreakerOpen
-        }
-        return err
-    }
-    
-    cb.failures = 0
-    cb.state = BreakerClosed
-    return nil
-}
-```
-
-
-### 10. Performance Optimization
+### 11. Performance Optimization
 
 **Priority:** P3  
 **Severity:** LOW  
@@ -1129,7 +1179,7 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 - Optimize deep copy operations
 - Profile and optimize hot paths
 
-### 11. Create Comprehensive Documentation
+### 12. Create Comprehensive Documentation
 
 **Priority:** P3  
 **Severity:** LOW  
@@ -1143,7 +1193,7 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 - Interoperability guide
 - Performance tuning guide
 
-### 12. Build Developer Tools
+### 13. Build Developer Tools
 
 **Priority:** P3  
 **Severity:** LOW  
@@ -1157,22 +1207,143 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 - Performance profiler
 - Test data generator
 
+### 14. Consider Multiple Binding Support Per Feature (WITH EXTREME CAUTION)
+
+**Priority:** P3  
+**Severity:** LOW - Current single binding is a SAFETY FEATURE  
+**Risk:** High risk of control conflicts and interoperability issues  
+**Effort:** 4-6 weeks + extensive testing
+
+**CRITICAL WARNING:** The current single binding per server feature implementation is a deliberate SAFETY FEATURE that prevents control conflicts, notification loops, and race conditions. See detailed analysis in [BINDING_AND_ORCHESTRATION.md](../specific-issues/BINDING_AND_ORCHESTRATION.md).
+
+**Problem:**
+Current implementation limits server features to single CONTROL binding per feature. While the specification allows this ("MAY limit the number of bindings"), implementation policies vary significantly across vendors:
+- **spine-go approach**: Restricts to single binding per server feature for safety
+- **Some vendor implementations**: Allow any binding request to succeed with no race condition prevention
+- **Specification stance**: "It is up to the SPINE proxy implementation only to decide" (SPINE spec line 3827)
+
+**Current Status:**
+- ✅ Reading scenarios support unlimited concurrent clients (no bindings required)
+- ✅ Multi-client scenarios ARE supported when clients use different features
+- ✅ Single binding prevents dangerous control conflicts
+- 📋 GitHub issue #25 tracks potential enhancement for multiple control bindings per single feature
+
+**Why This is P3 (Low Priority):**
+1. The SPINE specification provides NO conflict resolution mechanisms
+2. No standard for handling simultaneous binding requests
+3. No reconnection priority for previous binding holders
+4. Implementation would require custom, non-interoperable solutions
+5. Current single binding approach is the SAFEST choice given spec constraints
+
+**Solution (If Proceeding Despite Safety Concerns):**
+```go
+// Multiple binding support with CUSTOM conflict resolution
+// WARNING: SPINE spec provides NO standard for any of this!
+// This would be a PROPRIETARY EXTENSION that breaks interoperability
+type MultiBindingManager struct {
+    bindings         map[string][]Binding
+    conflictResolver ConflictResolver  // CUSTOM - not in spec
+    reconnectPolicy  ReconnectPolicy   // CUSTOM - not in spec  
+    loopDetector     LoopDetector      // CRITICAL for safety
+    mu              sync.RWMutex
+}
+
+// Custom reconnection policy (spec provides NO guidance)
+type ReconnectPolicy struct {
+    gracePeriod     time.Duration  // How long to hold binding
+    priorityList    []string       // Device priority order
+    allowReclaim    bool          // Can disconnected client reclaim?
+}
+
+func (mbm *MultiBindingManager) AddBinding(binding Binding) error {
+    mbm.mu.Lock()
+    defer mbm.mu.Unlock()
+    
+    // CRITICAL: Must implement loop detection first
+    if mbm.loopDetector.WouldCreateLoop(binding) {
+        return fmt.Errorf("binding would create control loop")
+    }
+    
+    // CUSTOM: Check if this is a reconnection (spec doesn't define)
+    if mbm.reconnectPolicy.allowReclaim {
+        if mbm.wasRecentlyConnected(binding.ClientAddr) {
+            return mbm.reclaimBinding(binding)
+        }
+    }
+    
+    // Check for conflicts with existing bindings
+    if err := mbm.conflictResolver.CheckConflict(binding); err != nil {
+        return err
+    }
+    
+    mbm.bindings[binding.ServerAddr] = append(mbm.bindings[binding.ServerAddr], binding)
+    return nil
+}
+
+// Conflict resolution for multiple writers (ENTIRELY CUSTOM)
+// Spec quote: "It is up to the SPINE proxy implementation only to decide"
+type ConflictResolver struct {
+    strategy ConflictStrategy
+}
+
+func (cr *ConflictResolver) ResolveWrite(writes []WriteRequest) (WriteRequest, error) {
+    switch cr.strategy {
+    case LastWriteWins:      // Simple but unpredictable
+        return writes[len(writes)-1], nil
+    case PriorityBased:      // Requires device priority config
+        return cr.selectByPriority(writes)
+    case ConsensusRequired:  // All writers must agree
+        return cr.requireConsensus(writes)
+    case FirstBindingWins:   // Current spine-go behavior
+        return writes[0], nil
+    default:
+        return WriteRequest{}, fmt.Errorf("no conflict resolution strategy")
+    }
+}
+```
+
+**Critical Trade-offs:**
+- ✅ Would enable multiple controllers per single feature
+- ✅ Could support redundancy scenarios
+- ❌ **MAJOR RISK**: No spec-defined conflict resolution
+- ❌ **MAJOR RISK**: Proprietary extensions break interoperability
+- ❌ **MAJOR RISK**: Some vendors allow any binding (race conditions)
+- ❌ **MAJOR RISK**: Control authority becomes unpredictable
+- ❌ **MAJOR RISK**: Notification loops without proper detection
+
+**Prerequisites Before Implementation:**
+1. ✅ MUST implement loop detection first (P1 priority)
+2. ✅ MUST define custom conflict resolution strategy
+3. ✅ MUST establish vendor agreements on behavior
+4. ✅ MUST implement extensive multi-vendor testing
+5. ✅ MUST clearly document as non-standard extension
+
+**Recommendation:** 
+**DO NOT IMPLEMENT** unless:
+1. SPINE specification adds conflict resolution primitives
+2. Clear industry consensus on binding behavior emerges
+3. Specific use cases demonstrate critical need that outweighs risks
+
+The current single binding approach remains the SAFEST and most RELIABLE choice. Focus instead on supporting multi-client scenarios through proper feature separation and system architecture.
+
+**Alternative Approaches:**
+1. Use different features for different controllers (already supported)
+2. Implement application-level orchestration outside SPINE
+3. Work with SPINE standards body to add proper primitives
+4. Design systems with single controller architecture
+
 ## Implementation Roadmap
 
 ### Phase 1: Critical Spec Compliance (Weeks 1-4)
-1. **Week 1-4**: Protocol version negotiation
+1. **Week 1-4**: Protocol version validation
 2. **Continuous**: Testing and validation
 
 ### Phase 2: High Priority Features (Weeks 5-14)
 1. **Week 5-6**: Loop detection and prevention
-2. **Week 7-9**: Multiple binding support per feature (WITH CAUTION)
-   - Note: Without spec-defined orchestration, this is risky
-   - Would need custom, non-interoperable conflict resolution
-   - GitHub issue #25 should document interoperability risks
-   - Consider keeping single binding as safer approach
-3. **Week 10-12**: Extended RFE for complex use cases
-4. **Week 13**: Authorization framework
-5. **Week 14**: Documentation for use case implementers
+2. **Week 7-9**: Extended RFE for complex nested structures
+3. **Week 10-11**: Authorization framework
+4. **Week 12-13**: Add identifier validation and update semantics handling
+5. **Week 14**: Documentation for use case version management guidance
 
 ### Phase 3: Medium Priority Enhancements (Weeks 15-18)
 1. **Week 15-16**: Comprehensive input validation
@@ -1181,8 +1352,9 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 ### Phase 4: Long-term Improvements (6+ months)
 1. Filter selector logic (ONLY if partial read support is added)
 2. Performance optimization
-3. Documentation creation
+3. Comprehensive documentation
 4. Developer tools
+5. Multiple binding support (NOT RECOMMENDED - see section 14 for safety concerns)
 
 ## Risk Mitigation Strategies
 
@@ -1212,37 +1384,41 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 
 ## Conclusion
 
-These improvements focus on bringing spine-go into full compliance with the SPINE specification requirements AND addressing critical foundational gaps. Priority is given to:
+These improvements focus on bringing spine-go into full compliance with the SPINE specification requirements while working within specification constraints. Priority is given to:
 
-1. **P0**: Actual specification violations (version negotiation)
-2. **P1**: Foundational gaps that prevent reliable orchestration
+1. **P0**: Critical specification violations (protocol version validation)
+2. **P1**: Major features for reliability and interoperability
 3. **P2**: Important enhancements for better functionality
-4. **P3**: Nice-to-have improvements
+4. **P3**: Nice-to-have improvements (including multiple binding support)
 
-**Critical Understanding:** The lack of orchestration primitives is a SPECIFICATION limitation, not an implementation gap. spine-go CANNOT add these primitives without breaking interoperability with other SPINE implementations. The single binding limitation is the CORRECT approach given these specification constraints.
+**Critical Understanding:** 
+- The lack of orchestration primitives is a SPECIFICATION limitation, not an implementation gap
+- spine-go's single binding per feature is the CORRECT and SAFEST approach given specification constraints
+- Multiple binding support has been correctly moved to P3 as it would require non-standard extensions
 
 The roadmap focuses on improvements that can be made within the SPINE specification while maintaining full interoperability. Any orchestration needs must be addressed at the specification level, not by individual implementations.
 
 ### Success Metrics
 - 100% compliance with SPINE SHALL requirements
-- Protocol version negotiation (foundation responsibility)
-- Clear documentation for use case version negotiation (use case layer responsibility)
-- Support for multiple control bindings per server feature (optional enhancement, issue #25)
-  - Current: Single control binding per feature, unlimited concurrent readers, multi-client with different features works
-  - Future: Multiple control bindings per single feature
-- Control loops prevented by single binding (implemented)
-- Proper authorization for all write operations
-- Correct filter selector logic when/if partial read support is added
-- <100ms message processing latency
-- 99.9% uptime in production
+- Protocol version validation implemented (P0 - foundation responsibility)
+- Clear documentation for use case version management (P1 - guidance only)
+- Loop detection and prevention implemented (P1)
+- Extended RFE for complex nested structures (P1)
+- Proper authorization for all write operations (P1)
+- Identifier validation and update semantics (P1)
+- Comprehensive input validation (P2)
+- Error recovery mechanisms (P2)
+- Single binding safety feature maintained (COMPLETED - correct as-is)
+- Multiple binding support remains P3 with strong warnings against implementation
+- Correct filter selector logic when/if partial read support is added (P3)
 
 ### Next Steps
-1. Review and approve improvement plan
-2. Allocate resources for P0 spec violations (protocol version negotiation)
-3. Set up compliance testing framework
-4. Establish interoperability test environment
-5. Begin Phase 1 implementation
+1. Review and approve corrected improvement plan
+2. Focus on P0: Protocol version validation implementation
+3. Prioritize P1 items that enhance safety and reliability
+4. Maintain single binding as the safe default
+5. Avoid P3 multiple binding unless spec adds conflict resolution
 
 ---
 
-*This improvement plan is based on the SPINE specification v1.3.0 analysis and focuses on actual specification compliance requirements. It correctly distinguishes between foundation library responsibilities (spine-go) and use case implementation responsibilities (e.g., eebus-go). Filter selector logic has been deprioritized to P3 since spine-go doesn't announce partial read support, making it a non-critical issue for interoperability.*
+*This improvement plan corrects significant inconsistencies in the original roadmap. It properly prioritizes safety over features, correctly identifies completed items, and provides clear rationale for items that won't be fixed. The plan maintains spine-go's architectural integrity while addressing real gaps in specification compliance.*

@@ -1,8 +1,15 @@
 # Update Summary: Filter Selector Logic Priority Adjustment
 
-**Document Version:** v1.0  
-**Created:** 2025-06-25  
+**Last Updated:** 2025-06-25  
+**Status:** Archived  
 **Reason:** spine-go does NOT announce partial read support, making filter selector logic a non-critical issue
+
+## Change History
+
+### 2025-06-25
+- Initial update summary documenting filter selector logic priority adjustment
+- Clarified that spine-go doesn't announce partial read support
+- Updated multiple documents to reflect low priority status
 
 ## Key Finding
 

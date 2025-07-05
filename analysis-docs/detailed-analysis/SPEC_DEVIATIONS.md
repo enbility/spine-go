@@ -1,10 +1,27 @@
 # SPINE Specification Deviations
 
-**Created:** 2025-06-25  
-**Updated:** 2025-07-04  
+**Last Updated:** 2025-07-05  
+**Status:** Active  
 **Implementation:** spine-go  
 **Specification Version:** SPINE v1.3.0  
 **Purpose:** Comprehensive analysis of implementation deviations from SPINE specification
+
+## Change History
+
+### 2025-07-05
+- Added XSD restriction validation as minor deviation
+- Documented design decision to ignore complex type restrictions
+- Referenced XSD_RESTRICTION_ANALYSIS.md for detailed rationale
+
+### 2025-07-04
+- Updated to reflect msgCounter tracking as minor deviation
+- Added note that msgCounter is diagnostic-only with no functional impact
+- Clarified that missing tracking has zero functional consequences
+
+### 2025-06-25
+- Initial analysis of specification deviations
+- Categorized into critical, major, and minor deviations
+- Added implementation choices for spec-silent areas
 
 ## Table of Contents
 
@@ -246,7 +263,7 @@ These are NOT deviations - the spec doesn't define these behaviors:
 
 **Implementation Choice:** Treats as server state
 
-### 4. Identifier Validation for List Updates (UPDATED v1.1: Behavior is Correct)
+### 4. Identifier Validation for List Updates (Behavior is Correct)
 
 **Spec Requirements:**
 - PRIMARY identifiers (e.g., measurementId): SHALL be set
