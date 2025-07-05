@@ -30,7 +30,7 @@ func (s *MsgCounterIntegrationSuite) SetupTest() {
 	
 	// Setup remote device 1
 	ski1 := "device1"
-	sender1 := NewSender(s)
+	sender1 := NewSender(s, nil)
 	s.remoteDevice1 = NewDeviceRemote(s.localDevice, ski1, sender1)
 	desc1 := &model.NetworkManagementDeviceDescriptionDataType{
 		DeviceAddress: &model.DeviceAddressType{
@@ -42,7 +42,7 @@ func (s *MsgCounterIntegrationSuite) SetupTest() {
 	
 	// Setup remote device 2
 	ski2 := "device2"
-	sender2 := NewSender(s)
+	sender2 := NewSender(s, nil)
 	s.remoteDevice2 = NewDeviceRemote(s.localDevice, ski2, sender2)
 	desc2 := &model.NetworkManagementDeviceDescriptionDataType{
 		DeviceAddress: &model.DeviceAddressType{
@@ -204,7 +204,7 @@ func (s *MsgCounterIntegrationSuite) Test_MsgCounterReference_Correlation() {
 	}
 	
 	// Get sender from local device
-	sender := NewSender(s)
+	sender := NewSender(s, nil)
 	msgCounter, err := sender.Request(
 		model.CmdClassifierTypeRead,
 		localFeature.Address(),

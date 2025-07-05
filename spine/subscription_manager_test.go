@@ -32,7 +32,7 @@ func (s *SubscriptionManagerSuite) BeforeTest(suiteName, testName string) {
 	s.writeHandler = &WriteMessageHandler{}
 
 	ski := "test"
-	sender := NewSender(s.writeHandler)
+	sender := NewSender(s.writeHandler, nil)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
 	_ = s.localDevice.SetupRemoteDevice(ski, s.writeHandler)
 

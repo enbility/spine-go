@@ -298,6 +298,50 @@ func (_c *DeviceRemoteInterface_DestinationData_Call) RunAndReturn(run func() mo
 	return _c
 }
 
+// DetectedRemoteVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) DetectedRemoteVersion() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetectedRemoteVersion")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_DetectedRemoteVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetectedRemoteVersion'
+type DeviceRemoteInterface_DetectedRemoteVersion_Call struct {
+	*mock.Call
+}
+
+// DetectedRemoteVersion is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) DetectedRemoteVersion() *DeviceRemoteInterface_DetectedRemoteVersion_Call {
+	return &DeviceRemoteInterface_DetectedRemoteVersion_Call{Call: _e.mock.On("DetectedRemoteVersion")}
+}
+
+func (_c *DeviceRemoteInterface_DetectedRemoteVersion_Call) Run(run func()) *DeviceRemoteInterface_DetectedRemoteVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_DetectedRemoteVersion_Call) Return(s string) *DeviceRemoteInterface_DetectedRemoteVersion_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_DetectedRemoteVersion_Call) RunAndReturn(run func() string) *DeviceRemoteInterface_DetectedRemoteVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceType provides a mock function for the type DeviceRemoteInterface
 func (_mock *DeviceRemoteInterface) DeviceType() *model.DeviceTypeType {
 	ret := _mock.Called()
@@ -439,6 +483,50 @@ func (_c *DeviceRemoteInterface_Entity_Call) Return(entityRemoteInterface api.En
 }
 
 func (_c *DeviceRemoteInterface_Entity_Call) RunAndReturn(run func(id []model.AddressEntityType) api.EntityRemoteInterface) *DeviceRemoteInterface_Entity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EstimatedRemoteVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) EstimatedRemoteVersion() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for EstimatedRemoteVersion")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_EstimatedRemoteVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EstimatedRemoteVersion'
+type DeviceRemoteInterface_EstimatedRemoteVersion_Call struct {
+	*mock.Call
+}
+
+// EstimatedRemoteVersion is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) EstimatedRemoteVersion() *DeviceRemoteInterface_EstimatedRemoteVersion_Call {
+	return &DeviceRemoteInterface_EstimatedRemoteVersion_Call{Call: _e.mock.On("EstimatedRemoteVersion")}
+}
+
+func (_c *DeviceRemoteInterface_EstimatedRemoteVersion_Call) Run(run func()) *DeviceRemoteInterface_EstimatedRemoteVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_EstimatedRemoteVersion_Call) Return(s string) *DeviceRemoteInterface_EstimatedRemoteVersion_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_EstimatedRemoteVersion_Call) RunAndReturn(run func() string) *DeviceRemoteInterface_EstimatedRemoteVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -669,6 +757,94 @@ func (_c *DeviceRemoteInterface_HandleSpineMesssage_Call) RunAndReturn(run func(
 	return _c
 }
 
+// HasVersionChanged provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) HasVersionChanged() bool {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasVersionChanged")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_HasVersionChanged_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasVersionChanged'
+type DeviceRemoteInterface_HasVersionChanged_Call struct {
+	*mock.Call
+}
+
+// HasVersionChanged is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) HasVersionChanged() *DeviceRemoteInterface_HasVersionChanged_Call {
+	return &DeviceRemoteInterface_HasVersionChanged_Call{Call: _e.mock.On("HasVersionChanged")}
+}
+
+func (_c *DeviceRemoteInterface_HasVersionChanged_Call) Run(run func()) *DeviceRemoteInterface_HasVersionChanged_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_HasVersionChanged_Call) Return(b bool) *DeviceRemoteInterface_HasVersionChanged_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_HasVersionChanged_Call) RunAndReturn(run func() bool) *DeviceRemoteInterface_HasVersionChanged_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NegotiatedProtocolVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) NegotiatedProtocolVersion() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for NegotiatedProtocolVersion")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_NegotiatedProtocolVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NegotiatedProtocolVersion'
+type DeviceRemoteInterface_NegotiatedProtocolVersion_Call struct {
+	*mock.Call
+}
+
+// NegotiatedProtocolVersion is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) NegotiatedProtocolVersion() *DeviceRemoteInterface_NegotiatedProtocolVersion_Call {
+	return &DeviceRemoteInterface_NegotiatedProtocolVersion_Call{Call: _e.mock.On("NegotiatedProtocolVersion")}
+}
+
+func (_c *DeviceRemoteInterface_NegotiatedProtocolVersion_Call) Run(run func()) *DeviceRemoteInterface_NegotiatedProtocolVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_NegotiatedProtocolVersion_Call) Return(s string) *DeviceRemoteInterface_NegotiatedProtocolVersion_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_NegotiatedProtocolVersion_Call) RunAndReturn(run func() string) *DeviceRemoteInterface_NegotiatedProtocolVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveEntityByAddress provides a mock function for the type DeviceRemoteInterface
 func (_mock *DeviceRemoteInterface) RemoveEntityByAddress(addr []model.AddressEntityType) api.EntityRemoteInterface {
 	ret := _mock.Called(addr)
@@ -768,6 +944,86 @@ func (_c *DeviceRemoteInterface_Sender_Call) RunAndReturn(run func() api.SenderI
 	return _c
 }
 
+// SetNegotiatedProtocolVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) SetNegotiatedProtocolVersion(version string) {
+	_mock.Called(version)
+	return
+}
+
+// DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetNegotiatedProtocolVersion'
+type DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call struct {
+	*mock.Call
+}
+
+// SetNegotiatedProtocolVersion is a helper method to define mock.On call
+//   - version string
+func (_e *DeviceRemoteInterface_Expecter) SetNegotiatedProtocolVersion(version interface{}) *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call {
+	return &DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call{Call: _e.mock.On("SetNegotiatedProtocolVersion", version)}
+}
+
+func (_c *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call) Run(run func(version string)) *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call) Return() *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call) RunAndReturn(run func(version string)) *DeviceRemoteInterface_SetNegotiatedProtocolVersion_Call {
+	_c.Run(run)
+	return _c
+}
+
+// SetSupportedProtocolVersions provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) SetSupportedProtocolVersions(versions []string) {
+	_mock.Called(versions)
+	return
+}
+
+// DeviceRemoteInterface_SetSupportedProtocolVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSupportedProtocolVersions'
+type DeviceRemoteInterface_SetSupportedProtocolVersions_Call struct {
+	*mock.Call
+}
+
+// SetSupportedProtocolVersions is a helper method to define mock.On call
+//   - versions []string
+func (_e *DeviceRemoteInterface_Expecter) SetSupportedProtocolVersions(versions interface{}) *DeviceRemoteInterface_SetSupportedProtocolVersions_Call {
+	return &DeviceRemoteInterface_SetSupportedProtocolVersions_Call{Call: _e.mock.On("SetSupportedProtocolVersions", versions)}
+}
+
+func (_c *DeviceRemoteInterface_SetSupportedProtocolVersions_Call) Run(run func(versions []string)) *DeviceRemoteInterface_SetSupportedProtocolVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 []string
+		if args[0] != nil {
+			arg0 = args[0].([]string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SetSupportedProtocolVersions_Call) Return() *DeviceRemoteInterface_SetSupportedProtocolVersions_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SetSupportedProtocolVersions_Call) RunAndReturn(run func(versions []string)) *DeviceRemoteInterface_SetSupportedProtocolVersions_Call {
+	_c.Run(run)
+	return _c
+}
+
 // Ski provides a mock function for the type DeviceRemoteInterface
 func (_mock *DeviceRemoteInterface) Ski() string {
 	ret := _mock.Called()
@@ -812,6 +1068,103 @@ func (_c *DeviceRemoteInterface_Ski_Call) RunAndReturn(run func() string) *Devic
 	return _c
 }
 
+// SupportedProtocolVersions provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) SupportedProtocolVersions() []string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SupportedProtocolVersions")
+	}
+
+	var r0 []string
+	if returnFunc, ok := ret.Get(0).(func() []string); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_SupportedProtocolVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SupportedProtocolVersions'
+type DeviceRemoteInterface_SupportedProtocolVersions_Call struct {
+	*mock.Call
+}
+
+// SupportedProtocolVersions is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) SupportedProtocolVersions() *DeviceRemoteInterface_SupportedProtocolVersions_Call {
+	return &DeviceRemoteInterface_SupportedProtocolVersions_Call{Call: _e.mock.On("SupportedProtocolVersions")}
+}
+
+func (_c *DeviceRemoteInterface_SupportedProtocolVersions_Call) Run(run func()) *DeviceRemoteInterface_SupportedProtocolVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SupportedProtocolVersions_Call) Return(strings []string) *DeviceRemoteInterface_SupportedProtocolVersions_Call {
+	_c.Call.Return(strings)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_SupportedProtocolVersions_Call) RunAndReturn(run func() []string) *DeviceRemoteInterface_SupportedProtocolVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDetectedVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) UpdateDetectedVersion(version string) error {
+	ret := _mock.Called(version)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDetectedVersion")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
+		r0 = returnFunc(version)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// DeviceRemoteInterface_UpdateDetectedVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDetectedVersion'
+type DeviceRemoteInterface_UpdateDetectedVersion_Call struct {
+	*mock.Call
+}
+
+// UpdateDetectedVersion is a helper method to define mock.On call
+//   - version string
+func (_e *DeviceRemoteInterface_Expecter) UpdateDetectedVersion(version interface{}) *DeviceRemoteInterface_UpdateDetectedVersion_Call {
+	return &DeviceRemoteInterface_UpdateDetectedVersion_Call{Call: _e.mock.On("UpdateDetectedVersion", version)}
+}
+
+func (_c *DeviceRemoteInterface_UpdateDetectedVersion_Call) Run(run func(version string)) *DeviceRemoteInterface_UpdateDetectedVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_UpdateDetectedVersion_Call) Return(err error) *DeviceRemoteInterface_UpdateDetectedVersion_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_UpdateDetectedVersion_Call) RunAndReturn(run func(version string) error) *DeviceRemoteInterface_UpdateDetectedVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateDevice provides a mock function for the type DeviceRemoteInterface
 func (_mock *DeviceRemoteInterface) UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType) {
 	_mock.Called(description)
@@ -848,6 +1201,39 @@ func (_c *DeviceRemoteInterface_UpdateDevice_Call) Return() *DeviceRemoteInterfa
 }
 
 func (_c *DeviceRemoteInterface_UpdateDevice_Call) RunAndReturn(run func(description *model.NetworkManagementDeviceDescriptionDataType)) *DeviceRemoteInterface_UpdateDevice_Call {
+	_c.Run(run)
+	return _c
+}
+
+// UpdateEstimatedRemoteVersion provides a mock function for the type DeviceRemoteInterface
+func (_mock *DeviceRemoteInterface) UpdateEstimatedRemoteVersion() {
+	_mock.Called()
+	return
+}
+
+// DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateEstimatedRemoteVersion'
+type DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call struct {
+	*mock.Call
+}
+
+// UpdateEstimatedRemoteVersion is a helper method to define mock.On call
+func (_e *DeviceRemoteInterface_Expecter) UpdateEstimatedRemoteVersion() *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call {
+	return &DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call{Call: _e.mock.On("UpdateEstimatedRemoteVersion")}
+}
+
+func (_c *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call) Run(run func()) *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call) Return() *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call) RunAndReturn(run func()) *DeviceRemoteInterface_UpdateEstimatedRemoteVersion_Call {
 	_c.Run(run)
 	return _c
 }

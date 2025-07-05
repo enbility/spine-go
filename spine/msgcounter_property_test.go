@@ -24,7 +24,7 @@ func TestProperty_MsgCounter_AlwaysAscending(t *testing.T) {
 		}
 		
 		temp := &WriteMessageHandler{}
-		sut := NewSender(temp)
+		sut := NewSender(temp, nil)
 		senderImpl := sut.(*Sender)
 		
 		var prevCounter model.MsgCounterType
@@ -59,7 +59,7 @@ func TestProperty_MsgCounter_UniqueInWindow(t *testing.T) {
 		}
 		
 		temp := &WriteMessageHandler{}
-		sut := NewSender(temp)
+		sut := NewSender(temp, nil)
 		senderImpl := sut.(*Sender)
 		
 		seen := make(map[model.MsgCounterType]bool)
@@ -94,7 +94,7 @@ func TestProperty_MsgCounter_ThreadSafe(t *testing.T) {
 		}
 		
 		temp := &WriteMessageHandler{}
-		sut := NewSender(temp)
+		sut := NewSender(temp, nil)
 		senderImpl := sut.(*Sender)
 		
 		totalMessages := int(numGoroutines) * int(msgsPerGoroutine)
@@ -150,7 +150,7 @@ func TestProperty_MsgCounter_NoBackwardSkips(t *testing.T) {
 	
 	property := func(startingPoint uint64, numMessages int) bool {
 		temp := &WriteMessageHandler{}
-		sut := NewSender(temp)
+		sut := NewSender(temp, nil)
 		senderImpl := sut.(*Sender)
 		
 		// Set starting point
@@ -183,7 +183,7 @@ func TestProperty_MsgCounter_NoBackwardSkips(t *testing.T) {
 func TestProperty_MsgCounter_OverflowBehavior(t *testing.T) {
 	// Direct test since we need specific values near overflow
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 	senderImpl := sut.(*Sender)
 	
 	testCases := []uint64{
@@ -237,7 +237,7 @@ func TestProperty_MsgCounter_InitialValue(t *testing.T) {
 		
 		for i := uint8(0); i < iterations; i++ {
 			temp := &WriteMessageHandler{}
-			sut := NewSender(temp)
+			sut := NewSender(temp, nil)
 			senderImpl := sut.(*Sender)
 			
 			counter := senderImpl.getMsgCounter()
@@ -256,7 +256,7 @@ func TestProperty_MsgCounter_InitialValue(t *testing.T) {
 // Property 7: Gap sizes are reasonable (implementation allows skipping)
 func TestProperty_MsgCounter_ReasonableGaps(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 	senderImpl := sut.(*Sender)
 	
 	const numMessages = 1000

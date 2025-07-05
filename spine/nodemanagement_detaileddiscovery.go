@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 )
@@ -52,6 +53,50 @@ func (r *NodeManagement) processReadDetailedDiscoveryData(deviceRemote api.Devic
 // handle incoming detailed discovery reply data
 func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	remoteDevice := message.DeviceRemote
+
+	// Handle version negotiation
+	var remoteVersions []string
+	if data.SpecificationVersionList != nil && len(data.SpecificationVersionList.SpecificationVersion) > 0 {
+		for _, v := range data.SpecificationVersionList.SpecificationVersion {
+			remoteVersions = append(remoteVersions, string(v))
+		}
+	} else {
+		// No version list provided, assume current version
+		remoteVersions = []string{string(SpecificationVersion)}
+		logging.Log().Debug("No version list in discovery data, assuming current version:", string(SpecificationVersion))
+	}
+
+	// Store remote versions
+	remoteDevice.SetSupportedProtocolVersions(remoteVersions)
+	
+	// Estimate what version the remote will use
+	remoteDevice.UpdateEstimatedRemoteVersion()
+
+	// Local supported versions (for now just current version)
+	localVersions := []string{string(SpecificationVersion)}
+
+	// Find common version
+	negotiatedVersion, found := findHighestCommonVersion(localVersions, remoteVersions)
+	if !found {
+		// No compatible version
+		err := NewVersionIncompatibilityError(localVersions, remoteVersions)
+		logging.Log().Error(err)
+
+		// Send error response if this was a request
+		if message.RequestHeader != nil {
+			errorType := model.NewErrorType(
+				model.ErrorNumberTypeGeneralError,
+				err.Error(),
+			)
+			_ = remoteDevice.Sender().ResultError(message.RequestHeader, r.Address(), errorType)
+		}
+
+		return err
+	}
+
+	// Store negotiated version
+	remoteDevice.SetNegotiatedProtocolVersion(negotiatedVersion)
+	logging.Log().Debug("Negotiated protocol version:", negotiatedVersion, "with device:", remoteDevice.Address())
 
 	deviceDescription := data.DeviceInformation.Description
 	if deviceDescription == nil {
