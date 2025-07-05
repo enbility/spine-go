@@ -411,6 +411,8 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 	deviceSki string,
 	destinationAddress *model.FeatureAddressType,
 	maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
+	// Note: maxDelay parameter is informational only and not used for timeout detection
+	// Read request timeouts are not implemented in spine-go (per SPINE spec MAY requirement)
 	msgCounter, err := sender.Request(model.CmdClassifierTypeRead, r.Address(), destinationAddress, false, []model.CmdType{cmd})
 	if err == nil {
 		return msgCounter, nil

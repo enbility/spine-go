@@ -148,12 +148,35 @@ type NodeManagementDetailedDiscoveryEntityInformationType struct {
 - Zero reported production issues from this deviation
 - Maintains code simplicity and maintainability
 
-### 2. Error Response Timing Not Enforced
+### 2. Error Response Timing Not Enforced ✅ (Not Actually a Deviation)
 
-**Specification:**
-> "defaultMaxResponseDelay is 10 seconds"
+**Specification Requirements:**
+> "defaultMaxResponseDelay is 10 seconds" (Section 5.2.5.3, SHALL requirement)
+> "A feature client MAY use 'maximum response delay' for the detection of a response-timeout"
 
-**Implementation:** No timeout enforcement
+**Implementation:** No timeout enforcement for read requests (write approval timeouts are implemented)
+
+**Status:** SPEC-COMPLIANT - Not a deviation
+
+**Analysis:**
+- **Timeout detection is OPTIONAL**: The spec uses "MAY" language, not "SHALL" or "MUST"
+- **No defined timeout behavior**: Spec doesn't specify what to do when timeout occurs
+- **spine-go is compliant**: By not implementing optional timeout detection
+- **Write approval timeouts exist**: Critical control path already has timeout handling
+
+**Rationale for Current Implementation:**
+- ✅ **Interoperability first**: Other implementations may not expect timeouts
+- ✅ **Spec compliance**: MAY requirements are optional by definition
+- ✅ **No false timeouts**: Avoids breaking slow but functional devices
+- ✅ **Existing coverage**: Write approvals (critical path) already have timeouts
+
+**Consequences:**
+- ⚠️ No detection of truly unresponsive devices for read requests
+- ⚠️ Potential memory leaks from pending requests (very long-term)
+- ✅ Maximum compatibility with all SPINE implementations
+- ✅ No false timeout errors in slow networks or with slow devices
+
+**Alternative Approach:** Applications requiring timeout detection can implement it at the application level where requirements are better defined and recovery mechanisms can be properly designed.
 
 ### 3. Message Size Limits Missing
 

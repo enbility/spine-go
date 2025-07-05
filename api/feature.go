@@ -30,7 +30,7 @@ type FeatureInterface interface {
 }
 
 // Callback function used to verify if an incoming SPINE write message should be allowed or not
-// The cb function has to be invoked within 1 minute, otherwise the stack will
+// The cb function has to be invoked within 10 seconds (default), otherwise the stack will
 // deny the write command
 type WriteApprovalCallbackFunc func(msg *Message)
 
@@ -61,7 +61,7 @@ type FeatureLocalInterface interface {
 	//
 	// ErrorType.ErrorNumber should be 0 if write is approved
 	ApproveOrDenyWrite(msg *Message, err model.ErrorType)
-	// Overwrite the default 1 minute timeout for write approvals
+	// Overwrite the default 10 seconds timeout for write approvals
 	SetWriteApprovalTimeout(duration time.Duration)
 
 	// Clean all write approval caches for a remote device ski

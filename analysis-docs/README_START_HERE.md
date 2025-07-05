@@ -84,6 +84,7 @@
 **Complete Analysis:** [UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md](./UNDERSTANDING_SPINE_PROMISE_VS_REALITY.md)
 **Binding/Control Issues:** [specific-issues/BINDING_AND_ORCHESTRATION.md](./specific-issues/BINDING_AND_ORCHESTRATION.md)
 **Version Management:** [specific-issues/VERSION_MANAGEMENT.md](./specific-issues/VERSION_MANAGEMENT.md)
+**Timeout Handling:** [specific-issues/TIMEOUT_IMPLEMENTATION.md](./specific-issues/TIMEOUT_IMPLEMENTATION.md)
 **Identifier Validation:** [specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md](./specific-issues/IDENTIFIER_VALIDATION_AND_UPDATES.md)
 **msgCounter Implementation:** [specific-issues/MSGCOUNTER_IMPLEMENTATION.md](./specific-issues/MSGCOUNTER_IMPLEMENTATION.md)
 **XSD Restrictions:** [specific-issues/XSD_RESTRICTION_ANALYSIS.md](./specific-issues/XSD_RESTRICTION_ANALYSIS.md)
