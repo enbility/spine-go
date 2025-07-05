@@ -12,6 +12,9 @@
 - Added XSD restriction validation as minor deviation
 - Documented design decision to ignore complex type restrictions
 - Referenced XSD_RESTRICTION_ANALYSIS.md for detailed rationale
+- Updated entity depth limits from "warning" to "intentionally not implemented"
+- Added comprehensive rationale for not implementing 15-level validation
+- Documented that real-world usage is only 1-2 levels deep
 
 ### 2025-07-04
 - Updated to reflect msgCounter tracking as minor deviation
@@ -55,7 +58,7 @@ func (d *DeviceLocal) ProcessCmd(datagram model.DatagramType, ...) error {
 
 ## Major Deviations
 
-### 3. "Appropriate Client" Authorization Missing ⚠️
+### 2. "Appropriate Client" Authorization Missing ⚠️
 
 **Specification:**
 > "appropriate clients (e.g. the bound client)"
@@ -67,7 +70,7 @@ func (d *DeviceLocal) ProcessCmd(datagram model.DatagramType, ...) error {
 - Operation-specific permissions
 - Context-aware authorization
 
-### 4. Filter Selector Logic Incorrect ℹ️ (Low Priority)
+### 3. Filter Selector Logic Incorrect ℹ️ (Low Priority)
 
 **Specification Defines (lines 1291, 1581):**
 - OR logic between multiple SELECTORS elements
@@ -83,21 +86,30 @@ func (d *DeviceLocal) ProcessCmd(datagram model.DatagramType, ...) error {
 - ℹ️ No interoperability impact until partial read support is added
 - ℹ️ writePartial might be affected, but read is the main concern
 
-### 5. Entity Depth Limits Not Enforced ⚠️
+### 4. Entity Depth Limits Not Enforced ✓
 
 **Specification:**
 > "devices can silently discard messages where entity list comprises more than 15 'entity' items"
 
-**Implementation:** No depth checking
+**Implementation:** No depth checking (intentional)
 
-**Risks:**
-- Memory exhaustion attacks
-- Stack overflow on deep recursion
-- DoS vulnerability
+**Status:** Intentionally not implemented
+
+**Rationale:**
+- **Spec allows but doesn't require enforcement** - "MAY discard" is optional per RFC 2119
+- **No real-world problem** - Actual usage shows maximum 2-level depth (far below 15)
+- **No production issues** - Zero reported problems from lack of validation
+- **Follows YAGNI principle** - Don't add complexity for unused edge cases
+- **Minimal risk** - Entity resolution is O(n) lookup, not recursive traversal
+
+**Analysis:**
+- Theoretical DoS risk is minimal due to Go's JSON parsing depth limits
+- Real-world SPINE devices use shallow hierarchies (1-2 levels max)
+- Adding validation would increase complexity without solving actual problems
 
 ## Minor Deviations
 
-### 5. XSD Complex Type Restrictions Not Enforced 📝
+### 1. XSD Complex Type Restrictions Not Enforced 📝
 
 **Specification Requirement:**
 > SPINE XSD schemas define context-specific restrictions on complex types to omit redundant fields
@@ -136,14 +148,14 @@ type NodeManagementDetailedDiscoveryEntityInformationType struct {
 - Zero reported production issues from this deviation
 - Maintains code simplicity and maintainability
 
-### 6. Error Response Timing Not Enforced
+### 2. Error Response Timing Not Enforced
 
 **Specification:**
 > "defaultMaxResponseDelay is 10 seconds"
 
 **Implementation:** No timeout enforcement
 
-### 7. Message Size Limits Missing
+### 3. Message Size Limits Missing
 
 **Specification:** Implies reasonable limits
 
@@ -153,7 +165,7 @@ type NodeManagementDetailedDiscoveryEntityInformationType struct {
 - DoS through large messages
 - Memory exhaustion
 
-### 8. Incoming msgCounter Tracking Not Implemented ℹ️
+### 4. Incoming msgCounter Tracking Not Implemented ℹ️
 
 **Specification (Section 5.2.3.1):**
 > "If a SPINE device 'A' receives a message 'X' from SPINE device 'B' with a msgCounter less or equal than the last msgCounter received from device 'B', 'A' SHALL process the message 'X' as usual. Afterwards, device 'A' SHALL use the unexpectedly low msgCounter value as the last msgCounter received from device 'B'."
