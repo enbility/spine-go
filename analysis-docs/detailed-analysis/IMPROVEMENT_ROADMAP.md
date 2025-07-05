@@ -820,25 +820,20 @@ Limited validation of incoming messages can lead to panics and security issues.
 
 **Solution:**
 ```go
-// Message validation framework
+// Application-layer message validation framework
 type MessageValidator struct {
     schemaValidator   SchemaValidator
     semanticValidator SemanticValidator
-    sizeValidator     SizeValidator
+    // NOTE: Size validation removed - transport layer (SHIP) responsibility
 }
 
 func (mv *MessageValidator) Validate(msg *model.DatagramType) error {
-    // Size validation first (prevent DoS)
-    if err := mv.sizeValidator.Validate(msg); err != nil {
-        return fmt.Errorf("size validation failed: %w", err)
-    }
-    
-    // Schema validation
+    // Schema validation (application layer concern)
     if err := mv.schemaValidator.Validate(msg); err != nil {
         return fmt.Errorf("schema validation failed: %w", err)
     }
     
-    // Semantic validation
+    // Semantic validation (application layer concern)
     if err := mv.semanticValidator.Validate(msg); err != nil {
         return fmt.Errorf("semantic validation failed: %w", err)
     }
@@ -846,22 +841,18 @@ func (mv *MessageValidator) Validate(msg *model.DatagramType) error {
     return nil
 }
 
-// Prevent resource exhaustion
-type SizeValidator struct {
-    maxMessageSize   int      // e.g., 10MB
-    maxArrayElements int      // e.g., 1000
-    maxStringLength  int      // e.g., 64KB
-    maxNestingDepth  int      // e.g., 10 levels
+// Application-layer structural validation
+type StructuralValidator struct {
+    maxArrayElements int      // e.g., 1000 elements per list
+    maxStringLength  int      // Per SPINE spec: 64-4096 chars per field
+    maxNestingDepth  int      // e.g., 10 levels (entity depth)
 }
 
-func (sv *SizeValidator) Validate(msg interface{}) error {
-    // Check overall message size
-    size := calculateSize(msg)
-    if size > sv.maxMessageSize {
-        return fmt.Errorf("message too large: %d bytes (max: %d)", size, sv.maxMessageSize)
-    }
-    
-    // Recursively check arrays and strings
+func (sv *StructuralValidator) Validate(msg interface{}) error {
+    // Validate SPINE-specific structural constraints
+    // - String field lengths per specification
+    // - Array element counts for performance
+    // - Entity nesting depth (optional per spec)
     return sv.validateStructure(msg, 0)
 }
 
@@ -913,17 +904,19 @@ func (sv *SchemaValidator) Validate(msg interface{}) error {
 ```
 
 **Implementation Steps:**
-1. Implement size validation to prevent DoS attacks
-2. Add schema validation against SPINE XSD
-3. Create semantic validation for business rules
-4. Add configurable limits for all validators
+1. Add schema validation against SPINE XSD (application layer)
+2. Create semantic validation for business rules
+3. Implement structural validation for SPINE-specific constraints
+4. Add configurable limits for application-layer validators
 5. Integrate with message processing pipeline
 
 **Testing:**
 - Unit tests for each validator
 - Fuzzing tests with malformed inputs
-- Performance tests with large messages
-- Security tests for DoS prevention
+- Performance tests with complex message structures
+- Compliance tests for SPINE specification requirements
+
+**Note:** Message size limits and DoS protection are transport layer concerns handled by SHIP protocol, not SPINE application layer.
 
 ### 9. Implement Error Recovery Mechanisms
 

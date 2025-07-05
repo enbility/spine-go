@@ -178,15 +178,19 @@ type NodeManagementDetailedDiscoveryEntityInformationType struct {
 
 **Alternative Approach:** Applications requiring timeout detection can implement it at the application level where requirements are better defined and recovery mechanisms can be properly designed.
 
-### 3. Message Size Limits Missing
+### 3. ~~Message Size Limits Missing~~ (REMOVED - NOT A DEVIATION)
 
-**Specification:** Implies reasonable limits
+**Previous Analysis:** Incorrectly identified as missing specification requirement
 
-**Implementation:** No size limits enforced
+**Corrected Understanding:** SPINE is Layer 7 (Application Layer) - message size limits are transport layer concerns
 
-**Risks:**
-- DoS through large messages
-- Memory exhaustion
+**Architectural Rationale:**
+- **SPINE correctly omits transport-level concerns** - follows proper layered architecture
+- **SHIP protocol responsibility** - transport layer should handle DoS protection, message size limits, fragmentation
+- **Separation of concerns** - application layer should focus on business logic, not transport constraints
+- **Avoids duplication** - size limits in SPINE would duplicate SHIP functionality
+
+**Status:** NOT A DEVIATION - specification is architecturally correct
 
 ### 4. Incoming msgCounter Tracking Not Implemented ℹ️
 

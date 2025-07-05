@@ -1350,12 +1350,19 @@ measurementId: 1, valueType: "averageValue" // Average
 - Backward compatibility rules between protocol versions
 - Migration path when protocol version changes
 
-### 10.2 Message Size Limits Inconsistent
+### 10.2 ~~Message Size Limits Inconsistent~~ (ARCHITECTURAL CLARIFICATION)
 
-**Only Limit Specified:**
-- Entity depth: 15 levels maximum
-- All other lists: unbounded
-- Total message size: undefined
+**SPINE Protocol Limits (Application Layer):**
+- Entity depth: 15 levels maximum (optional per spec)
+- All other lists: unbounded (flexible data model design)
+- String field lengths: 64-4096 characters per field type
+
+**Transport Layer Concerns (SHIP Protocol):**
+- Total message size limits: Transport layer responsibility
+- DoS protection: Handled by SHIP, not SPINE
+- Memory management: Implementation and transport layer concern
+
+**Note:** SPINE correctly focuses on application semantics, not transport constraints
 
 ### 10.3 Error Handling Underspecified
 
@@ -1576,7 +1583,7 @@ Result: Unpredictable behavior across vendor implementations
 1. **Unified Hierarchy Model**
    - Single, clear device model
    - Consistent addressing scheme
-   - Clear depth/size limits
+   - Clear application-layer structural limits (entity depth, field lengths)
 
 2. **Reduced Complexity**
    - Limit data model variations
