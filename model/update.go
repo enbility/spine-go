@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/util"
 )
 
@@ -35,6 +36,25 @@ type Updater interface {
 func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
 	success := true
 
+	if !listIsValid(newData) {
+		logging.Log().Debug("incoming list update for type '%s' contains invalid items (some but not all identifiers set), leaving old data unchanged", util.Type[T]().Name())
+		return existingData, false
+	}
+
+	if filterDelete == nil && filterPartial == nil {
+		if len(newData) == 0 {
+			return newData, success
+		}
+		// because no filters are set all items need to have complete identifiers
+		if !listHasAllIdentifiers(newData) {
+			logging.Log().Debug("no filters were set and incoming list update for type '%s' contains items that do not have all identifiers, leaving old data unchanged", util.Type[T]().Name())
+			return existingData, false
+		}
+
+		result := SortData(newData)
+		return result, success
+	}
+
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
 		if filterData, err := filterDelete.Data(); err == nil {
@@ -58,27 +78,51 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		}
 	}
 
-	// check if items have no identifiers
-	// Currently all fields marked as key are required
-	// TODO: check how to handle if only one identifier is provided
-	if len(newData) > 0 && !HasIdentifiers(newData[0]) {
-		// no identifiers specified --> copy data to all existing items
-		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
-		newData, noErrors := copyToAllData(remoteWrite, existingData, &newData[0])
-		if !noErrors {
-			success = false
+	if len(newData) == 0 {
+		return existingData, success
+	}
+
+	updatedData := existingData
+	for _, item := range newData {
+		var noErrors bool
+		if HasNoIdentifiers(item) {
+			// no identifiers specified --> copy data to all existing items
+			// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
+			updatedData, noErrors = copyToAllData(remoteWrite, updatedData, &item) // #nosec G601 pointers are dereferenced within each loop iteration via reflection, no aliasing can occur and since go1.22 aliasing doesn't happen in loops regardless
+			if !noErrors {
+				success = false
+			}
+		} else {
+			updatedData, noErrors = Merge(remoteWrite, updatedData, []T{item})
+			if !noErrors {
+				success = false
+			}
 		}
-		return newData, success
 	}
 
-	result, noErrors := Merge(remoteWrite, existingData, newData)
-	if !noErrors {
-		success = false
-	}
-
-	result = SortData(result)
+	result := SortData(updatedData)
 
 	return result, success
+}
+
+// Check if every item in list has either all or no identifiers set
+func listIsValid[T any](data []T) bool {
+	for _, item := range data {
+		if !HasAllIdentifiers(item) && !HasNoIdentifiers(item) {
+			return false
+		}
+	}
+	return true
+}
+
+// Check if all items in a list have all of their identifiers
+func listHasAllIdentifiers[T any](data []T) bool {
+	for _, item := range data {
+		if !HasAllIdentifiers(item) {
+			return false
+		}
+	}
+	return true
 }
 
 // return a list of field names that have the eebus tag
@@ -112,7 +156,29 @@ func fieldNamesWithEEBusTag(tag EEBusTag, item any) []string {
 	return result
 }
 
-func HasIdentifiers(data any) bool {
+// Checks if none of an items identifiers are set if it has any
+func HasNoIdentifiers(data any) bool {
+	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
+
+	// If item has no fields with tag 'key' then those fields can't be 'missing' or 'unset'
+	if len(keys) == 0 {
+		return false
+	}
+
+	v := reflect.ValueOf(data)
+
+	for _, fieldName := range keys {
+		f := v.FieldByName(fieldName)
+
+		if !f.IsNil() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func HasAllIdentifiers(data any) bool {
 	keys := fieldNamesWithEEBusTag(EEBusTagKey, data)
 
 	v := reflect.ValueOf(data)

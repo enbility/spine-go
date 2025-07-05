@@ -56,9 +56,14 @@ func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filt
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	if filterPartial == nil && filterDelete == nil && persist {
-		// just set the data
-		r.data = newData
+	// Only non list data is handled here
+	if filterPartial == nil && filterDelete == nil && persist && !r.SupportsPartialWrite() {
+		if model.HasAllIdentifiers(newData) {
+			// just set the data
+			r.data = newData
+			return r.data, nil
+		}
+		logging.Log().Debug("incoming new data of type '%s' does not have all identifiers set, leaving old data unchanged", util.Type[T]().Name())
 		return r.data, nil
 	}
 
