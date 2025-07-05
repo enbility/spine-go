@@ -385,13 +385,18 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	if message.CmdClassifier == model.CmdClassifierTypeWrite {
 		cmdData, err := cmd.Data()
 		if err != nil || cmdData.Function == nil {
-			err := model.NewErrorTypeFromString("no function found for cmd data")
+			err := model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "no function found for cmd data")
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
 
 		if operations, ok := localFeature.Operations()[*cmdData.Function]; !ok || !operations.Write() {
-			err := model.NewErrorTypeFromString("write is not allowed on this function")
+			// More specific error message to distinguish between function not found vs write not supported
+			errorMsg := "function not found in feature operations"
+			if ok && !operations.Write() {
+				errorMsg = "write operation not supported for this function"
+			}
+			err := model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, errorMsg)
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}

@@ -382,7 +382,7 @@ func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType,
 
 	fctData := r.functionData(function)
 	if fctData == nil {
-		return nil, model.NewErrorTypeFromString("data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "data not found")
 	}
 
 	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete)
@@ -397,7 +397,7 @@ func (r *FeatureLocal) RequestRemoteData(
 	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
 	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
 	cmd := fd.ReadCmdType(selector, elements)
@@ -752,7 +752,7 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 
 	fd := r.functionData(function)
 	if fd == nil {
-		return model.NewErrorTypeFromString("function data not found")
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
 	// SPEC-COMPLIANT BEHAVIOR: Partial filters are intentionally ignored
@@ -867,7 +867,7 @@ func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
 	if err1 != nil {
 		return err1
 	} else if fctData == nil {
-		return model.NewErrorTypeFromString("function not found")
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function not found")
 	}
 
 	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))

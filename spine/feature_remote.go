@@ -70,7 +70,7 @@ func (r *FeatureRemote) UpdateData(persist bool, function model.FunctionType, da
 
 	fd := r.functionData(function)
 	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
 	return fd.UpdateDataAny(false, persist, data, filterPartial, filterDelete)
