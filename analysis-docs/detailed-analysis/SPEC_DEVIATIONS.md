@@ -457,11 +457,19 @@ The most serious issues are missing protocol version validation and no loop dete
 
 ## Document History
 
+### 2025-07-05
+- Removed "Message Size Limits Missing" as a deviation - correctly identified as transport layer concern
+- Added architectural rationale explaining SPINE's correct omission of transport-level constraints
+- Documented proper layered architecture: SPINE (Layer 7) vs SHIP (transport layer)
+- Clarified separation of concerns between application and transport layers
+
 ### 2025-07-04
 - Added section 5: "XSD Complex Type Restrictions Not Enforced" under minor deviations
 - Documented rationale for not implementing context-specific field omissions
 - Clarified that only 3 XSD files have complex type restrictions in entire spec
 - Confirmed zero production impact from this deviation
+- Updated Error Response Timing section to clarify it's spec-compliant (timeout detection is optional)
+- Added comprehensive timeout analysis and rationale for current implementation
 
 ### 2025-06-26
 - Added section 4: "Identifier Validation for List Updates" under implementation choices
@@ -474,3 +482,4 @@ The most serious issues are missing protocol version validation and no loop dete
 - Initial deviation analysis comparing spine-go implementation with SPINE v1.3.0
 - Categorized deviations as critical, major, minor, and implementation choices
 - Included compatibility impact matrix and recommendations
+- Verified unknown function error handling now returns correct error code 6
