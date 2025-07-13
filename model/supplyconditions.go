@@ -34,7 +34,7 @@ const (
 )
 
 type SupplyConditionDataType struct {
-	ConditionId         *ConditionIdType               `json:"conditionId,omitempty" eebus:"key"`
+	ConditionId         *ConditionIdType               `json:"conditionId,omitempty" eebus:"key,primarykey"`
 	Timestamp           *AbsoluteOrRelativeTimeType    `json:"timestamp,omitempty"`
 	EventType           *SupplyConditionEventTypeType  `json:"eventType,omitempty"`
 	Originator          *SupplyConditionOriginatorType `json:"originator,omitempty"`
@@ -69,7 +69,7 @@ type SupplyConditionListDataSelectorsType struct {
 }
 
 type SupplyConditionDescriptionDataType struct {
-	ConditionId             *ConditionIdType     `json:"conditionId,omitempty" eebus:"key"`
+	ConditionId             *ConditionIdType     `json:"conditionId,omitempty" eebus:"key,primarykey"`
 	CommodityType           *CommodityTypeType   `json:"commodityType,omitempty"`
 	PositiveEnergyDirection *EnergyDirectionType `json:"positiveEnergyDirection,omitempty"`
 	Label                   *LabelType           `json:"label,omitempty"`
@@ -93,7 +93,7 @@ type SupplyConditionDescriptionListDataSelectorsType struct {
 }
 
 type SupplyConditionThresholdRelationDataType struct {
-	ConditionId *ConditionIdType  `json:"conditionId,omitempty" eebus:"key"`
+	ConditionId *ConditionIdType  `json:"conditionId,omitempty" eebus:"key,primarykey"`
 	ThresholdId []ThresholdIdType `json:"thresholdId,omitempty"`
 }
 

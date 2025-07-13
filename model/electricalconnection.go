@@ -86,7 +86,7 @@ const (
 )
 
 type ElectricalConnectionParameterDescriptionDataType struct {
-	ElectricalConnectionId  *ElectricalConnectionIdType                `json:"electricalConnectionId,omitempty" eebus:"key"`
+	ElectricalConnectionId  *ElectricalConnectionIdType                `json:"electricalConnectionId,omitempty" eebus:"key,primarykey"`
 	ParameterId             *ElectricalConnectionParameterIdType       `json:"parameterId,omitempty" eebus:"key"`
 	MeasurementId           *MeasurementIdType                         `json:"measurementId,omitempty"`
 	VoltageType             *ElectricalConnectionVoltageTypeType       `json:"voltageType,omitempty"`
@@ -127,7 +127,7 @@ type ElectricalConnectionParameterDescriptionListDataSelectorsType struct {
 }
 
 type ElectricalConnectionPermittedValueSetDataType struct {
-	ElectricalConnectionId *ElectricalConnectionIdType          `json:"electricalConnectionId,omitempty" eebus:"key"`
+	ElectricalConnectionId *ElectricalConnectionIdType          `json:"electricalConnectionId,omitempty" eebus:"key,primarykey"`
 	ParameterId            *ElectricalConnectionParameterIdType `json:"parameterId,omitempty" eebus:"key"`
 	PermittedValueSet      []ScaledNumberSetType                `json:"permittedValueSet,omitempty"`
 }
@@ -207,7 +207,7 @@ type ElectricalConnectionDescriptionListDataSelectorsType struct {
 }
 
 type ElectricalConnectionCharacteristicDataType struct {
-	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty" eebus:"key"`
+	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty" eebus:"key,primarykey"`
 	ParameterId            *ElectricalConnectionParameterIdType           `json:"parameterId,omitempty" eebus:"key"`
 	CharacteristicId       *ElectricalConnectionCharacteristicIdType      `json:"characteristicId,omitempty" eebus:"key"`
 	CharacteristicContext  *ElectricalConnectionCharacteristicContextType `json:"characteristicContext,omitempty"`

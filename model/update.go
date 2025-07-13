@@ -2,8 +2,10 @@ package model
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/util"
 )
 
@@ -58,9 +60,20 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 		}
 	}
 
+	// Filter out entries that only contain key fields (no data to update)
+	originalCount := len(newData)
+	newData = filterPrimaryKeyOnlyEntries(newData)
+	if len(newData) == 0 {
+		// All entries were filtered out, nothing to update
+		if originalCount > 0 {
+			logging.Log().Debugf("All %d incoming entries were key-only, no meaningful data to process", originalCount)
+		}
+		return existingData, success
+	}
+
 	// check if items have no identifiers
 	// Currently all fields marked as key are required
-	// TODO: check how to handle if only one identifier is provided
+	// NOTE: SPINE spec is ambiguous about partial identifier handling in composite keys
 	if len(newData) > 0 && !HasIdentifiers(newData[0]) {
 		// no identifiers specified --> copy data to all existing items
 		// (see EEBus_SPINE_TS_ProtocolSpecification.pdf, Table 7: Considered cmdOptions combinations for classifier "notify")
@@ -126,6 +139,145 @@ func HasIdentifiers(data any) bool {
 	}
 
 	return true
+}
+
+// hasPrimaryKeyOnly checks if the item contains only primary key field(s) and no other data
+func hasPrimaryKeyOnly(item any) bool {
+	primaryKeys := fieldNamesWithEEBusTag(EEBusTagPrimaryKey, item)
+	if len(primaryKeys) == 0 {
+		// No primarykey tag found - for single key types, check if only key field has value
+		keys := fieldNamesWithEEBusTag(EEBusTagKey, item)
+		if len(keys) == 1 {
+			// Single key type - use simplified check
+			return hasOnlySingleKey(item, keys[0])
+		}
+		// No keys or composite keys without primarykey tag
+		return false
+	}
+	
+	// Type has primarykey tag - use new detection
+	return hasPrimaryKeyOnlyNew(item, primaryKeys)
+}
+
+// hasOnlySingleKey checks if only the single key field has a value
+func hasOnlySingleKey(item any, keyField string) bool {
+	v := reflect.ValueOf(item)
+	t := reflect.TypeOf(item)
+	
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	
+	hasKey := false
+	
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := t.Field(i).Name
+		
+		// Check if field has a value
+		hasValue := false
+		switch field.Kind() {
+		case reflect.Ptr:
+			hasValue = !field.IsNil()
+		case reflect.Slice, reflect.Map:
+			hasValue = !field.IsNil() && field.Len() > 0
+		case reflect.String:
+			hasValue = field.String() != ""
+		default:
+			hasValue = !field.IsZero()
+		}
+		
+		if hasValue {
+			if fieldName == keyField {
+				hasKey = true
+			} else {
+				// Non-key field has value
+				return false
+			}
+		}
+	}
+	
+	return hasKey
+}
+
+// hasPrimaryKeyOnlyNew checks using the new primarykey tag approach
+func hasPrimaryKeyOnlyNew(item any, primaryKeyFields []string) bool {
+	v := reflect.ValueOf(item)
+	t := reflect.TypeOf(item)
+	
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	
+	hasPrimaryKey := false
+	hasOtherData := false
+	
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := t.Field(i).Name
+		isPrimaryKey := slices.Contains(primaryKeyFields, fieldName)
+		
+		// Check if field has a value
+		hasValue := false
+		switch field.Kind() {
+		case reflect.Ptr:
+			hasValue = !field.IsNil()
+		case reflect.Slice, reflect.Map:
+			hasValue = !field.IsNil() && field.Len() > 0
+		case reflect.String:
+			hasValue = field.String() != ""
+		default:
+			hasValue = !field.IsZero()
+		}
+		
+		if !hasValue {
+			continue
+		}
+		
+		if isPrimaryKey {
+			hasPrimaryKey = true
+		} else {
+			hasOtherData = true
+		}
+	}
+	
+	return hasPrimaryKey && !hasOtherData
+}
+
+// filterPrimaryKeyOnlyEntries removes entries that only contain primary key fields
+func filterPrimaryKeyOnlyEntries[T any](data []T) []T {
+	if len(data) == 0 {
+		return data
+	}
+	
+	var result []T
+	var filteredCount int
+	
+	for _, item := range data {
+		if hasPrimaryKeyOnly(item) {
+			filteredCount++
+			primaryKeys := fieldNamesWithEEBusTag(EEBusTagPrimaryKey, item)
+			if len(primaryKeys) == 0 {
+				// Single key type
+				keys := fieldNamesWithEEBusTag(EEBusTagKey, item)
+				logging.Log().Debugf("Ignoring incoming %T with only key field %v (preventing duplicate entry): %+v", 
+					item, keys, item)
+			} else {
+				// Composite key type
+				logging.Log().Debugf("Ignoring incoming %T with only primary key fields %v (preventing duplicate entry): %+v", 
+					item, primaryKeys, item)
+			}
+		} else {
+			result = append(result, item)
+		}
+	}
+	
+	if filteredCount > 0 {
+		logging.Log().Debugf("Ignored %d incoming %T entries with only key fields to prevent duplicate/low-quality data", 
+			filteredCount, data)
+	}
+	
+	return result
 }
 
 // sort slices by fields that have eebus tag "key"
