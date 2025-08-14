@@ -314,6 +314,81 @@ func TestHasFunctionMismatch(t *testing.T) {
 			cmd:         nil,
 			hasMismatch: false,
 		},
+		{
+			name: "Empty cmd.Function with valid data",
+			cmd: &model.CmdType{
+				Function: util.Ptr(model.FunctionType("")),
+				MeasurementListData: &model.MeasurementListDataType{
+					MeasurementData: []model.MeasurementDataType{
+						{
+							MeasurementId: util.Ptr(model.MeasurementIdType(1)),
+						},
+					},
+				},
+			},
+			hasMismatch: false,
+		},
+		{
+			name: "Nil cmd.Function with valid data",
+			cmd: &model.CmdType{
+				MeasurementListData: &model.MeasurementListDataType{
+					MeasurementData: []model.MeasurementDataType{
+						{
+							MeasurementId: util.Ptr(model.MeasurementIdType(1)),
+						},
+					},
+				},
+			},
+			hasMismatch: false,
+		},
+		{
+			name: "Filter with mismatch",
+			cmd: &model.CmdType{
+				Function: util.Ptr(model.FunctionType("measurementListData")),
+				Filter: []model.FilterType{
+					{
+						LoadControlLimitListDataSelectors: &model.LoadControlLimitListDataSelectorsType{
+							LimitId: util.Ptr(model.LoadControlLimitIdType(1)),
+						},
+					},
+				},
+				MeasurementListData: &model.MeasurementListDataType{
+					MeasurementData: []model.MeasurementDataType{
+						{
+							MeasurementId: util.Ptr(model.MeasurementIdType(1)),
+						},
+					},
+				},
+			},
+			hasMismatch: true,
+		},
+		{
+			name: "Filter with error in Data()",
+			cmd: &model.CmdType{
+				Function: util.Ptr(model.FunctionType("measurementListData")),
+				Filter: []model.FilterType{
+					{
+						// Filter with no selectors or elements - will cause error in Data()
+					},
+				},
+				MeasurementListData: &model.MeasurementListDataType{
+					MeasurementData: []model.MeasurementDataType{
+						{
+							MeasurementId: util.Ptr(model.MeasurementIdType(1)),
+						},
+					},
+				},
+			},
+			hasMismatch: false,
+		},
+		{
+			name: "Cmd with no valid data function",
+			cmd: &model.CmdType{
+				Function: util.Ptr(model.FunctionType("test")),
+				// No data fields set
+			},
+			hasMismatch: false,
+		},
 	}
 
 	for _, tt := range tests {
