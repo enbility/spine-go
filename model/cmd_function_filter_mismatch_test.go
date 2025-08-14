@@ -18,7 +18,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 		cmd := model.CmdType{
 			// This says we're dealing with measurement data
 			Function: util.Ptr(model.FunctionType("measurementListData")),
-			
+
 			// But the filter has LoadControl selectors!
 			Filter: []model.FilterType{
 				{
@@ -31,7 +31,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 					},
 				},
 			},
-			
+
 			// And we have measurement data
 			MeasurementListData: &model.MeasurementListDataType{
 				MeasurementData: []model.MeasurementDataType{
@@ -48,24 +48,24 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, cmdData)
 		assert.NotNil(t, cmdData.Function)
-		
+
 		// The cmd.Data() correctly identifies this as measurementListData
 		assert.Equal(t, model.FunctionType("measurementListData"), *cmdData.Function)
-		
+
 		// But what about the filter?
 		filterData, err := cmd.Filter[0].Data(cmd.Function)
 		assert.NoError(t, err)
 		assert.NotNil(t, filterData)
 		assert.NotNil(t, filterData.Function)
-		
+
 		// The filter thinks this is loadControlLimitListData!
 		assert.Equal(t, model.FunctionType("loadControlLimitListData"), *filterData.Function)
-		
+
 		// SECURITY ISSUE: These should match but they don't!
 		assert.NotEqual(t, *cmdData.Function, *filterData.Function,
 			"CRITICAL: cmd.Function (%s) does not match filter function (%s)",
 			*cmdData.Function, *filterData.Function)
-		
+
 		// This could lead to:
 		// 1. Wrong data being processed with wrong filters
 		// 2. Type confusion vulnerabilities
@@ -77,7 +77,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 		// Even worse: multiple filters with different functions
 		cmd := model.CmdType{
 			Function: util.Ptr(model.FunctionType("measurementListData")),
-			
+
 			Filter: []model.FilterType{
 				{
 					CmdControl: &model.CmdControlType{
@@ -98,7 +98,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 					},
 				},
 			},
-			
+
 			MeasurementListData: &model.MeasurementListDataType{
 				MeasurementData: []model.MeasurementDataType{
 					{
@@ -114,7 +114,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 			filterData, err := filter.Data(cmd.Function)
 			assert.NoError(t, err)
 			assert.NotNil(t, filterData)
-			
+
 			cmdData, _ := cmd.Data()
 			if i == 0 {
 				assert.Equal(t, model.FunctionType("loadControlLimitListData"), *filterData.Function,
@@ -123,7 +123,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 				assert.Equal(t, model.FunctionType("electricalConnectionParameterDescriptionListData"), *filterData.Function,
 					"Filter %d has wrong function type", i)
 			}
-			
+
 			// None of them match the cmd data function!
 			assert.NotEqual(t, *cmdData.Function, *filterData.Function,
 				"Filter %d function mismatch with cmd.Function", i)
@@ -133,7 +133,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 	t.Run("Attack scenario - Type confusion", func(t *testing.T) {
 		// An attacker could send measurement data but with load control filters
 		// This could bypass access controls or cause unexpected behavior
-		
+
 		// Legitimate measurement read request
 		legitimateCmd := model.CmdType{
 			Function: util.Ptr(model.FunctionType("measurementListData")),
@@ -148,7 +148,7 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 				},
 			},
 		}
-		
+
 		// Malicious request - same function but wrong filter
 		maliciousCmd := model.CmdType{
 			Function: util.Ptr(model.FunctionType("measurementListData")),
@@ -164,10 +164,10 @@ func TestCmdFunctionFilterMismatch(t *testing.T) {
 				},
 			},
 		}
-		
+
 		// Both claim to have the same cmd.Function
 		assert.Equal(t, *legitimateCmd.Function, *maliciousCmd.Function)
-		
+
 		// But different filter functions
 		legitFilter, _ := legitimateCmd.Filter[0].Data(legitimateCmd.Function)
 		maliciousFilter, _ := maliciousCmd.Filter[0].Data(maliciousCmd.Function)
@@ -182,7 +182,7 @@ func TestValidationGap(t *testing.T) {
 		// Create a completely invalid combination
 		cmd := model.CmdType{
 			Function: util.Ptr(model.FunctionType("deviceDiagnosisStateData")),
-			
+
 			Filter: []model.FilterType{
 				{
 					CmdControl: &model.CmdControlType{
@@ -194,7 +194,7 @@ func TestValidationGap(t *testing.T) {
 					},
 				},
 			},
-			
+
 			// And data for yet another function
 			MeasurementListData: &model.MeasurementListDataType{
 				MeasurementData: []model.MeasurementDataType{
@@ -204,14 +204,14 @@ func TestValidationGap(t *testing.T) {
 				},
 			},
 		}
-		
+
 		// All these operations succeed without any validation!
 		cmdData, err := cmd.Data()
 		assert.NoError(t, err, "No error despite function mismatch")
-		
+
 		filterData, err := cmd.Filter[0].Data(cmd.Function)
 		assert.NoError(t, err, "No error despite filter mismatch")
-		
+
 		// We have 3 different functions all in one message!
 		assert.Equal(t, model.FunctionType("measurementListData"), *cmdData.Function,
 			"Data function from actual data field")
@@ -220,7 +220,7 @@ func TestValidationGap(t *testing.T) {
 		// And cmd.Function is something else entirely
 		assert.Equal(t, model.FunctionType("deviceDiagnosisStateData"), *cmd.Function,
 			"cmd.Function is different from both!")
-		
+
 		// This is a massive validation gap!
 		t.Logf("WARNING: No validation for function consistency!")
 		t.Logf("  cmd.Function: %s", *cmd.Function)
