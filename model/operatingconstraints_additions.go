@@ -4,13 +4,13 @@ package model
 
 var _ Updater = (*OperatingConstraintsInterruptListDataType)(nil)
 
-func (r *OperatingConstraintsInterruptListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsInterruptListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsInterruptDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsInterruptListDataType).OperatingConstraintsInterruptData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsInterruptData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsInterruptData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsInterruptData = data
@@ -23,13 +23,13 @@ func (r *OperatingConstraintsInterruptListDataType) UpdateList(remoteWrite, pers
 
 var _ Updater = (*OperatingConstraintsDurationListDataType)(nil)
 
-func (r *OperatingConstraintsDurationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsDurationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsDurationDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsDurationListDataType).OperatingConstraintsDurationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsDurationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsDurationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsDurationData = data
@@ -42,13 +42,13 @@ func (r *OperatingConstraintsDurationListDataType) UpdateList(remoteWrite, persi
 
 var _ Updater = (*OperatingConstraintsPowerDescriptionListDataType)(nil)
 
-func (r *OperatingConstraintsPowerDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsPowerDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsPowerDescriptionDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsPowerDescriptionListDataType).OperatingConstraintsPowerDescriptionData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerDescriptionData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerDescriptionData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsPowerDescriptionData = data
@@ -61,13 +61,13 @@ func (r *OperatingConstraintsPowerDescriptionListDataType) UpdateList(remoteWrit
 
 var _ Updater = (*OperatingConstraintsPowerRangeListDataType)(nil)
 
-func (r *OperatingConstraintsPowerRangeListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsPowerRangeListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsPowerRangeDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsPowerRangeListDataType).OperatingConstraintsPowerRangeData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerRangeData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerRangeData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsPowerRangeData = data
@@ -80,13 +80,13 @@ func (r *OperatingConstraintsPowerRangeListDataType) UpdateList(remoteWrite, per
 
 var _ Updater = (*OperatingConstraintsPowerLevelListDataType)(nil)
 
-func (r *OperatingConstraintsPowerLevelListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsPowerLevelListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsPowerLevelDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsPowerLevelListDataType).OperatingConstraintsPowerLevelData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerLevelData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsPowerLevelData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsPowerLevelData = data
@@ -99,13 +99,13 @@ func (r *OperatingConstraintsPowerLevelListDataType) UpdateList(remoteWrite, per
 
 var _ Updater = (*OperatingConstraintsResumeImplicationListDataType)(nil)
 
-func (r *OperatingConstraintsResumeImplicationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *OperatingConstraintsResumeImplicationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []OperatingConstraintsResumeImplicationDataType
 	if newList != nil {
 		newData = newList.(*OperatingConstraintsResumeImplicationListDataType).OperatingConstraintsResumeImplicationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.OperatingConstraintsResumeImplicationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.OperatingConstraintsResumeImplicationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.OperatingConstraintsResumeImplicationData = data

@@ -18,26 +18,28 @@ type Updater interface {
 	//   - newList is the new data
 	//   - filterPartial is the partial filter
 	//   - filterDelete is the delete filter
+	//   - cmdFunction is the command function for filter context
 	//
 	// returns:
 	//   - the merged data
 	//   - true if everything was successful, false if not
-	UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool)
+	UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool)
 }
 
 // Generates a new list of function items by applying the rules mentioned in the spec
 // (EEBus_SPINE_TS_ProtocolSpecification.pdf; chapter "5.3.4 Restricted function exchange with cmdOptions").
 // The given data provider is used the get the current items and the items and the filters in the payload.
+// cmdFunction is passed to filter.Data() for partial filters without selectors
 //
 // returns:
 //   - the new data set
 //   - true if everything was successful, false if not
-func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
+func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) ([]T, bool) {
 	success := true
 
 	// process delete filter (with selectors and elements)
 	if filterDelete != nil {
-		if filterData, err := filterDelete.Data(); err == nil {
+		if filterData, err := filterDelete.Data(cmdFunction); err == nil {
 			updatedData, noErrors := deleteFilteredData(remoteWrite, existingData, filterData)
 			if noErrors {
 				existingData = updatedData
@@ -49,12 +51,16 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 
 	// process update filter (with selectors and elements)
 	if filterPartial != nil {
-		if filterData, err := filterPartial.Data(); err == nil {
-			newData, noErrors := copyToSelectedData(remoteWrite, existingData, filterData, &newData[0])
-			if !noErrors {
-				success = false
+		if filterData, err := filterPartial.Data(cmdFunction); err == nil {
+			// Only use selector-based copying if there are actual selectors
+			// If there are no selectors, fall through to normal identifier-based merge
+			if filterData.Selector != nil {
+				newData, noErrors := copyToSelectedData(remoteWrite, existingData, filterData, &newData[0])
+				if !noErrors {
+					success = false
+				}
+				return newData, success
 			}
-			return newData, success
 		}
 	}
 

@@ -4,13 +4,13 @@ package model
 
 var _ Updater = (*HvacSystemFunctionListDataType)(nil)
 
-func (r *HvacSystemFunctionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacSystemFunctionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacSystemFunctionDataType
 	if newList != nil {
 		newData = newList.(*HvacSystemFunctionListDataType).HvacSystemFunctionData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacSystemFunctionData = data
@@ -23,13 +23,13 @@ func (r *HvacSystemFunctionListDataType) UpdateList(remoteWrite, persist bool, n
 
 var _ Updater = (*HvacSystemFunctionOperationModeRelationListDataType)(nil)
 
-func (r *HvacSystemFunctionOperationModeRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacSystemFunctionOperationModeRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacSystemFunctionOperationModeRelationDataType
 	if newList != nil {
 		newData = newList.(*HvacSystemFunctionOperationModeRelationListDataType).HvacSystemFunctionOperationModeRelationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionOperationModeRelationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionOperationModeRelationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacSystemFunctionOperationModeRelationData = data
@@ -42,13 +42,13 @@ func (r *HvacSystemFunctionOperationModeRelationListDataType) UpdateList(remoteW
 
 var _ Updater = (*HvacSystemFunctionSetpointRelationListDataType)(nil)
 
-func (r *HvacSystemFunctionSetpointRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacSystemFunctionSetpointRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacSystemFunctionSetpointRelationDataType
 	if newList != nil {
 		newData = newList.(*HvacSystemFunctionSetpointRelationListDataType).HvacSystemFunctionSetpointRelationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionSetpointRelationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionSetpointRelationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacSystemFunctionSetpointRelationData = data
@@ -61,13 +61,13 @@ func (r *HvacSystemFunctionSetpointRelationListDataType) UpdateList(remoteWrite,
 
 var _ Updater = (*HvacSystemFunctionPowerSequenceRelationListDataType)(nil)
 
-func (r *HvacSystemFunctionPowerSequenceRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacSystemFunctionPowerSequenceRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacSystemFunctionPowerSequenceRelationDataType
 	if newList != nil {
 		newData = newList.(*HvacSystemFunctionPowerSequenceRelationListDataType).HvacSystemFunctionPowerSequenceRelationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionPowerSequenceRelationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionPowerSequenceRelationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacSystemFunctionPowerSequenceRelationData = data
@@ -80,13 +80,13 @@ func (r *HvacSystemFunctionPowerSequenceRelationListDataType) UpdateList(remoteW
 
 var _ Updater = (*HvacSystemFunctionDescriptionListDataType)(nil)
 
-func (r *HvacSystemFunctionDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacSystemFunctionDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacSystemFunctionDescriptionDataType
 	if newList != nil {
 		newData = newList.(*HvacSystemFunctionDescriptionListDataType).HvacSystemFunctionDescriptionData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionDescriptionData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacSystemFunctionDescriptionData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacSystemFunctionDescriptionData = data
@@ -99,13 +99,13 @@ func (r *HvacSystemFunctionDescriptionListDataType) UpdateList(remoteWrite, pers
 
 var _ Updater = (*HvacOperationModeDescriptionListDataType)(nil)
 
-func (r *HvacOperationModeDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacOperationModeDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacOperationModeDescriptionDataType
 	if newList != nil {
 		newData = newList.(*HvacOperationModeDescriptionListDataType).HvacOperationModeDescriptionData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacOperationModeDescriptionData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacOperationModeDescriptionData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacOperationModeDescriptionData = data
@@ -118,13 +118,13 @@ func (r *HvacOperationModeDescriptionListDataType) UpdateList(remoteWrite, persi
 
 var _ Updater = (*HvacOverrunListDataType)(nil)
 
-func (r *HvacOverrunListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacOverrunListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacOverrunDataType
 	if newList != nil {
 		newData = newList.(*HvacOverrunListDataType).HvacOverrunData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacOverrunData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacOverrunData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacOverrunData = data
@@ -137,13 +137,13 @@ func (r *HvacOverrunListDataType) UpdateList(remoteWrite, persist bool, newList 
 
 var _ Updater = (*HvacOverrunDescriptionListDataType)(nil)
 
-func (r *HvacOverrunDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *HvacOverrunDescriptionListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []HvacOverrunDescriptionDataType
 	if newList != nil {
 		newData = newList.(*HvacOverrunDescriptionListDataType).HvacOverrunDescriptionData
 	}
 
-	data, success := UpdateList(remoteWrite, r.HvacOverrunDescriptionData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.HvacOverrunDescriptionData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.HvacOverrunDescriptionData = data
