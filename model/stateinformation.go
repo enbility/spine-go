@@ -88,7 +88,7 @@ const (
 )
 
 type StateInformationDataType struct {
-	StateInformationId *StateInformationIdType       `json:"stateInformationId,omitempty" eebus:"key"`
+	StateInformationId *StateInformationIdType       `json:"stateInformationId,omitempty" eebus:"key,primarykey"`
 	StateInformation   *StateInformationType         `json:"stateInformation,omitempty"`
 	IsActive           *bool                         `json:"isActive,omitempty"`
 	Category           *StateInformationCategoryType `json:"category,omitempty"`

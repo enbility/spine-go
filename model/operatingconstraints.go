@@ -1,7 +1,7 @@
 package model
 
 type OperatingConstraintsInterruptDataType struct {
-	SequenceId                  *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId                  *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	IsPausable                  *bool                `json:"isPausable,omitempty"`
 	IsStoppable                 *bool                `json:"isStoppable,omitempty"`
 	NotInterruptibleAtHighPower *bool                `json:"notInterruptibleAtHighPower,omitempty"`
@@ -25,7 +25,7 @@ type OperatingConstraintsInterruptListDataSelectorsType struct {
 }
 
 type OperatingConstraintsDurationDataType struct {
-	SequenceId           *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId           *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	ActiveDurationMin    *DurationType        `json:"activeDurationMin,omitempty"`
 	ActiveDurationMax    *DurationType        `json:"activeDurationMax,omitempty"`
 	PauseDurationMin     *DurationType        `json:"pauseDurationMin,omitempty"`
@@ -53,7 +53,7 @@ type OperatingConstraintsDurationListDataSelectorsType struct {
 }
 
 type OperatingConstraintsPowerDescriptionDataType struct {
-	SequenceId              *PowerSequenceIdType   `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId              *PowerSequenceIdType   `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	PositiveEnergyDirection *EnergyDirectionType   `json:"positiveEnergyDirection,omitempty"`
 	PowerUnit               *UnitOfMeasurementType `json:"powerUnit,omitempty"`
 	EnergyUnit              *UnitOfMeasurementType `json:"energyUnit,omitempty"`
@@ -77,7 +77,7 @@ type OperatingConstraintsPowerDescriptionListDataSelectorsType struct {
 }
 
 type OperatingConstraintsPowerRangeDataType struct {
-	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	PowerMin   *ScaledNumberType    `json:"powerMin,omitempty"`
 	PowerMax   *ScaledNumberType    `json:"powerMax,omitempty"`
 	EnergyMin  *ScaledNumberType    `json:"energyMin,omitempty"`
@@ -101,7 +101,7 @@ type OperatingConstraintsPowerRangeListDataSelectorsType struct {
 }
 
 type OperatingConstraintsPowerLevelDataType struct {
-	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	Power      *ScaledNumberType    `json:"power,omitempty"`
 }
 
@@ -119,7 +119,7 @@ type OperatingConstraintsPowerLevelListDataSelectorsType struct {
 }
 
 type OperatingConstraintsResumeImplicationDataType struct {
-	SequenceId            *PowerSequenceIdType   `json:"sequenceId,omitempty" eebus:"key"`
+	SequenceId            *PowerSequenceIdType   `json:"sequenceId,omitempty" eebus:"key,primarykey"`
 	ResumeEnergyEstimated *ScaledNumberType      `json:"resumeEnergyEstimated,omitempty"`
 	EnergyUnit            *UnitOfMeasurementType `json:"energyUnit,omitempty"`
 	ResumeCostEstimated   *ScaledNumberType      `json:"resumeCostEstimated,omitempty"`

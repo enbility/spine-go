@@ -3,7 +3,7 @@ package model
 type SubscriptionIdType uint
 
 type SubscriptionManagementEntryDataType struct {
-	SubscriptionId *SubscriptionIdType `json:"subscriptionId,omitempty" eebus:"key"`
+	SubscriptionId *SubscriptionIdType `json:"subscriptionId,omitempty" eebus:"key,primarykey"`
 	ClientAddress  *FeatureAddressType `json:"clientAddress,omitempty"`
 	ServerAddress  *FeatureAddressType `json:"serverAddress,omitempty"`
 	Label          *LabelType          `json:"label,omitempty"`
