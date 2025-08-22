@@ -9,7 +9,7 @@
 // The SPINE (Smart Premises Interoperable Neutral-message Exchange) protocol requires
 // sophisticated data update semantics to handle:
 //   - Partial updates from remote devices
-//   - Composite key structures with primary and sub-identifiers  
+//   - Composite key structures with primary and sub-identifiers
 //   - Anti-duplication measures for incomplete data
 //   - Atomic operations with filtering support
 //
@@ -24,7 +24,7 @@
 //
 //	type MeasurementData struct {
 //	    MeasurementId *uint   `eebus:"key,primarykey"`  // Primary identifier
-//	    ValueType     *string `eebus:"key"`             // Sub-identifier  
+//	    ValueType     *string `eebus:"key"`             // Sub-identifier
 //	    Value         *int                              // Data field
 //	}
 //
@@ -62,7 +62,7 @@ import (
 //
 // # Example Implementation
 //
-//	func (d *MyDataType) UpdateList(remoteWrite, persist bool, newList any, 
+//	func (d *MyDataType) UpdateList(remoteWrite, persist bool, newList any,
 //	                               filterPartial, filterDelete *FilterType) (any, bool) {
 //	    if newData, ok := newList.([]MyDataType); ok {
 //	        return UpdateList(remoteWrite, d.existingData, newData, filterPartial, filterDelete)
@@ -96,6 +96,8 @@ type Updater interface {
 	//   - filterDelete: optional deletion filter. When provided,
 	//     removes entries or fields matching the filter criteria.
 	//
+	//   - cmdFunction is the command function for filter context
+	//
 	// # Returns
 	//
 	//   - any: the updated data set after applying all operations
@@ -106,7 +108,7 @@ type Updater interface {
 	//
 	// Implementations must follow SPINE Table 7 cmdOptions combinations
 	// and handle atomic operations according to the protocol specification.
-	UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool)
+	UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool)
 }
 
 // UpdateList generates a new list by applying SPINE protocol update rules.
@@ -128,7 +130,7 @@ type Updater interface {
 // # Update Sequence
 //
 //  1. Delete filtering: Removes entries/fields matching delete filters
-//  2. Partial filtering: Updates specific fields in matching entries  
+//  2. Partial filtering: Updates specific fields in matching entries
 //  3. Primary key filtering: Removes entries with only key fields (anti-duplication)
 //  4. Identifier handling: Processes entries without complete identifiers
 //  5. Data merging: Combines new data with existing entries
@@ -162,19 +164,20 @@ type Updater interface {
 //   - newData: incoming data to merge
 //   - filterPartial: optional filter for partial field updates
 //   - filterDelete: optional filter for entry/field deletion
+//   - cmdFunction is passed to filter.Data() for partial filters without selectors
 //
 // # Returns
 //
 //   - []T: updated and sorted data set
 //   - bool: true if all operations succeeded, false if any failed
-func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType) ([]T, bool) {
+func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) ([]T, bool) {
 	success := true
 
 	// STEP 1: Apply delete filters (Selective deletion)
 	// Process delete operations first to remove entries or fields before merging.
 	// This ensures deletions take precedence over updates in the operation sequence.
 	if filterDelete != nil {
-		if filterData, err := filterDelete.Data(); err == nil {
+		if filterData, err := filterDelete.Data(cmdFunction); err == nil {
 			updatedData, noErrors := deleteFilteredData(remoteWrite, existingData, filterData)
 			if noErrors {
 				existingData = updatedData
@@ -188,12 +191,16 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 	// Process partial update operations to modify specific fields in matching entries.
 	// When partial filters are used, skip normal merge processing and return early.
 	if filterPartial != nil {
-		if filterData, err := filterPartial.Data(); err == nil {
-			newData, noErrors := copyToSelectedData(remoteWrite, existingData, filterData, &newData[0])
-			if !noErrors {
-				success = false
+		if filterData, err := filterPartial.Data(cmdFunction); err == nil {
+			// Only use selector-based copying if there are actual selectors
+			// If there are no selectors, fall through to normal identifier-based merge
+			if filterData.Selector != nil {
+				newData, noErrors := copyToSelectedData(remoteWrite, existingData, filterData, &newData[0])
+				if !noErrors {
+					success = false
+				}
+				return newData, success
 			}
-			return newData, success
 		}
 	}
 
@@ -264,13 +271,13 @@ func UpdateList[T any](remoteWrite bool, existingData []T, newData []T, filterPa
 // # Returns
 //
 //   - []string: slice of field names containing the specified tag
-//              (empty slice if no matches or item is not a struct)
+//     (empty slice if no matches or item is not a struct)
 //
 // # Example
 //
 //	type Data struct {
 //	    ID    *uint   `eebus:"key,primarykey"`
-//	    SubID *string `eebus:"key"`  
+//	    SubID *string `eebus:"key"`
 //	    Value *int
 //	}
 //	keys := fieldNamesWithEEBusTag(EEBusTagKey, Data{})
@@ -331,7 +338,7 @@ func fieldNamesWithEEBusTag(tag EEBusTag, item any) []string {
 // # Returns
 //
 //   - bool: true if all key fields have non-nil values, false otherwise
-//          (returns true for structs with no key fields)
+//     (returns true for structs with no key fields)
 //
 // # Example
 //
@@ -340,13 +347,13 @@ func fieldNamesWithEEBusTag(tag EEBusTag, item any) []string {
 //	    ValueType     *string `eebus:"key"`
 //	    Value         *int
 //	}
-//	
+//
 //	complete := MeasurementData{
 //	    MeasurementId: util.Ptr(uint(1)),
 //	    ValueType:     util.Ptr("power"),
 //	}
 //	HasIdentifiers(complete) // Returns: true
-//	
+//
 //	incomplete := MeasurementData{
 //	    MeasurementId: util.Ptr(uint(1)),
 //	    // ValueType is nil
@@ -402,7 +409,7 @@ func HasIdentifiers(data any) bool {
 // # Returns
 //
 //   - bool: true if entry contains only primary key data, false if it has
-//          additional meaningful fields
+//     additional meaningful fields
 //
 // # Example
 //
@@ -411,10 +418,10 @@ func HasIdentifiers(data any) bool {
 //	    ValueType     *string `eebus:"key"`
 //	    Value         *int
 //	}
-//	
+//
 //	keyOnly := MeasurementData{MeasurementId: util.Ptr(uint(1))}
 //	hasPrimaryKeyOnly(keyOnly) // Returns: true (should be filtered)
-//	
+//
 //	withData := MeasurementData{
 //	    MeasurementId: util.Ptr(uint(1)),
 //	    Value:         util.Ptr(100),
@@ -435,7 +442,7 @@ func hasPrimaryKeyOnly(item any) bool {
 		// (safer to process than risk data loss)
 		return false
 	}
-	
+
 	// Type has primarykey tags - use enhanced detection algorithm
 	return hasPrimaryKeyOnlyNew(item, primaryKeys)
 }
@@ -457,7 +464,7 @@ func hasPrimaryKeyOnly(item any) bool {
 // The function handles different field types appropriately:
 //   - Pointers: checks for non-nil values
 //   - Slices/Maps: checks for non-nil and non-empty
-//   - Strings: checks for non-empty values  
+//   - Strings: checks for non-empty values
 //   - Other types: checks for non-zero values
 //
 // # Parameters
@@ -476,27 +483,27 @@ func hasPrimaryKeyOnly(item any) bool {
 //	    Value *int
 //	    Name  *string
 //	}
-//	
+//
 //	keyOnly := SimpleData{ID: util.Ptr(uint(1))}
 //	hasOnlySingleKey(keyOnly, "ID") // Returns: true
-//	
+//
 //	withData := SimpleData{ID: util.Ptr(uint(1)), Value: util.Ptr(42)}
 //	hasOnlySingleKey(withData, "ID") // Returns: false
 func hasOnlySingleKey(item any, keyField string) bool {
 	v := reflect.ValueOf(item)
 	t := reflect.TypeOf(item)
-	
+
 	if v.Kind() != reflect.Struct {
 		return false
 	}
-	
+
 	hasKey := false
-	
+
 	// Examine each field to determine if it has a meaningful value
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		fieldName := t.Field(i).Name
-		
+
 		// Determine if field contains data based on its type
 		hasValue := false
 		switch field.Kind() {
@@ -513,7 +520,7 @@ func hasOnlySingleKey(item any, keyField string) bool {
 			// Other types: check for non-zero values
 			hasValue = !field.IsZero()
 		}
-		
+
 		if hasValue {
 			if fieldName == keyField {
 				// Found the key field with a value
@@ -524,7 +531,7 @@ func hasOnlySingleKey(item any, keyField string) bool {
 			}
 		}
 	}
-	
+
 	return hasKey
 }
 
@@ -539,7 +546,7 @@ func hasOnlySingleKey(item any, keyField string) bool {
 //
 // Unlike the legacy single-key approach, this function:
 //   - Supports multiple primary key fields in composite structures
-//   - Distinguishes primary keys from sub-identifiers  
+//   - Distinguishes primary keys from sub-identifiers
 //   - Enables fine-grained filtering based on identifier hierarchy
 //   - Provides better compatibility with complex SPINE data models
 //
@@ -558,7 +565,7 @@ func hasOnlySingleKey(item any, keyField string) bool {
 // # Returns
 //
 //   - bool: true if only primary key fields have values, false if any
-//          non-primary-key fields contain data
+//     non-primary-key fields contain data
 //
 // # Example
 //
@@ -568,13 +575,13 @@ func hasOnlySingleKey(item any, keyField string) bool {
 //	    SubType  *string `eebus:"key"`
 //	    Value    *int
 //	}
-//	
+//
 //	primaryOnly := CompositeData{
 //	    DeviceID: util.Ptr(uint(1)),
 //	    EntityID: util.Ptr(uint(2)),
 //	}
 //	hasPrimaryKeyOnlyNew(primaryOnly, []string{"DeviceID", "EntityID"}) // Returns: true
-//	
+//
 //	withSubKey := CompositeData{
 //	    DeviceID: util.Ptr(uint(1)),
 //	    EntityID: util.Ptr(uint(2)),
@@ -584,21 +591,21 @@ func hasOnlySingleKey(item any, keyField string) bool {
 func hasPrimaryKeyOnlyNew(item any, primaryKeyFields []string) bool {
 	v := reflect.ValueOf(item)
 	t := reflect.TypeOf(item)
-	
+
 	if v.Kind() != reflect.Struct {
 		return false
 	}
-	
+
 	hasPrimaryKey := false
 	hasOtherData := false
-	
+
 	// Analyze each field to categorize it as primary key or other data
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		fieldName := t.Field(i).Name
 		// Check if this field is marked as a primary key
 		isPrimaryKey := slices.Contains(primaryKeyFields, fieldName)
-		
+
 		// Determine if field contains meaningful data
 		hasValue := false
 		switch field.Kind() {
@@ -615,12 +622,12 @@ func hasPrimaryKeyOnlyNew(item any, primaryKeyFields []string) bool {
 			// Other types: non-zero indicates value
 			hasValue = !field.IsZero()
 		}
-		
+
 		// Skip fields without values
 		if !hasValue {
 			continue
 		}
-		
+
 		// Categorize fields with values
 		if isPrimaryKey {
 			hasPrimaryKey = true
@@ -628,7 +635,7 @@ func hasPrimaryKeyOnlyNew(item any, primaryKeyFields []string) bool {
 			hasOtherData = true
 		}
 	}
-	
+
 	return hasPrimaryKey && !hasOtherData
 }
 
@@ -676,7 +683,7 @@ func hasPrimaryKeyOnlyNew(item any, primaryKeyFields []string) bool {
 //	input := []MeasurementData{
 //	    {MeasurementId: util.Ptr(1)}, // Key-only - filtered
 //	    {MeasurementId: util.Ptr(2), ValueType: util.Ptr("power"), Value: util.Ptr(100)}, // Data - kept
-//	    {MeasurementId: util.Ptr(3)}, // Key-only - filtered  
+//	    {MeasurementId: util.Ptr(3)}, // Key-only - filtered
 //	}
 //	result := filterPrimaryKeyOnlyEntries(input)
 //	// Returns: [{MeasurementId: 2, ValueType: "power", Value: 100}]
@@ -684,10 +691,10 @@ func filterPrimaryKeyOnlyEntries[T any](data []T) []T {
 	if len(data) == 0 {
 		return data
 	}
-	
+
 	var result []T
 	var filteredCount int
-	
+
 	// Process each entry to determine if it should be filtered
 	for _, item := range data {
 		if hasPrimaryKeyOnly(item) {
@@ -698,11 +705,11 @@ func filterPrimaryKeyOnlyEntries[T any](data []T) []T {
 			if len(primaryKeys) == 0 {
 				// Legacy single key type
 				keys := fieldNamesWithEEBusTag(EEBusTagKey, item)
-				logging.Log().Debugf("Ignoring incoming %T with only key field %v (preventing duplicate entry): %+v", 
+				logging.Log().Debugf("Ignoring incoming %T with only key field %v (preventing duplicate entry): %+v",
 					item, keys, item)
 			} else {
 				// Enhanced composite key type
-				logging.Log().Debugf("Ignoring incoming %T with only primary key fields %v (preventing duplicate entry): %+v", 
+				logging.Log().Debugf("Ignoring incoming %T with only primary key fields %v (preventing duplicate entry): %+v",
 					item, primaryKeys, item)
 			}
 		} else {
@@ -710,12 +717,12 @@ func filterPrimaryKeyOnlyEntries[T any](data []T) []T {
 			result = append(result, item)
 		}
 	}
-	
+
 	if filteredCount > 0 {
-		logging.Log().Debugf("Ignored %d incoming %T entries with only key fields to prevent duplicate/low-quality data", 
+		logging.Log().Debugf("Ignored %d incoming %T entries with only key fields to prevent duplicate/low-quality data",
 			filteredCount, data)
 	}
-	
+
 	return result
 }
 
@@ -1157,7 +1164,7 @@ func RemoveElementFromItem[T any, E any](item *T, element E) {
 // # Merge Semantics
 //
 //   - Only copies non-nil fields from source
-//   - Preserves existing data in destination for fields not in source  
+//   - Preserves existing data in destination for fields not in source
 //   - Handles type safety through reflection
 //   - Supports all pointer-based field types
 //

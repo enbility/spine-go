@@ -19,14 +19,13 @@ func TestPartialFilterIntegration(t *testing.T) {
 
 type PartialFilterIntegrationTestSuite struct {
 	suite.Suite
-	senderMock       *mocks.SenderInterface
-	localDevice      *DeviceLocal
-	localEntity      *EntityLocal
-	localFeature     api.FeatureLocalInterface
-	remoteDevice     *DeviceRemote
-	remoteEntity     api.EntityRemoteInterface
-	remoteFeature    api.FeatureRemoteInterface
-	serverFunction   model.FunctionType
+	senderMock        *mocks.SenderInterface
+	localDevice       *DeviceLocal
+	localEntity       *EntityLocal
+	localFeature      api.FeatureLocalInterface
+	remoteDevice      *DeviceRemote
+	remoteFeature     api.FeatureRemoteInterface
+	serverFunction    model.FunctionType
 	serverFeatureType model.FeatureTypeType
 }
 
@@ -86,7 +85,7 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_PartialFilterIgnored()
 	// Step 1: Create command with partial filter (simulating incoming read request)
 	readCmd := model.CmdType{
 		LoadControlLimitListData: &model.LoadControlLimitListDataType{},
-		Filter: []model.FilterType{partialFilter},
+		Filter:                   []model.FilterType{partialFilter},
 	}
 
 	// Step 2: Extract filters (simulating what ProcessCmd does)
@@ -119,14 +118,14 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_PartialFilterIgnored()
 			if replyCmd.LoadControlLimitListData == nil {
 				return false
 			}
-			
+
 			data := replyCmd.LoadControlLimitListData
-			
+
 			// Should contain ALL entries (ignores selector for ID 1)
 			if len(data.LoadControlLimitData) != 2 {
 				return false
 			}
-			
+
 			// Should contain ALL fields for each entry (ignores element filter)
 			for _, entry := range data.LoadControlLimitData {
 				if entry.LimitId == nil || entry.IsLimitActive == nil || entry.IsLimitChangeable == nil ||
@@ -134,7 +133,7 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_PartialFilterIgnored()
 					return false
 				}
 			}
-			
+
 			// Verify no filter is included in the reply
 			return len(replyCmd.Filter) == 0
 		}),
@@ -187,7 +186,7 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_DifferentFunctionTypes
 		CmdClassifier: model.CmdClassifierTypeRead,
 		Cmd: model.CmdType{
 			DeviceClassificationManufacturerData: &model.DeviceClassificationManufacturerDataType{},
-			Filter: []model.FilterType{partialFilter},
+			Filter:                               []model.FilterType{partialFilter},
 		},
 		FilterPartial: &partialFilter,
 		FeatureRemote: dcRemoteFeature,
@@ -203,7 +202,7 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_DifferentFunctionTypes
 			if replyCmd.DeviceClassificationManufacturerData == nil {
 				return false
 			}
-			
+
 			data := replyCmd.DeviceClassificationManufacturerData
 			// Should contain ALL fields, not just BrandName
 			return data.BrandName != nil && data.VendorName != nil && data.DeviceName != nil &&

@@ -18,7 +18,8 @@ func TestFilterType_Selector_Data(t *testing.T) {
 	}
 
 	// Act
-	cmdData, err := sut.Data()
+	cmdFunction := util.Ptr(FunctionTypeElectricalConnectionDescriptionListData)
+	cmdData, err := sut.Data(cmdFunction)
 	assert.Nil(t, err)
 	assert.NotNil(t, cmdData)
 	assert.Equal(t, FunctionTypeElectricalConnectionDescriptionListData, *cmdData.Function)
@@ -102,7 +103,8 @@ func TestFilterType_Elements_Data(t *testing.T) {
 	}
 
 	// Act
-	cmdData, err := sut.Data()
+	cmdFunction := util.Ptr(FunctionTypeElectricalConnectionDescriptionListData)
+	cmdData, err := sut.Data(cmdFunction)
 	assert.Nil(t, err)
 	assert.NotNil(t, cmdData)
 	assert.Equal(t, FunctionTypeElectricalConnectionDescriptionListData, *cmdData.Function)
@@ -189,4 +191,76 @@ func TestCmdType_ExtractFilter_FilterPartialDelete(t *testing.T) {
 	assert.Equal(t, &filterP, filterPartial)
 	assert.NotNil(t, filterDelete)
 	assert.Equal(t, &filterD, filterDelete)
+}
+
+func TestFilterType_Data(t *testing.T) {
+	t.Run("partial filter without selectors uses cmd function", func(t *testing.T) {
+		// Create a partial filter with no selectors (valid SPINE - means "all fields")
+		filter := &FilterType{
+			CmdControl: &CmdControlType{
+				Partial: &ElementTagType{},
+			},
+		}
+		
+		// Without function, should fail
+		data, err := filter.Data(nil)
+		assert.Error(t, err)
+		assert.Nil(t, data)
+		
+		// With cmd function, should succeed
+		cmdFunction := util.Ptr(FunctionType("nodeManagementDetailedDiscoveryData"))
+		data, err = filter.Data(cmdFunction)
+		assert.NoError(t, err)
+		assert.NotNil(t, data)
+		assert.Equal(t, *cmdFunction, *data.Function)
+		assert.Nil(t, data.Selector)
+		assert.Nil(t, data.Elements)
+	})
+	
+	t.Run("filter with selector ignores cmd function", func(t *testing.T) {
+		// Create a filter with a selector - should use selector's function
+		filter := &FilterType{
+			CmdControl: &CmdControlType{
+				Partial: &ElementTagType{},
+			},
+			MeasurementListDataSelectors: &MeasurementListDataSelectorsType{
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+			},
+		}
+		
+		// Even with a different cmd function, should use selector's function
+		cmdFunction := util.Ptr(FunctionType("differentFunction"))
+		data, err := filter.Data(cmdFunction)
+		assert.NoError(t, err)
+		assert.NotNil(t, data)
+		assert.Equal(t, FunctionTypeMeasurementListData, *data.Function)
+		assert.NotNil(t, data.Selector)
+	})
+	
+	t.Run("nil cmd function handled gracefully", func(t *testing.T) {
+		// Partial filter without selectors and nil cmd function
+		filter := &FilterType{
+			CmdControl: &CmdControlType{
+				Partial: &ElementTagType{},
+			},
+		}
+		
+		data, err := filter.Data(nil)
+		assert.Error(t, err)
+		assert.Nil(t, data)
+	})
+	
+	t.Run("empty cmd function handled gracefully", func(t *testing.T) {
+		// Partial filter without selectors and empty cmd function
+		filter := &FilterType{
+			CmdControl: &CmdControlType{
+				Partial: &ElementTagType{},
+			},
+		}
+		
+		emptyFunction := util.Ptr(FunctionType(""))
+		data, err := filter.Data(emptyFunction)
+		assert.Error(t, err)
+		assert.Nil(t, data)
+	})
 }

@@ -27,7 +27,7 @@ func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) mode
 	filters = filtersForSelectorsElements(r.functionType, filters, nil, partialSelector, nil, elements)
 	if len(filters) > 0 {
 		cmd.Filter = filters
-		cmd.Function = util.Ptr(model.FunctionType(""))
+		cmd.Function = util.Ptr(r.functionType)
 	}
 
 	return cmd
@@ -38,7 +38,7 @@ func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
 	cmd := createCmd(r.functionType, data)
 	if partial {
 		cmd.Filter = filterEmptyPartial()
-		cmd.Function = util.Ptr(model.FunctionType(""))
+		cmd.Function = util.Ptr(r.functionType)
 	}
 	return cmd
 }

@@ -4,13 +4,13 @@ package model
 
 var _ Updater = (*IdentificationListDataType)(nil)
 
-func (r *IdentificationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *IdentificationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []IdentificationDataType
 	if newList != nil {
 		newData = newList.(*IdentificationListDataType).IdentificationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.IdentificationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.IdentificationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.IdentificationData = data
@@ -23,13 +23,13 @@ func (r *IdentificationListDataType) UpdateList(remoteWrite, persist bool, newLi
 
 var _ Updater = (*SessionIdentificationListDataType)(nil)
 
-func (r *SessionIdentificationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *SessionIdentificationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []SessionIdentificationDataType
 	if newList != nil {
 		newData = newList.(*SessionIdentificationListDataType).SessionIdentificationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.SessionIdentificationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.SessionIdentificationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.SessionIdentificationData = data
@@ -42,13 +42,13 @@ func (r *SessionIdentificationListDataType) UpdateList(remoteWrite, persist bool
 
 var _ Updater = (*SessionMeasurementRelationListDataType)(nil)
 
-func (r *SessionMeasurementRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *SessionMeasurementRelationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []SessionMeasurementRelationDataType
 	if newList != nil {
 		newData = newList.(*SessionMeasurementRelationListDataType).SessionMeasurementRelationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.SessionMeasurementRelationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.SessionMeasurementRelationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.SessionMeasurementRelationData = data

@@ -11,7 +11,7 @@ import (
 
 // Test structure with slice field (not pointer)
 type TestSliceFieldData struct {
-	Id    *uint    `eebus:"key"`
+	Id    *uint `eebus:"key"`
 	Name  *string
 	Items []string // Non-pointer slice field
 }
@@ -139,8 +139,8 @@ func TestUpdateList_RealWorldScenario_NoFilteringWithSliceData(t *testing.T) {
 		},
 	}
 
-	result, success := UpdateList(false, existingData, newData, nil, nil)
-	
+	result, success := UpdateList(false, existingData, newData, nil, nil, nil)
+
 	assert.True(t, success)
 	assert.Len(t, result, 2) // Both entries pass through with primarykey tag
 	assert.Equal(t, util.Ptr(ElectricalConnectionParameterIdType(1)), result[0].ParameterId)

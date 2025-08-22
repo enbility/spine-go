@@ -340,8 +340,36 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	}
 	cmd := datagram.Payload.Cmd[0]
 
-	// TODO check if cmd.Function is the same as the provided cmd value
+	// Validate cmd.function consistency when filters are present
+	// Per SPINE spec section 5.3.4: "SHALL be present if datagram.payload.cmd.filter is present."
+	// The primary security concern is type confusion attacks when filters target wrong functions
+	
 	filterPartial, filterDelete := cmd.ExtractFilter()
+	hasFilters := filterPartial != nil || filterDelete != nil
+	
+	if hasFilters {
+		// Filters present: cmd.Function MUST be present and consistent
+		// This is the critical validation to prevent type confusion attacks
+		if err := cmd.ValidateFunctionConsistencyStrict(); err != nil {
+			inconsistencies := cmd.GetInconsistentFunctions()
+			errorMsg := fmt.Sprintf("cmd function validation failed: %s", err.Error())
+			
+			// Log validation failure for security monitoring (non-sensitive info only)
+			logging.Log().Debugf("Command function validation failed: %s (inconsistencies: %d, device: %s, classifier: %v)", 
+				err.Error(), 
+				len(inconsistencies),
+				remoteDevice.Address(),
+				cmdClassifier)
+			
+			// Send proper error response to remote device
+			validationError := model.NewErrorType(model.ErrorNumberTypeCommandRejected, errorMsg)
+			_ = remoteDevice.Sender().ResultError(&datagram.Header, destAddr, validationError)
+			
+			return fmt.Errorf("cmd function validation failed: %w", err)
+		}
+	}
+	// Note: Commands without filters don't require strict function validation
+	// The security risk (type confusion) only exists when filters are present
 
 	remoteEntity := remoteDevice.Entity(datagram.Header.AddressSource.Entity)
 	remoteFeature := remoteDevice.FeatureByAddress(datagram.Header.AddressSource)

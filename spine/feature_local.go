@@ -353,8 +353,9 @@ func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterP
 	if fctData != nil && err == nil {
 		var deleteSelector, deleteElements, partialSelector any
 
+		cmdFunction := util.Ptr(function)
 		if filterDelete != nil {
-			if fDelete, err := filterDelete.Data(); err == nil {
+			if fDelete, err := filterDelete.Data(cmdFunction); err == nil {
 				if fDelete.Selector != nil {
 					deleteSelector = fDelete.Selector
 				}
@@ -365,7 +366,7 @@ func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterP
 		}
 
 		if filterPartial != nil {
-			if fPartial, err := filterPartial.Data(); err == nil && fPartial.Selector != nil {
+			if fPartial, err := filterPartial.Data(cmdFunction); err == nil && fPartial.Selector != nil {
 				partialSelector = fPartial.Selector
 			}
 		}
@@ -385,7 +386,9 @@ func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType,
 		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "data not found")
 	}
 
-	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete)
+	// Pass the function type to UpdateDataAny for filter context
+	cmdFunction := util.Ptr(function)
+	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete, cmdFunction)
 
 	return fctData, err
 }

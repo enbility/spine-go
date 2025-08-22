@@ -11,7 +11,7 @@ import (
 
 // Single primary key structure
 type TestSingleKeyData struct {
-	Id    *uint   `eebus:"key"`
+	Id    *uint `eebus:"key"`
 	Name  *string
 	Value *int
 }
@@ -26,8 +26,8 @@ type TestCompositeKeyData struct {
 
 // Structure similar to MeasurementDataType
 type TestMeasurementLikeData struct {
-	MeasurementId *uint    `eebus:"key"`
-	ValueType     *string  `eebus:"key"`
+	MeasurementId *uint   `eebus:"key"`
+	ValueType     *string `eebus:"key"`
 	Value         *float64
 	State         *string
 }
@@ -56,8 +56,8 @@ func TestSingleKeyTypes_BackwardCompatibility(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "all_fields_nil",
-			input: TestSingleKeyData{},
+			name:     "all_fields_nil",
+			input:    TestSingleKeyData{},
 			expected: false,
 		},
 		{
@@ -105,9 +105,9 @@ func TestFilterPrimaryKeyOnlyEntries(t *testing.T) {
 
 	t.Run("mixed_entries", func(t *testing.T) {
 		input := []TestSingleKeyData{
-			{Id: util.Ptr(uint(1))},                        // Should be filtered
-			{Id: util.Ptr(uint(2)), Value: util.Ptr(42)},   // Should pass
-			{Id: util.Ptr(uint(3))},                        // Should be filtered
+			{Id: util.Ptr(uint(1))},                         // Should be filtered
+			{Id: util.Ptr(uint(2)), Value: util.Ptr(42)},    // Should pass
+			{Id: util.Ptr(uint(3))},                         // Should be filtered
 			{Id: util.Ptr(uint(4)), Name: util.Ptr("test")}, // Should pass
 		}
 		expected := []TestSingleKeyData{
@@ -119,12 +119,12 @@ func TestFilterPrimaryKeyOnlyEntries(t *testing.T) {
 	})
 
 	t.Run("composite_key_without_primarykey_tag", func(t *testing.T) {
-		// TestCompositeKeyData doesn't have primarykey tags, so it's treated as 
+		// TestCompositeKeyData doesn't have primarykey tags, so it's treated as
 		// a composite key type that hasn't been migrated - no filtering occurs
 		input := []TestCompositeKeyData{
-			{Id1: util.Ptr(uint(1)), Id2: util.Ptr("A")},                      
-			{Id1: util.Ptr(uint(2))},                                          
-			{Id1: util.Ptr(uint(3)), Id2: util.Ptr("C"), Data: util.Ptr("x")}, 
+			{Id1: util.Ptr(uint(1)), Id2: util.Ptr("A")},
+			{Id1: util.Ptr(uint(2))},
+			{Id1: util.Ptr(uint(3)), Id2: util.Ptr("C"), Data: util.Ptr("x")},
 		}
 		// Without primarykey tag, none are filtered
 		result := filterPrimaryKeyOnlyEntries(input)
@@ -138,22 +138,22 @@ func TestUpdateList_WithPrimaryKeyFiltering(t *testing.T) {
 		existingData := []TestSingleKeyData{
 			{Id: util.Ptr(uint(1)), Name: util.Ptr("existing"), Value: util.Ptr(10)},
 		}
-		
+
 		newData := []TestSingleKeyData{
-			{Id: util.Ptr(uint(1))},                        // Key only - should be filtered
-			{Id: util.Ptr(uint(2)), Value: util.Ptr(20)},   // New entry with data
+			{Id: util.Ptr(uint(1))},                      // Key only - should be filtered
+			{Id: util.Ptr(uint(2)), Value: util.Ptr(20)}, // New entry with data
 		}
 
-		result, success := UpdateList(false, existingData, newData, nil, nil)
-		
+		result, success := UpdateList(false, existingData, newData, nil, nil, nil)
+
 		assert.True(t, success)
 		assert.Len(t, result, 2)
-		
+
 		// Existing entry should be unchanged (key-only update was filtered)
 		assert.Equal(t, util.Ptr(uint(1)), result[0].Id)
 		assert.Equal(t, util.Ptr("existing"), result[0].Name)
 		assert.Equal(t, util.Ptr(10), result[0].Value)
-		
+
 		// New entry should be added
 		assert.Equal(t, util.Ptr(uint(2)), result[1].Id)
 		assert.Equal(t, util.Ptr(20), result[1].Value)
@@ -163,14 +163,14 @@ func TestUpdateList_WithPrimaryKeyFiltering(t *testing.T) {
 		existingData := []TestSingleKeyData{
 			{Id: util.Ptr(uint(1)), Value: util.Ptr(10)},
 		}
-		
+
 		newData := []TestSingleKeyData{
 			{Id: util.Ptr(uint(2))}, // Only key-only entries
 			{Id: util.Ptr(uint(3))},
 		}
 
-		result, success := UpdateList(false, existingData, newData, nil, nil)
-		
+		result, success := UpdateList(false, existingData, newData, nil, nil, nil)
+
 		assert.True(t, success)
 		assert.Equal(t, existingData, result) // Should return unchanged existing data
 	})
@@ -189,7 +189,7 @@ func TestUpdateList_MeasurementDataDuplicateIssue(t *testing.T) {
 	}
 
 	// Process first message
-	result, success := UpdateList(false, existingData, firstMessage, nil, nil)
+	result, success := UpdateList(false, existingData, firstMessage, nil, nil, nil)
 	assert.True(t, success)
 	assert.Empty(t, result) // All entries should be filtered out
 
@@ -205,10 +205,10 @@ func TestUpdateList_MeasurementDataDuplicateIssue(t *testing.T) {
 	}
 
 	// Process second message
-	result, success = UpdateList(false, result, secondMessage, nil, nil)
+	result, success = UpdateList(false, result, secondMessage, nil, nil, nil)
 	assert.True(t, success)
 	assert.Len(t, result, 1) // Should have exactly one entry
-	
+
 	// Verify no duplicates
 	assert.Equal(t, util.Ptr(MeasurementIdType(4)), result[0].MeasurementId)
 	assert.Equal(t, util.Ptr(MeasurementValueTypeType("value")), result[0].ValueType)
@@ -218,8 +218,8 @@ func TestUpdateList_MeasurementDataDuplicateIssue(t *testing.T) {
 func TestUpdateList_BillDataFiltering(t *testing.T) {
 	existingData := []BillDataType{
 		{
-			BillId:   util.Ptr(BillIdType(1)),
-			BillType: util.Ptr(BillTypeType("summary")),
+			BillId:    util.Ptr(BillIdType(1)),
+			BillType:  util.Ptr(BillTypeType("summary")),
 			ScopeType: util.Ptr(ScopeTypeType("invoice")),
 		},
 	}
@@ -227,22 +227,22 @@ func TestUpdateList_BillDataFiltering(t *testing.T) {
 	newData := []BillDataType{
 		{BillId: util.Ptr(BillIdType(1))}, // Key only - should be filtered
 		{
-			BillId:   util.Ptr(BillIdType(2)),
-			BillType: util.Ptr(BillTypeType("detail")),
+			BillId:    util.Ptr(BillIdType(2)),
+			BillType:  util.Ptr(BillTypeType("detail")),
 			ScopeType: util.Ptr(ScopeTypeType("invoice")),
 		},
 	}
 
-	result, success := UpdateList(false, existingData, newData, nil, nil)
-	
+	result, success := UpdateList(false, existingData, newData, nil, nil, nil)
+
 	assert.True(t, success)
 	assert.Len(t, result, 2)
-	
+
 	// First entry unchanged
 	assert.Equal(t, util.Ptr(BillIdType(1)), result[0].BillId)
 	assert.Equal(t, util.Ptr(BillTypeType("summary")), result[0].BillType)
 	assert.Equal(t, util.Ptr(ScopeTypeType("invoice")), result[0].ScopeType)
-	
+
 	// Second entry added
 	assert.Equal(t, util.Ptr(BillIdType(2)), result[1].BillId)
 	assert.Equal(t, util.Ptr(BillTypeType("detail")), result[1].BillType)

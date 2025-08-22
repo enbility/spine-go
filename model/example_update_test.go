@@ -24,7 +24,7 @@ func Example_updateList_measurementDataDuplicatePrevention() {
 	}
 
 	// Process the structural message
-	result, success := model.UpdateList(false, existingData, structuralMessage, nil, nil)
+	result, success := model.UpdateList(false, existingData, structuralMessage, nil, nil, nil)
 	if !success {
 		log.Fatal("Update failed")
 	}
@@ -44,7 +44,7 @@ func Example_updateList_measurementDataDuplicatePrevention() {
 	}
 
 	// Process the data message
-	result, success = model.UpdateList(false, result, dataMessage, nil, nil)
+	result, success = model.UpdateList(false, result, dataMessage, nil, nil, nil)
 	if !success {
 		log.Fatal("Update failed")
 	}
@@ -91,7 +91,7 @@ func Example_updateList_compositeKeyHandling() {
 		},
 	}
 
-	result, success := model.UpdateList(false, existingData, updates, nil, nil)
+	result, success := model.UpdateList(false, existingData, updates, nil, nil, nil)
 	if !success {
 		log.Fatal("Update failed")
 	}
@@ -143,7 +143,7 @@ func Example_updateList_remoteWritePermissions() {
 	// Process with remoteWrite=true to enforce permissions
 	// Note: When any update fails due to permissions, success=false
 	// but allowed updates are still applied
-	result, success := model.UpdateList(true, existingData, remoteUpdates, nil, nil)
+	result, success := model.UpdateList(true, existingData, remoteUpdates, nil, nil, nil)
 
 	fmt.Printf("Overall success: %v (false because limit 0 was denied)\n", success)
 	fmt.Printf("Limit 0 value: %.0f (unchanged)\n", result[0].Value.GetValue())
@@ -188,7 +188,7 @@ func Example_updateList_partialUpdateWithFilters() {
 		},
 	}
 
-	result, success := model.UpdateList(false, existingData, updateData, filterPartial, nil)
+	result, success := model.UpdateList(false, existingData, updateData, filterPartial, nil, nil)
 	if !success {
 		log.Fatal("Update failed")
 	}
@@ -233,7 +233,7 @@ func Example_updateList_broadcastUpdate() {
 		},
 	}
 
-	result, success := model.UpdateList(false, existingData, broadcastUpdate, nil, nil)
+	result, success := model.UpdateList(false, existingData, broadcastUpdate, nil, nil, nil)
 	if !success {
 		log.Fatal("Update failed")
 	}
@@ -273,8 +273,8 @@ func Example_updateList_errorHandling() {
 	}
 
 	// Attempt remote update
-	result, success := model.UpdateList(true, existingData, remoteUpdate, nil, nil)
-	
+	result, success := model.UpdateList(true, existingData, remoteUpdate, nil, nil, nil)
+
 	if !success {
 		// In production, log the failure with context
 		fmt.Println("Update failed: Remote write permission denied")
@@ -282,7 +282,7 @@ func Example_updateList_errorHandling() {
 			*remoteUpdate[0].LimitId,
 			existingData[0].Value.GetValue(),
 			remoteUpdate[0].Value.GetValue())
-		
+
 		// Take appropriate action based on your use case:
 		// - Send error response to remote device
 		// - Log security event
@@ -327,7 +327,7 @@ func Example_updateList_deleteFilterUsage() {
 	}
 
 	// Process deletion
-	result, success := model.UpdateList(false, existingData, nil, nil, filterDelete)
+	result, success := model.UpdateList(false, existingData, nil, nil, filterDelete, nil)
 	if !success {
 		log.Fatal("Delete operation failed")
 	}
@@ -351,9 +351,9 @@ type DeviceMeasurements struct {
 	maxEntries   int
 }
 
-func (d *DeviceMeasurements) UpdateList(remoteWrite, persist bool, newList any, 
+func (d *DeviceMeasurements) UpdateList(remoteWrite, persist bool, newList any,
 	filterPartial, filterDelete *model.FilterType) (any, bool) {
-	
+
 	// Type assertion for incoming data
 	newData, ok := newList.([]model.MeasurementDataType)
 	if !ok {
@@ -370,9 +370,9 @@ func (d *DeviceMeasurements) UpdateList(remoteWrite, persist bool, newList any,
 	}
 
 	// Delegate to standard UpdateList implementation
-	result, success := model.UpdateList(remoteWrite, d.measurements, newData, 
-		filterPartial, filterDelete)
-	
+	result, success := model.UpdateList(remoteWrite, d.measurements, newData,
+		filterPartial, filterDelete, nil)
+
 	if success && persist {
 		d.measurements = result
 		// In production: persist to database/storage

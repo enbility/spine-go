@@ -269,9 +269,9 @@ func TestFilterPrimaryKeyOnlyEntries_CompositeKeyWithPrimaryTag(t *testing.T) {
 		{
 			name: "mixed entries",
 			data: []TestCompositeKeyWithPrimaryTag{
-				{PrimaryId: util.Ptr(uint(1))}, // Only primary key - should be filtered
+				{PrimaryId: util.Ptr(uint(1))},                       // Only primary key - should be filtered
 				{PrimaryId: util.Ptr(uint(2)), Value: util.Ptr(200)}, // Has data - should remain
-				{PrimaryId: util.Ptr(uint(3))}, // Only primary key - should be filtered
+				{PrimaryId: util.Ptr(uint(3))},                       // Only primary key - should be filtered
 			},
 			expectedResult: []TestCompositeKeyWithPrimaryTag{
 				{PrimaryId: util.Ptr(uint(2)), Value: util.Ptr(200)},
@@ -364,7 +364,7 @@ func TestSortData_NoKeyStruct(t *testing.T) {
 		{Value: util.Ptr(1), Name: util.Ptr("first")},
 	}
 	expected := data // Should remain unchanged
-	
+
 	result := SortData(data)
 	assert.Equal(t, expected, result)
 }
@@ -441,15 +441,15 @@ func TestUpdateList_PrimaryKeyFiltering(t *testing.T) {
 		}, // Valid - should be added
 	}
 
-	result, success := UpdateList(false, existingData, newData, nil, nil)
+	result, success := UpdateList(false, existingData, newData, nil, nil, nil)
 	assert.True(t, success)
 	assert.Len(t, result, 2)
-	
+
 	// Check first item - should be unchanged since primary-key-only update was filtered
 	assert.Equal(t, util.Ptr(MeasurementIdType(1)), result[0].MeasurementId)
 	assert.Equal(t, util.Ptr(MeasurementValueTypeType("power")), result[0].ValueType)
 	assert.NotNil(t, result[0].Value)
-	
+
 	// Check second item - should be newly added
 	assert.Equal(t, util.Ptr(MeasurementIdType(2)), result[1].MeasurementId)
 	assert.Equal(t, util.Ptr(MeasurementValueTypeType("voltage")), result[1].ValueType)
@@ -457,7 +457,7 @@ func TestUpdateList_PrimaryKeyFiltering(t *testing.T) {
 }
 
 func TestUpdateList_AllPrimaryKeyOnly(t *testing.T) {
-	// Use simple single-key type 
+	// Use simple single-key type
 	existingData := []TestSingleKeyData{
 		{Id: util.Ptr(uint(1)), Value: util.Ptr(100)},
 	}
@@ -469,7 +469,7 @@ func TestUpdateList_AllPrimaryKeyOnly(t *testing.T) {
 	}
 
 	// Should return existing data unchanged since all new data was filtered
-	result, success := UpdateList(false, existingData, newData, nil, nil)
+	result, success := UpdateList(false, existingData, newData, nil, nil, nil)
 	assert.True(t, success)
 	assert.Equal(t, existingData, result)
 }
@@ -528,11 +528,11 @@ func TestIsFieldValueNil(t *testing.T) {
 // Test hasPrimaryKeyOnly with different field types
 func TestHasPrimaryKeyOnly_FieldTypes(t *testing.T) {
 	type TestFieldTypes struct {
-		PrimaryId *uint                 `eebus:"key,primarykey"`
-		StringVal *string               // Pointer type
-		SliceVal  []string              // Slice type
-		MapVal    map[string]int        // Map type
-		IntVal    int                   // Non-pointer type
+		PrimaryId *uint          `eebus:"key,primarykey"`
+		StringVal *string        // Pointer type
+		SliceVal  []string       // Slice type
+		MapVal    map[string]int // Map type
+		IntVal    int            // Non-pointer type
 	}
 
 	tests := []struct {
