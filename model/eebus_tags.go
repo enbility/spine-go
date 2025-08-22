@@ -13,6 +13,7 @@ const (
 	EEBusTagFunction   EEBusTag = "fct"
 	EEBusTagType       EEBusTag = "typ"
 	EEBusTagKey        EEBusTag = "key"
+	EEBusTagPrimaryKey EEBusTag = "primarykey"
 	EEBusTagWriteCheck EEBusTag = "writecheck"
 )
 

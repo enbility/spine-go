@@ -84,7 +84,7 @@ const (
 )
 
 type MeasurementDataType struct {
-	MeasurementId    *MeasurementIdType            `json:"measurementId,omitempty" eebus:"key"`
+	MeasurementId    *MeasurementIdType            `json:"measurementId,omitempty" eebus:"key,primarykey"`
 	ValueType        *MeasurementValueTypeType     `json:"valueType,omitempty" eebus:"key"`
 	Timestamp        *AbsoluteOrRelativeTimeType   `json:"timestamp,omitempty"`
 	Value            *ScaledNumberType             `json:"value,omitempty"`
@@ -116,7 +116,7 @@ type MeasurementListDataSelectorsType struct {
 }
 
 type MeasurementSeriesDataType struct {
-	MeasurementId    *MeasurementIdType            `json:"measurementId,omitempty" eebus:"key"`
+	MeasurementId    *MeasurementIdType            `json:"measurementId,omitempty" eebus:"key,primarykey"`
 	ValueType        *MeasurementValueTypeType     `json:"valueType,omitempty" eebus:"key"`
 	Timestamp        *AbsoluteOrRelativeTimeType   `json:"timestamp,omitempty"`
 	Value            *ScaledNumberType             `json:"value,omitempty"`
@@ -148,7 +148,7 @@ type MeasurementSeriesListDataSelectorsType struct {
 }
 
 type MeasurementConstraintsDataType struct {
-	MeasurementId *MeasurementIdType `json:"measurementId,omitempty" eebus:"key"`
+	MeasurementId *MeasurementIdType `json:"measurementId,omitempty" eebus:"key,primarykey"`
 	ValueRangeMin *ScaledNumberType  `json:"valueRangeMin,omitempty"`
 	ValueRangeMax *ScaledNumberType  `json:"valueRangeMax,omitempty"`
 	ValueStepSize *ScaledNumberType  `json:"valueStepSize,omitempty"`
@@ -170,7 +170,7 @@ type MeasurementConstraintsListDataSelectorsType struct {
 }
 
 type MeasurementDescriptionDataType struct {
-	MeasurementId    *MeasurementIdType     `json:"measurementId,omitempty" eebus:"key"`
+	MeasurementId    *MeasurementIdType     `json:"measurementId,omitempty" eebus:"key,primarykey"`
 	MeasurementType  *MeasurementTypeType   `json:"measurementType,omitempty"`
 	CommodityType    *CommodityTypeType     `json:"commodityType,omitempty"`
 	Unit             *UnitOfMeasurementType `json:"unit,omitempty"`
@@ -203,7 +203,7 @@ type MeasurementDescriptionListDataSelectorsType struct {
 }
 
 type MeasurementThresholdRelationDataType struct {
-	MeasurementId *MeasurementIdType `json:"measurementId,omitempty" eebus:"key"`
+	MeasurementId *MeasurementIdType `json:"measurementId,omitempty" eebus:"key,primarykey"`
 	ThresholdId   []ThresholdIdType  `json:"thresholdId,omitempty"`
 }
 

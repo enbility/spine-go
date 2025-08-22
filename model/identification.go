@@ -15,7 +15,7 @@ type IdentificationValueType string
 type SessionIdType uint
 
 type IdentificationDataType struct {
-	IdentificationId    *IdentificationIdType    `json:"identificationId,omitempty" eebus:"key"`
+	IdentificationId    *IdentificationIdType    `json:"identificationId,omitempty" eebus:"key,primarykey"`
 	IdentificationType  *IdentificationTypeType  `json:"identificationType,omitempty"`
 	IdentificationValue *IdentificationValueType `json:"identificationValue,omitempty"`
 	Authorized          *bool                    `json:"authorized,omitempty"`
@@ -38,7 +38,7 @@ type IdentificationListDataSelectorsType struct {
 }
 
 type SessionIdentificationDataType struct {
-	SessionId        *SessionIdType        `json:"sessionId,omitempty" eebus:"key"`
+	SessionId        *SessionIdType        `json:"sessionId,omitempty" eebus:"key,primarykey"`
 	IdentificationId *IdentificationIdType `json:"identificationId,omitempty"`
 	IsLatestSession  *bool                 `json:"isLatestSession,omitempty"`
 	TimePeriod       *TimePeriodType       `json:"timePeriod,omitempty"`
@@ -63,7 +63,7 @@ type SessionIdentificationListDataSelectorsType struct {
 }
 
 type SessionMeasurementRelationDataType struct {
-	SessionId     *SessionIdType      `json:"sessionId,omitempty" eebus:"key"`
+	SessionId     *SessionIdType      `json:"sessionId,omitempty" eebus:"key,primarykey"`
 	MeasurementId []MeasurementIdType `json:"measurementId,omitempty"`
 }
 

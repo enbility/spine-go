@@ -52,7 +52,7 @@ type LoadControlNodeDataElementsType struct {
 
 type LoadControlEventDataType struct {
 	Timestamp          *string                     `json:"timestamp,omitempty"`
-	EventId            *LoadControlEventIdType     `json:"eventId,omitempty" eebus:"key"`
+	EventId            *LoadControlEventIdType     `json:"eventId,omitempty" eebus:"key,primarykey"`
 	EventActionConsume *LoadControlEventActionType `json:"eventActionConsume,omitempty"`
 	EventActionProduce *LoadControlEventActionType `json:"eventActionProduce,omitempty"`
 	TimePeriod         *TimePeriodType             `json:"timePeriod,omitempty"`
@@ -77,7 +77,7 @@ type LoadControlEventListDataSelectorsType struct {
 
 type LoadControlStateDataType struct {
 	Timestamp                 *string                     `json:"timestamp"`
-	EventId                   *LoadControlEventIdType     `json:"eventId,omitempty" eebus:"key"`
+	EventId                   *LoadControlEventIdType     `json:"eventId,omitempty" eebus:"key,primarykey"`
 	EventStateConsume         *LoadControlEventStateType  `json:"eventStateConsume"`
 	AppliedEventActionConsume *LoadControlEventActionType `json:"appliedEventActionConsume"`
 	EventStateProduce         *LoadControlEventStateType  `json:"eventStateProduce"`
@@ -103,7 +103,7 @@ type LoadControlStateListDataSelectorsType struct {
 }
 
 type LoadControlLimitDataType struct {
-	LimitId           *LoadControlLimitIdType `json:"limitId,omitempty" eebus:"key"`
+	LimitId           *LoadControlLimitIdType `json:"limitId,omitempty" eebus:"key,primarykey"`
 	IsLimitChangeable *bool                   `json:"isLimitChangeable,omitempty" eebus:"writecheck"`
 	IsLimitActive     *bool                   `json:"isLimitActive,omitempty"`
 	TimePeriod        *TimePeriodType         `json:"timePeriod,omitempty"`
@@ -127,7 +127,7 @@ type LoadControlLimitListDataSelectorsType struct {
 }
 
 type LoadControlLimitConstraintsDataType struct {
-	LimitId       *LoadControlLimitIdType `json:"limitId,omitempty" eebus:"key"`
+	LimitId       *LoadControlLimitIdType `json:"limitId,omitempty" eebus:"key,primarykey"`
 	ValueRangeMin *ScaledNumberType       `json:"valueRangeMin,omitempty"`
 	ValueRangeMax *ScaledNumberType       `json:"valueRangeMax,omitempty"`
 	ValueStepSize *ScaledNumberType       `json:"valueStepSize,omitempty"`
@@ -149,7 +149,7 @@ type LoadControlLimitConstraintsListDataSelectorsType struct {
 }
 
 type LoadControlLimitDescriptionDataType struct {
-	LimitId        *LoadControlLimitIdType   `json:"limitId,omitempty" eebus:"key"`
+	LimitId        *LoadControlLimitIdType   `json:"limitId,omitempty" eebus:"key,primarykey"`
 	LimitType      *LoadControlLimitTypeType `json:"limitType,omitempty"`
 	LimitCategory  *LoadControlCategoryType  `json:"limitCategory,omitempty"`
 	LimitDirection *EnergyDirectionType      `json:"limitDirection,omitempty"`
