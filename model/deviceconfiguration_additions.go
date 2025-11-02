@@ -56,3 +56,63 @@ func (r *DeviceConfigurationKeyValueConstraintsListDataType) UpdateList(remoteWr
 
 	return data, success
 }
+
+// DeviceConfigurationKeyValueListDataType PartialReader implementation
+var _ PartialReader = (*DeviceConfigurationKeyValueListDataType)(nil)
+
+func (r *DeviceConfigurationKeyValueListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[DeviceConfigurationKeyValueDataType, DeviceConfigurationKeyValueListDataSelectorsType, DeviceConfigurationKeyValueDataElementsType](r.DeviceConfigurationKeyValueData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &DeviceConfigurationKeyValueListDataType{
+		DeviceConfigurationKeyValueData: filteredItems,
+	}
+	return result, true
+}
+
+// DeviceConfigurationKeyValueDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*DeviceConfigurationKeyValueDescriptionListDataType)(nil)
+
+func (r *DeviceConfigurationKeyValueDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[DeviceConfigurationKeyValueDescriptionDataType, DeviceConfigurationKeyValueDescriptionListDataSelectorsType, DeviceConfigurationKeyValueDescriptionDataElementsType](r.DeviceConfigurationKeyValueDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &DeviceConfigurationKeyValueDescriptionListDataType{
+		DeviceConfigurationKeyValueDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// DeviceConfigurationKeyValueConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*DeviceConfigurationKeyValueConstraintsListDataType)(nil)
+
+func (r *DeviceConfigurationKeyValueConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[DeviceConfigurationKeyValueConstraintsDataType, DeviceConfigurationKeyValueConstraintsListDataSelectorsType, DeviceConfigurationKeyValueConstraintsDataElementsType](r.DeviceConfigurationKeyValueConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &DeviceConfigurationKeyValueConstraintsListDataType{
+		DeviceConfigurationKeyValueConstraintsData: filteredItems,
+	}
+	return result, true
+}

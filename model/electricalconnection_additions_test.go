@@ -1243,3 +1243,466 @@ func TestElectricalConnectionParameterDescriptionListDataType_Update(t *testing.
 	assert.Equal(t, 1, int(*item2.ElectricalConnectionId))
 	assert.Equal(t, ElectricalConnectionVoltageTypeTypeDc, *item2.VoltageType)
 }
+
+func TestElectricalConnectionStateListDataType_ReadPartialData(t *testing.T) {
+	// Create test data
+	testData := &ElectricalConnectionStateListDataType{
+		ElectricalConnectionStateData: []ElectricalConnectionStateDataType{
+			{
+				ElectricalConnectionId: Ptr(ElectricalConnectionIdType(1)),
+			},
+			{
+				ElectricalConnectionId: Ptr(ElectricalConnectionIdType(2)),
+			},
+		},
+	}
+
+	// Test 1: No filter - should return alludata
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	resultData := result.(*ElectricalConnectionStateListDataType)
+	assert.Len(t, resultData.ElectricalConnectionStateData, 2)
+
+	// Test 2: Filter with specific electrical connection ID
+	filter := &FilterType{
+		ElectricalConnectionStateListDataSelectors: &ElectricalConnectionStateListDataSelectorsType{
+			ElectricalConnectionId: Ptr(ElectricalConnectionIdType(1)),
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionStateListDataType)
+	assert.Len(t, resultData.ElectricalConnectionStateData, 1)
+	assert.Equal(t, ElectricalConnectionIdType(1), *resultData.ElectricalConnectionStateData[0].ElectricalConnectionId)
+
+	// Test 3: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionParameterDescriptionListDataType_ReadPartialData(t *testing.T) {
+	connectionId := ElectricalConnectionIdType(1)
+	parameterId := ElectricalConnectionParameterIdType(10)
+
+	data := &ElectricalConnectionParameterDescriptionListDataType{
+		ElectricalConnectionParameterDescriptionData: []ElectricalConnectionParameterDescriptionDataType{
+			{ElectricalConnectionId: &connectionId, ParameterId: &parameterId},
+			{ElectricalConnectionId: Ptr(ElectricalConnectionIdType(2)), ParameterId: &parameterId},
+		},
+	}
+
+	// Test with both connection and parameter ID filter
+	filter := &FilterType{
+		ElectricalConnectionParameterDescriptionListDataSelectors: &ElectricalConnectionParameterDescriptionListDataSelectorsType{
+			ElectricalConnectionId: &connectionId,
+			ParameterId:            &parameterId,
+		},
+	}
+
+	result, ok := data.ReadPartialData(filter)
+	assert.True(t, ok)
+
+	resultData := result.(*ElectricalConnectionParameterDescriptionListDataType)
+	assert.Len(t, resultData.ElectricalConnectionParameterDescriptionData, 1)
+	assert.Equal(t, connectionId, *resultData.ElectricalConnectionParameterDescriptionData[0].ElectricalConnectionId)
+
+	// Test 2: ReadPartialData with nil filter
+	result, ok = data.ReadPartialData(nil)
+	assert.True(t, ok)
+	resultData = result.(*ElectricalConnectionParameterDescriptionListDataType)
+	assert.Len(t, resultData.ElectricalConnectionParameterDescriptionData, 2)
+
+	// Test 2: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success := data.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionPermittedValueSetListDataType_ReadPartialData(t *testing.T) {
+	electricalConnectionId1 := ElectricalConnectionIdType(1)
+	electricalConnectionId2 := ElectricalConnectionIdType(2)
+	parameterId1 := ElectricalConnectionParameterIdType(10)
+	parameterId2 := ElectricalConnectionParameterIdType(20)
+
+	testData := &ElectricalConnectionPermittedValueSetListDataType{
+		ElectricalConnectionPermittedValueSetData: []ElectricalConnectionPermittedValueSetDataType{
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				ParameterId:            &parameterId1,
+				PermittedValueSet: []ScaledNumberSetType{
+					{
+						Value: []ScaledNumberType{
+							{Number: util.Ptr(NumberType(100)), Scale: util.Ptr(ScaleType(0))},
+							{Number: util.Ptr(NumberType(200)), Scale: util.Ptr(ScaleType(0))},
+						},
+					},
+				},
+			},
+			{
+				ElectricalConnectionId: &electricalConnectionId2,
+				ParameterId:            &parameterId2,
+				PermittedValueSet: []ScaledNumberSetType{
+					{
+						Value: []ScaledNumberType{
+							{Number: util.Ptr(NumberType(300)), Scale: util.Ptr(ScaleType(0))},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Test 1: No filter - should return all data
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	assert.Equal(t, testData, result)
+
+	// Test 2: Filter by electrical connection ID
+	filter := &FilterType{
+		ElectricalConnectionPermittedValueSetListDataSelectors: &ElectricalConnectionPermittedValueSetListDataSelectorsType{
+			ElectricalConnectionId: &electricalConnectionId1,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData := result.(*ElectricalConnectionPermittedValueSetListDataType)
+	assert.Len(t, resultData.ElectricalConnectionPermittedValueSetData, 1)
+	assert.Equal(t, electricalConnectionId1, *resultData.ElectricalConnectionPermittedValueSetData[0].ElectricalConnectionId)
+
+	// Test 3: Filter by parameter ID
+	filter = &FilterType{
+		ElectricalConnectionPermittedValueSetListDataSelectors: &ElectricalConnectionPermittedValueSetListDataSelectorsType{
+			ParameterId: &parameterId2,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionPermittedValueSetListDataType)
+	assert.Len(t, resultData.ElectricalConnectionPermittedValueSetData, 1)
+	assert.Equal(t, parameterId2, *resultData.ElectricalConnectionPermittedValueSetData[0].ParameterId)
+
+	// Test 4: Multiple criteria filter
+	filter = &FilterType{
+		ElectricalConnectionPermittedValueSetListDataSelectors: &ElectricalConnectionPermittedValueSetListDataSelectorsType{
+			ElectricalConnectionId: &electricalConnectionId1,
+			ParameterId:            &parameterId1,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionPermittedValueSetListDataType)
+	assert.Len(t, resultData.ElectricalConnectionPermittedValueSetData, 1)
+	assert.Equal(t, electricalConnectionId1, *resultData.ElectricalConnectionPermittedValueSetData[0].ElectricalConnectionId)
+	assert.Equal(t, parameterId1, *resultData.ElectricalConnectionPermittedValueSetData[0].ParameterId)
+
+	// Test 5: No matching filter
+	nonExistentId := ElectricalConnectionIdType(999)
+	filter = &FilterType{
+		ElectricalConnectionPermittedValueSetListDataSelectors: &ElectricalConnectionPermittedValueSetListDataSelectorsType{
+			ElectricalConnectionId: &nonExistentId,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionPermittedValueSetListDataType)
+	assert.Len(t, resultData.ElectricalConnectionPermittedValueSetData, 0)
+
+	// Test 6: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionDescriptionListDataType_ReadPartialData(t *testing.T) {
+	electricalConnectionId1 := ElectricalConnectionIdType(1)
+	electricalConnectionId2 := ElectricalConnectionIdType(2)
+	scopeType1 := ScopeTypeType("device")
+	scopeType2 := ScopeTypeType("system")
+
+	testData := &ElectricalConnectionDescriptionListDataType{
+		ElectricalConnectionDescriptionData: []ElectricalConnectionDescriptionDataType{
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				PowerSupplyType:        util.Ptr(ElectricalConnectionVoltageTypeType("ac")),
+				ScopeType:              &scopeType1,
+				Label:                  util.Ptr(LabelType("AC Connection 1")),
+				Description:            util.Ptr(DescriptionType("Primary AC connection")),
+			},
+			{
+				ElectricalConnectionId: &electricalConnectionId2,
+				PowerSupplyType:        util.Ptr(ElectricalConnectionVoltageTypeType("dc")),
+				ScopeType:              &scopeType2,
+				Label:                  util.Ptr(LabelType("DC Connection 1")),
+				Description:            util.Ptr(DescriptionType("Primary DC connection")),
+			},
+		},
+	}
+
+	// Test 1: No filter - should return all data
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	assert.Equal(t, testData, result)
+
+	// Test 2: Filter by electrical connection ID
+	filter := &FilterType{
+		ElectricalConnectionDescriptionListDataSelectors: &ElectricalConnectionDescriptionListDataSelectorsType{
+			ElectricalConnectionId: &electricalConnectionId1,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData := result.(*ElectricalConnectionDescriptionListDataType)
+	assert.Len(t, resultData.ElectricalConnectionDescriptionData, 1)
+	assert.Equal(t, electricalConnectionId1, *resultData.ElectricalConnectionDescriptionData[0].ElectricalConnectionId)
+	assert.Equal(t, "ac", string(*resultData.ElectricalConnectionDescriptionData[0].PowerSupplyType))
+
+	// Test 3: Filter by power supply type
+	filter = &FilterType{
+		ElectricalConnectionDescriptionListDataSelectors: &ElectricalConnectionDescriptionListDataSelectorsType{
+			ScopeType: &scopeType2,
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionDescriptionListDataType)
+	assert.Len(t, resultData.ElectricalConnectionDescriptionData, 1)
+	assert.Equal(t, "system", string(*resultData.ElectricalConnectionDescriptionData[0].ScopeType))
+	assert.Equal(t, "DC Connection 1", string(*resultData.ElectricalConnectionDescriptionData[0].Label))
+
+	// Test 4: Elements filtering test
+	filter = &FilterType{
+		ElectricalConnectionDescriptionDataElements: &ElectricalConnectionDescriptionDataElementsType{
+			ElectricalConnectionId: &ElementTagType{},
+			Label:                  &ElementTagType{},
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionDescriptionListDataType)
+	assert.Len(t, resultData.ElectricalConnectionDescriptionData, 2)
+	// Check that only requested elements are included
+	for _, item := range resultData.ElectricalConnectionDescriptionData {
+		assert.NotNil(t, item.ElectricalConnectionId)
+		assert.NotNil(t, item.Label)
+		// PowerSupplyType and Description should be nil since not requested in elements
+		assert.Nil(t, item.PowerSupplyType)
+		assert.Nil(t, item.Description)
+	}
+
+	// Test 5: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionCharacteristicListDataType_ReadPartialData_Enhanced(t *testing.T) {
+	electricalConnectionId1 := ElectricalConnectionIdType(1)
+	electricalConnectionId2 := ElectricalConnectionIdType(2)
+	characteristicId1 := ElectricalConnectionCharacteristicIdType(10)
+	characteristicId2 := ElectricalConnectionCharacteristicIdType(20)
+
+	testData := &ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicData: []ElectricalConnectionCharacteristicDataType{
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				CharacteristicId:       &characteristicId1,
+				CharacteristicContext:  util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualConsumptionNominalMax")),
+				Value:                  &ScaledNumberType{Number: util.Ptr(NumberType(3000)), Scale: util.Ptr(ScaleType(0))},
+			},
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				CharacteristicId:       &characteristicId2,
+				CharacteristicContext:  util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualProductionNominalMax")),
+				Value:                  &ScaledNumberType{Number: util.Ptr(NumberType(2000)), Scale: util.Ptr(ScaleType(0))},
+			},
+			{
+				ElectricalConnectionId: &electricalConnectionId2,
+				CharacteristicId:       &characteristicId1,
+				CharacteristicContext:  util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualConsumptionNominalMax")),
+				Value:                  &ScaledNumberType{Number: util.Ptr(NumberType(5000)), Scale: util.Ptr(ScaleType(0))},
+			},
+		},
+	}
+
+	// Test 1: Filter by electrical connection ID and characteristic ID
+	filter := &FilterType{
+		ElectricalConnectionCharacteristicListDataSelectors: &ElectricalConnectionCharacteristicListDataSelectorsType{
+			ElectricalConnectionId: &electricalConnectionId1,
+			CharacteristicId:       &characteristicId1,
+		},
+	}
+
+	result, success := testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData := result.(*ElectricalConnectionCharacteristicListDataType)
+	assert.Len(t, resultData.ElectricalConnectionCharacteristicData, 1)
+	assert.Equal(t, electricalConnectionId1, *resultData.ElectricalConnectionCharacteristicData[0].ElectricalConnectionId)
+	assert.Equal(t, characteristicId1, *resultData.ElectricalConnectionCharacteristicData[0].CharacteristicId)
+
+	// Test 2: Filter by characteristic context
+	filter = &FilterType{
+		ElectricalConnectionCharacteristicListDataSelectors: &ElectricalConnectionCharacteristicListDataSelectorsType{
+			CharacteristicContext: util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionCharacteristicListDataType)
+	assert.Len(t, resultData.ElectricalConnectionCharacteristicData, 3) // All items have entity context
+
+	// Test 3: Filter by characteristic type
+	filter = &FilterType{
+		ElectricalConnectionCharacteristicListDataSelectors: &ElectricalConnectionCharacteristicListDataSelectorsType{
+			CharacteristicType: util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualProductionNominalMax")),
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionCharacteristicListDataType)
+	assert.Len(t, resultData.ElectricalConnectionCharacteristicData, 1) // Only one with this type
+	assert.Equal(t, "contractualProductionNominalMax", string(*resultData.ElectricalConnectionCharacteristicData[0].CharacteristicType))
+
+	// Test 4: Complex filtering with multiple criteria
+	filter = &FilterType{
+		ElectricalConnectionCharacteristicListDataSelectors: &ElectricalConnectionCharacteristicListDataSelectorsType{
+			ElectricalConnectionId: &electricalConnectionId1,
+			CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualConsumptionNominalMax")),
+		},
+	}
+
+	result, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+	resultData = result.(*ElectricalConnectionCharacteristicListDataType)
+	assert.Len(t, resultData.ElectricalConnectionCharacteristicData, 1)
+	assert.Equal(t, electricalConnectionId1, *resultData.ElectricalConnectionCharacteristicData[0].ElectricalConnectionId)
+	assert.Equal(t, "contractualConsumptionNominalMax", string(*resultData.ElectricalConnectionCharacteristicData[0].CharacteristicType))
+
+	// Test 5: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionPermittedValueSetListDataType_ReadPartialData_UpdateList(t *testing.T) {
+	electricalConnectionId1 := ElectricalConnectionIdType(1)
+	electricalConnectionId2 := ElectricalConnectionIdType(2)
+	parameterId1 := ElectricalConnectionParameterIdType(10)
+	parameterId2 := ElectricalConnectionParameterIdType(20)
+
+	testData := &ElectricalConnectionPermittedValueSetListDataType{
+		ElectricalConnectionPermittedValueSetData: []ElectricalConnectionPermittedValueSetDataType{
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				ParameterId:            &parameterId1,
+				PermittedValueSet: []ScaledNumberSetType{
+					{
+						Value: []ScaledNumberType{
+							{Number: util.Ptr(NumberType(100)), Scale: util.Ptr(ScaleType(0))},
+							{Number: util.Ptr(NumberType(200)), Scale: util.Ptr(ScaleType(0))},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Test UpdateList functionality
+	newItem := ElectricalConnectionPermittedValueSetDataType{
+		ElectricalConnectionId: &electricalConnectionId2,
+		ParameterId:            &parameterId2,
+		PermittedValueSet: []ScaledNumberSetType{
+			{
+				Value: []ScaledNumberType{
+					{Number: util.Ptr(NumberType(300)), Scale: util.Ptr(ScaleType(0))},
+				},
+			},
+		},
+	}
+
+	newData := &ElectricalConnectionPermittedValueSetListDataType{
+		ElectricalConnectionPermittedValueSetData: []ElectricalConnectionPermittedValueSetDataType{newItem},
+	}
+
+	updatedList, success := testData.UpdateList(false, true, newData, nil, nil, Ptr(FunctionTypeElectricalConnectionPermittedValueSetListData))
+	assert.True(t, success)
+	updatedListData := updatedList.([]ElectricalConnectionPermittedValueSetDataType)
+	assert.Len(t, updatedListData, 2) // Should have both items now
+
+	// Verify new item was added
+	var foundNewItem *ElectricalConnectionPermittedValueSetDataType
+	for _, item := range updatedListData {
+		if *item.ElectricalConnectionId == electricalConnectionId2 && *item.ParameterId == parameterId2 {
+			foundNewItem = &item
+			break
+		}
+	}
+
+	assert.NotNil(t, foundNewItem)
+	assert.Equal(t, electricalConnectionId2, *foundNewItem.ElectricalConnectionId)
+	assert.Equal(t, parameterId2, *foundNewItem.ParameterId)
+
+	// Test 2: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestElectricalConnectionCharacteristicListDataType_ReadPartialData_UpdateList(t *testing.T) {
+	electricalConnectionId1 := ElectricalConnectionIdType(1)
+	characteristicId1 := ElectricalConnectionCharacteristicIdType(10)
+	parameterId1 := ElectricalConnectionParameterIdType(5)
+
+	testData := &ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicData: []ElectricalConnectionCharacteristicDataType{
+			{
+				ElectricalConnectionId: &electricalConnectionId1,
+				ParameterId:            &parameterId1,
+				CharacteristicId:       &characteristicId1,
+				CharacteristicContext:  util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+				CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualConsumptionNominalMax")),
+				Value:                  &ScaledNumberType{Number: util.Ptr(NumberType(3000)), Scale: util.Ptr(ScaleType(0))},
+			},
+		},
+	}
+
+	// Test UpdateList - modify existing item
+	updatedItem := ElectricalConnectionCharacteristicDataType{
+		ElectricalConnectionId: &electricalConnectionId1,
+		ParameterId:            &parameterId1,
+		CharacteristicId:       &characteristicId1,
+		CharacteristicContext:  util.Ptr(ElectricalConnectionCharacteristicContextType("entity")),
+		CharacteristicType:     util.Ptr(ElectricalConnectionCharacteristicTypeType("contractualConsumptionNominalMax")),
+		Value:                  &ScaledNumberType{Number: util.Ptr(NumberType(5000)), Scale: util.Ptr(ScaleType(0))},
+	}
+
+	newData := &ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicData: []ElectricalConnectionCharacteristicDataType{updatedItem},
+	}
+
+	updatedList, success := testData.UpdateList(false, true, newData, nil, nil, Ptr(FunctionTypeElectricalConnectionCharacteristicListData))
+	assert.True(t, success)
+	updatedListData := updatedList.([]ElectricalConnectionCharacteristicDataType)
+	assert.Len(t, updatedListData, 1)
+
+	// Verify item was updated
+	assert.Equal(t, float64(5000), updatedListData[0].Value.GetValue())
+
+	// Test 2: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}

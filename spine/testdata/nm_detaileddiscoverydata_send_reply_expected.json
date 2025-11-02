@@ -84,7 +84,9 @@
                                         {
                                             "function": "nodeManagementDestinationListData",
                                             "possibleOperations": {
-                                                "read": {}
+                                                "read": {
+                                                    "partial": {}
+                                                }
                                             }
                                         },
                                         {

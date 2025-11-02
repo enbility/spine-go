@@ -1024,29 +1024,28 @@ func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_ReturnsFullData() {
 		FilterPartial: partialFilter,
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
-			Filter: []model.FilterType{*partialFilter},
+			Filter:                   []model.FilterType{*partialFilter},
 		},
 	}
 
-	// Expect full data reply (should NOT respect partial filter)
+	// Expect filtered data reply (partial filters should be applied)
 	s.senderMock.EXPECT().Reply(
-		mock.Anything,
-		mock.Anything,
+		mock.MatchedBy(func(header *model.HeaderType) bool { return true }),
+		mock.MatchedBy(func(addr *model.FeatureAddressType) bool { return true }),
 		mock.MatchedBy(func(cmd model.CmdType) bool {
-			// Verify reply contains full data, not partial
+			// Verify reply contains filtered data with only LimitId (partial filter applied)
 			if cmd.LoadControlLimitListData == nil {
 				return false
 			}
-			// Should contain all data, not just LimitId
 			data := cmd.LoadControlLimitListData
 			if len(data.LoadControlLimitData) != 2 {
 				return false
 			}
-			// Both entries should have all fields (full data)
+			// Both entries should have only LimitId (filtered data)
 			entry1 := data.LoadControlLimitData[0]
 			entry2 := data.LoadControlLimitData[1]
-			return entry1.LimitId != nil && entry1.IsLimitActive != nil && entry1.Value != nil &&
-				entry2.LimitId != nil && entry2.IsLimitActive != nil && entry2.Value != nil
+			return entry1.LimitId != nil && entry1.IsLimitActive == nil && entry1.Value == nil &&
+				entry2.LimitId != nil && entry2.IsLimitActive == nil && entry2.Value == nil
 		}),
 	).Return(nil)
 
@@ -1093,22 +1092,26 @@ func (s *LocalFeatureTestSuite) Test_Read_WithSelectorFilter_ReturnsAllData() {
 		FilterPartial: selectorFilter,
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
-			Filter: []model.FilterType{*selectorFilter},
+			Filter:                   []model.FilterType{*selectorFilter},
 		},
 	}
 
-	// Expect all data (should ignore selector filter)
+	// Expect filtered data (should apply selector filter)
 	s.senderMock.EXPECT().Reply(
-		mock.Anything,
-		mock.Anything,
+		mock.MatchedBy(func(header *model.HeaderType) bool { return true }),
+		mock.MatchedBy(func(addr *model.FeatureAddressType) bool { return true }),
 		mock.MatchedBy(func(cmd model.CmdType) bool {
-			// Verify reply contains ALL data, not just selected item
+			// Verify reply contains only the selected item
 			if cmd.LoadControlLimitListData == nil {
 				return false
 			}
 			data := cmd.LoadControlLimitListData
-			// Should contain all 3 entries, not just the one with ID 1
-			return len(data.LoadControlLimitData) == 3
+			// Should contain only the entry with ID 1 (selector filter applied)
+			if len(data.LoadControlLimitData) != 1 {
+				return false
+			}
+			entry := data.LoadControlLimitData[0]
+			return entry.LimitId != nil && *entry.LimitId == 1
 		}),
 	).Return(nil)
 
@@ -1159,28 +1162,29 @@ func (s *LocalFeatureTestSuite) Test_Read_WithCombinedFilters_ReturnsFullData() 
 		FilterPartial: combinedFilter,
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
-			Filter: []model.FilterType{*combinedFilter},
+			Filter:                   []model.FilterType{*combinedFilter},
 		},
 	}
 
-	// Expect full data (should ignore both selector and element filters)
+	// Expect filtered data (should apply both selector and element filters)
 	s.senderMock.EXPECT().Reply(
-		mock.Anything,
-		mock.Anything,
+		mock.MatchedBy(func(header *model.HeaderType) bool { return true }),
+		mock.MatchedBy(func(addr *model.FeatureAddressType) bool { return true }),
 		mock.MatchedBy(func(cmd model.CmdType) bool {
-			// Verify reply contains full data
+			// Verify reply contains filtered data
 			if cmd.LoadControlLimitListData == nil {
 				return false
 			}
 			data := cmd.LoadControlLimitListData
-			if len(data.LoadControlLimitData) != 2 {
+			// Should contain only entry with ID 1 (selector filter)
+			if len(data.LoadControlLimitData) != 1 {
 				return false
 			}
-			// Both entries should have all fields
-			entry1 := data.LoadControlLimitData[0]
-			entry2 := data.LoadControlLimitData[1]
-			return entry1.LimitId != nil && entry1.IsLimitActive != nil && entry1.IsLimitChangeable != nil && entry1.Value != nil &&
-				entry2.LimitId != nil && entry2.IsLimitActive != nil && entry2.IsLimitChangeable != nil && entry2.Value != nil
+			// Should have only LimitId and IsLimitActive fields (element filter)
+			entry := data.LoadControlLimitData[0]
+			return entry.LimitId != nil && *entry.LimitId == 1 && 
+				entry.IsLimitActive != nil && 
+				entry.IsLimitChangeable == nil && entry.Value == nil
 		}),
 	).Return(nil)
 
@@ -1219,7 +1223,7 @@ func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_NoErrors() {
 		FilterPartial: partialFilter,
 		Cmd: model.CmdType{
 			LoadControlLimitListData: &model.LoadControlLimitListDataType{},
-			Filter: []model.FilterType{*partialFilter},
+			Filter:                   []model.FilterType{*partialFilter},
 		},
 	}
 
@@ -1229,14 +1233,4 @@ func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_NoErrors() {
 	// Handle the message - should not return any errors
 	err := s.localServerFeatureWrite.HandleMessage(msg)
 	assert.Nil(s.T(), err)
-}
-
-// Test that partial read capability is correctly reported as false
-func (s *LocalFeatureTestSuite) Test_Operations_NoPartialReadSupport() {
-	operations := s.localServerFeatureWrite.Operations()
-	
-	// Verify that partial read is not supported
-	operation, exists := operations[s.serverWriteFunction]
-	assert.True(s.T(), exists)
-	assert.False(s.T(), operation.ReadPartial())
 }

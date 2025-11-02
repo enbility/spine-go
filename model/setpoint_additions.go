@@ -37,3 +37,43 @@ func (r *SetpointDescriptionListDataType) UpdateList(remoteWrite, persist bool, 
 
 	return data, success
 }
+
+// SetpointListDataType PartialReader implementation
+var _ PartialReader = (*SetpointListDataType)(nil)
+
+func (r *SetpointListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[SetpointDataType, SetpointListDataSelectorsType, SetpointDataElementsType](r.SetpointData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SetpointListDataType{
+		SetpointData: filteredItems,
+	}
+	return result, true
+}
+
+// SetpointDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*SetpointDescriptionListDataType)(nil)
+
+func (r *SetpointDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[SetpointDescriptionDataType, SetpointDescriptionListDataSelectorsType, SetpointDescriptionDataElementsType](r.SetpointDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SetpointDescriptionListDataType{
+		SetpointDescriptionData: filteredItems,
+	}
+	return result, true
+}

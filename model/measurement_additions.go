@@ -94,3 +94,103 @@ func (r *MeasurementThresholdRelationListDataType) UpdateList(remoteWrite, persi
 
 	return data, success
 }
+
+// MeasurementListDataType PartialReader implementation
+var _ PartialReader = (*MeasurementListDataType)(nil)
+
+func (r *MeasurementListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[MeasurementDataType, MeasurementListDataSelectorsType, MeasurementDataElementsType](r.MeasurementData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MeasurementListDataType{
+		MeasurementData: filteredItems,
+	}
+	return result, true
+}
+
+// MeasurementConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*MeasurementConstraintsListDataType)(nil)
+
+func (r *MeasurementConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[MeasurementConstraintsDataType, MeasurementConstraintsListDataSelectorsType, MeasurementConstraintsDataElementsType](r.MeasurementConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MeasurementConstraintsListDataType{
+		MeasurementConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// MeasurementDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*MeasurementDescriptionListDataType)(nil)
+
+func (r *MeasurementDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[MeasurementDescriptionDataType, MeasurementDescriptionListDataSelectorsType, MeasurementDescriptionDataElementsType](r.MeasurementDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MeasurementDescriptionListDataType{
+		MeasurementDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// MeasurementSeriesListDataType PartialReader implementation
+var _ PartialReader = (*MeasurementSeriesListDataType)(nil)
+
+func (r *MeasurementSeriesListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[MeasurementSeriesDataType, MeasurementSeriesListDataSelectorsType, MeasurementSeriesDataElementsType](r.MeasurementSeriesData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MeasurementSeriesListDataType{
+		MeasurementSeriesData: filteredItems,
+	}
+	return result, true
+}
+
+// MeasurementThresholdRelationListDataType PartialReader implementation
+var _ PartialReader = (*MeasurementThresholdRelationListDataType)(nil)
+
+func (r *MeasurementThresholdRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[MeasurementThresholdRelationDataType, MeasurementThresholdRelationListDataSelectorsType, MeasurementThresholdRelationDataElementsType](r.MeasurementThresholdRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MeasurementThresholdRelationListDataType{
+		MeasurementThresholdRelationData: filteredItems,
+	}
+	return result, true
+}

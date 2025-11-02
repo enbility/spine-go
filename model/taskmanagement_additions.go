@@ -56,3 +56,63 @@ func (r *TaskManagementJobDescriptionListDataType) UpdateList(remoteWrite, persi
 
 	return data, success
 }
+
+// TaskManagementJobListDataType PartialReader implementation
+var _ PartialReader = (*TaskManagementJobListDataType)(nil)
+
+func (r *TaskManagementJobListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TaskManagementJobDataType, TaskManagementJobListDataSelectorsType, TaskManagementJobDataElementsType](r.TaskManagementJobData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TaskManagementJobListDataType{
+		TaskManagementJobData: filteredItems,
+	}
+	return result, true
+}
+
+// TaskManagementJobRelationListDataType PartialReader implementation
+var _ PartialReader = (*TaskManagementJobRelationListDataType)(nil)
+
+func (r *TaskManagementJobRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TaskManagementJobRelationDataType, TaskManagementJobRelationListDataSelectorsType, TaskManagementJobRelationDataElementsType](r.TaskManagementJobRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TaskManagementJobRelationListDataType{
+		TaskManagementJobRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// TaskManagementJobDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*TaskManagementJobDescriptionListDataType)(nil)
+
+func (r *TaskManagementJobDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TaskManagementJobDescriptionDataType, TaskManagementJobDescriptionListDataSelectorsType, TaskManagementJobDescriptionDataElementsType](r.TaskManagementJobDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TaskManagementJobDescriptionListDataType{
+		TaskManagementJobDescriptionData: filteredItems,
+	}
+	return result, true
+}

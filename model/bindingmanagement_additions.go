@@ -18,3 +18,23 @@ func (r *BindingManagementEntryListDataType) UpdateList(remoteWrite, persist boo
 
 	return data, success
 }
+
+// BindingManagementEntryListDataType PartialReader implementation
+var _ PartialReader = (*BindingManagementEntryListDataType)(nil)
+
+func (r *BindingManagementEntryListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[BindingManagementEntryDataType, BindingManagementEntryListDataSelectorsType, BindingManagementEntryDataElementsType](r.BindingManagementEntryData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &BindingManagementEntryListDataType{
+		BindingManagementEntryData: filteredItems,
+	}
+	return result, true
+}

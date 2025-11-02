@@ -56,3 +56,63 @@ func (r *ThresholdDescriptionListDataType) UpdateList(remoteWrite, persist bool,
 
 	return data, success
 }
+
+// ThresholdListDataType PartialReader implementation
+var _ PartialReader = (*ThresholdListDataType)(nil)
+
+func (r *ThresholdListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[ThresholdDataType, ThresholdListDataSelectorsType, ThresholdDataElementsType](r.ThresholdData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ThresholdListDataType{
+		ThresholdData: filteredItems,
+	}
+	return result, true
+}
+
+// ThresholdConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*ThresholdConstraintsListDataType)(nil)
+
+func (r *ThresholdConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[ThresholdConstraintsDataType, ThresholdConstraintsListDataSelectorsType, ThresholdConstraintsDataElementsType](r.ThresholdConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ThresholdConstraintsListDataType{
+		ThresholdConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// ThresholdDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*ThresholdDescriptionListDataType)(nil)
+
+func (r *ThresholdDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[ThresholdDescriptionDataType, ThresholdDescriptionListDataSelectorsType, ThresholdDescriptionDataElementsType](r.ThresholdDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ThresholdDescriptionListDataType{
+		ThresholdDescriptionData: filteredItems,
+	}
+	return result, true
+}

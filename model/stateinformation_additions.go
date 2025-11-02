@@ -18,3 +18,23 @@ func (r *StateInformationListDataType) UpdateList(remoteWrite, persist bool, new
 
 	return data, success
 }
+
+// StateInformationListDataType PartialReader implementation
+var _ PartialReader = (*StateInformationListDataType)(nil)
+
+func (r *StateInformationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[StateInformationDataType, StateInformationListDataSelectorsType, StateInformationDataElementsType](r.StateInformationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &StateInformationListDataType{
+		StateInformationData: filteredItems,
+	}
+	return result, true
+}

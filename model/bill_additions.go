@@ -56,3 +56,63 @@ func (r *BillDescriptionListDataType) UpdateList(remoteWrite, persist bool, newL
 
 	return data, success
 }
+
+// BillListDataType PartialReader implementation
+var _ PartialReader = (*BillListDataType)(nil)
+
+func (r *BillListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[BillDataType, BillListDataSelectorsType, BillDataElementsType](r.BillData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &BillListDataType{
+		BillData: filteredItems,
+	}
+	return result, true
+}
+
+// BillConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*BillConstraintsListDataType)(nil)
+
+func (r *BillConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[BillConstraintsDataType, BillConstraintsListDataSelectorsType, BillConstraintsDataElementsType](r.BillConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &BillConstraintsListDataType{
+		BillConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// BillDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*BillDescriptionListDataType)(nil)
+
+func (r *BillDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[BillDescriptionDataType, BillDescriptionListDataSelectorsType, BillDescriptionDataElementsType](r.BillDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &BillDescriptionListDataType{
+		BillDescriptionData: filteredItems,
+	}
+	return result, true
+}

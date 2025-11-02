@@ -18,3 +18,23 @@ func (r *MessagingListDataType) UpdateList(remoteWrite, persist bool, newList an
 
 	return data, success
 }
+
+// MessagingListDataType PartialReader implementation
+var _ PartialReader = (*MessagingListDataType)(nil)
+
+func (r *MessagingListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[MessagingDataType, MessagingListDataSelectorsType, MessagingDataElementsType](r.MessagingData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &MessagingListDataType{
+		MessagingData: filteredItems,
+	}
+	return result, true
+}

@@ -45,3 +45,56 @@ func TestBindingManagementEntryListDataType_Update(t *testing.T) {
 	assert.Equal(t, 1, int(*item2.BindingId))
 	assert.Equal(t, "new", string(*item2.Description))
 }
+
+func TestBindingManagementEntryListDataType_ReadPartialData(t *testing.T) {
+	// Create test data
+	testData := &BindingManagementEntryListDataType{
+		BindingManagementEntryData: []BindingManagementEntryDataType{
+			{
+				ClientAddress: &FeatureAddressType{
+					Device:  newAddressDeviceType("client1"),
+					Entity:  []AddressEntityType{1, 1},
+					Feature: newAddressFeatureType(1),
+				},
+				ServerAddress: &FeatureAddressType{
+					Device:  newAddressDeviceType("server1"),
+					Entity:  []AddressEntityType{2, 1},
+					Feature: newAddressFeatureType(2),
+				},
+			},
+			{
+				ClientAddress: &FeatureAddressType{
+					Device:  newAddressDeviceType("client2"),
+					Entity:  []AddressEntityType{1, 2},
+					Feature: newAddressFeatureType(3),
+				},
+				ServerAddress: &FeatureAddressType{
+					Device:  newAddressDeviceType("server2"),
+					Entity:  []AddressEntityType{2, 2},
+					Feature: newAddressFeatureType(4),
+				},
+			},
+		},
+	}
+
+	// Test 1: ReadPartialData with nil filter should return all data
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	assert.Equal(t, testData, result)
+
+	// Test 2: ReadPartialData with filter
+	filter := &FilterType{
+		BindingManagementEntryListDataSelectors: &BindingManagementEntryListDataSelectorsType{
+			ClientAddress: &FeatureAddressType{
+				Device: newAddressDeviceType("client1"),
+			},
+		},
+	}
+	_, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+
+	// Test 3: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}

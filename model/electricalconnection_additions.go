@@ -94,3 +94,103 @@ func (r *ElectricalConnectionParameterDescriptionListDataType) UpdateList(remote
 
 	return data, success
 }
+
+// ElectricalConnectionPermittedValueSetListDataType PartialReader implementation
+var _ PartialReader = (*ElectricalConnectionPermittedValueSetListDataType)(nil)
+
+func (r *ElectricalConnectionPermittedValueSetListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - handles multiple selector fields automatically
+	filteredItems, success := partialListDataRead[ElectricalConnectionPermittedValueSetDataType, ElectricalConnectionPermittedValueSetListDataSelectorsType, ElectricalConnectionPermittedValueSetDataElementsType](r.ElectricalConnectionPermittedValueSetData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ElectricalConnectionPermittedValueSetListDataType{
+		ElectricalConnectionPermittedValueSetData: filteredItems,
+	}
+	return result, true
+}
+
+// ElectricalConnectionDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*ElectricalConnectionDescriptionListDataType)(nil)
+
+func (r *ElectricalConnectionDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[ElectricalConnectionDescriptionDataType, ElectricalConnectionDescriptionListDataSelectorsType, ElectricalConnectionDescriptionDataElementsType](r.ElectricalConnectionDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ElectricalConnectionDescriptionListDataType{
+		ElectricalConnectionDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// ElectricalConnectionStateListDataType PartialReader implementation
+var _ PartialReader = (*ElectricalConnectionStateListDataType)(nil)
+
+func (r *ElectricalConnectionStateListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[ElectricalConnectionStateDataType, ElectricalConnectionStateListDataSelectorsType, ElectricalConnectionStateDataElementsType](r.ElectricalConnectionStateData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ElectricalConnectionStateListDataType{
+		ElectricalConnectionStateData: filteredItems,
+	}
+	return result, true
+}
+
+// ElectricalConnectionParameterDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*ElectricalConnectionParameterDescriptionListDataType)(nil)
+
+func (r *ElectricalConnectionParameterDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[ElectricalConnectionParameterDescriptionDataType, ElectricalConnectionParameterDescriptionListDataSelectorsType, ElectricalConnectionParameterDescriptionDataElementsType](r.ElectricalConnectionParameterDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ElectricalConnectionParameterDescriptionListDataType{
+		ElectricalConnectionParameterDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// ElectricalConnectionCharacteristicListDataType PartialReader implementation
+var _ PartialReader = (*ElectricalConnectionCharacteristicListDataType)(nil)
+
+func (r *ElectricalConnectionCharacteristicListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles all field matching
+	filteredItems, success := partialListDataRead[ElectricalConnectionCharacteristicDataType, ElectricalConnectionCharacteristicListDataSelectorsType, ElectricalConnectionCharacteristicDataElementsType](r.ElectricalConnectionCharacteristicData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &ElectricalConnectionCharacteristicListDataType{
+		ElectricalConnectionCharacteristicData: filteredItems,
+	}
+	return result, true
+}

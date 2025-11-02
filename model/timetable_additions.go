@@ -56,3 +56,63 @@ func (r *TimeTableDescriptionListDataType) UpdateList(remoteWrite, persist bool,
 
 	return data, success
 }
+
+// TimeTableListDataType PartialReader implementation
+var _ PartialReader = (*TimeTableListDataType)(nil)
+
+func (r *TimeTableListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TimeTableDataType, TimeTableListDataSelectorsType, TimeTableDataElementsType](r.TimeTableData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TimeTableListDataType{
+		TimeTableData: filteredItems,
+	}
+	return result, true
+}
+
+// TimeTableConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*TimeTableConstraintsListDataType)(nil)
+
+func (r *TimeTableConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TimeTableConstraintsDataType, TimeTableConstraintsListDataSelectorsType, TimeTableConstraintsDataElementsType](r.TimeTableConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TimeTableConstraintsListDataType{
+		TimeTableConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// TimeTableDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*TimeTableDescriptionListDataType)(nil)
+
+func (r *TimeTableDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TimeTableDescriptionDataType, TimeTableDescriptionListDataSelectorsType, TimeTableDescriptionDataElementsType](r.TimeTableDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TimeTableDescriptionListDataType{
+		TimeTableDescriptionData: filteredItems,
+	}
+	return result, true
+}

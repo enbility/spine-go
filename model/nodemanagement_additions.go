@@ -237,3 +237,23 @@ func (e *NodeManagementDetailedDiscoveryEntityInformationType) ValidateXSD() err
 	}
 	return nil
 }
+
+// NodeManagementDestinationListDataType PartialReader implementation
+var _ PartialReader = (*NodeManagementDestinationListDataType)(nil)
+
+func (r *NodeManagementDestinationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles all field matching
+	filteredItems, success := partialListDataRead[NodeManagementDestinationDataType, NodeManagementDestinationListDataSelectorsType, NodeManagementDestinationDataElementsType](r.NodeManagementDestinationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &NodeManagementDestinationListDataType{
+		NodeManagementDestinationData: filteredItems,
+	}
+	return result, true
+}

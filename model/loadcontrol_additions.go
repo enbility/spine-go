@@ -94,3 +94,103 @@ func (r *LoadControlLimitDescriptionListDataType) UpdateList(remoteWrite, persis
 
 	return data, success
 }
+
+// LoadControlLimitListDataType PartialReader implementation
+var _ PartialReader = (*LoadControlLimitListDataType)(nil)
+
+func (r *LoadControlLimitListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[LoadControlLimitDataType, LoadControlLimitListDataSelectorsType, LoadControlLimitDataElementsType](r.LoadControlLimitData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &LoadControlLimitListDataType{
+		LoadControlLimitData: filteredItems,
+	}
+	return result, true
+}
+
+// LoadControlEventListDataType PartialReader implementation
+var _ PartialReader = (*LoadControlEventListDataType)(nil)
+
+func (r *LoadControlEventListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[LoadControlEventDataType, LoadControlEventListDataSelectorsType, LoadControlEventDataElementsType](r.LoadControlEventData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &LoadControlEventListDataType{
+		LoadControlEventData: filteredItems,
+	}
+	return result, true
+}
+
+// LoadControlStateListDataType PartialReader implementation
+var _ PartialReader = (*LoadControlStateListDataType)(nil)
+
+func (r *LoadControlStateListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[LoadControlStateDataType, LoadControlStateListDataSelectorsType, LoadControlStateDataElementsType](r.LoadControlStateData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &LoadControlStateListDataType{
+		LoadControlStateData: filteredItems,
+	}
+	return result, true
+}
+
+// LoadControlLimitConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*LoadControlLimitConstraintsListDataType)(nil)
+
+func (r *LoadControlLimitConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[LoadControlLimitConstraintsDataType, LoadControlLimitConstraintsListDataSelectorsType, LoadControlLimitConstraintsDataElementsType](r.LoadControlLimitConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &LoadControlLimitConstraintsListDataType{
+		LoadControlLimitConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// LoadControlLimitDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*LoadControlLimitDescriptionListDataType)(nil)
+
+func (r *LoadControlLimitDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[LoadControlLimitDescriptionDataType, LoadControlLimitDescriptionListDataSelectorsType, LoadControlLimitDescriptionDataElementsType](r.LoadControlLimitDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &LoadControlLimitDescriptionListDataType{
+		LoadControlLimitDescriptionData: filteredItems,
+	}
+	return result, true
+}

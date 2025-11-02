@@ -45,3 +45,51 @@ func TestSubscriptionManagementEntryListDataType_Update(t *testing.T) {
 	assert.Equal(t, 1, int(*item2.SubscriptionId))
 	assert.Equal(t, "new", string(*item2.Description))
 }
+
+func TestSubscriptionManagementEntryListDataType_ReadPartialData(t *testing.T) {
+	testData := &SubscriptionManagementEntryListDataType{
+		SubscriptionManagementEntryData: []SubscriptionManagementEntryDataType{
+			{
+				SubscriptionId: util.Ptr(SubscriptionIdType(1)),
+			},
+			{
+				SubscriptionId: util.Ptr(SubscriptionIdType(2)),
+			},
+		},
+	}
+
+	// Test 1: ReadPartialData with nil filter should return all data
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	assert.Equal(t, testData, result)
+
+	// Test 2: filter with selector should return filtered data
+	filter := FilterType{
+		SubscriptionManagementEntryListDataSelectors: &SubscriptionManagementEntryListDataSelectorsType{
+			SubscriptionId: util.Ptr(SubscriptionIdType(1)),
+		},
+	}
+	result, success = testData.ReadPartialData(&filter)
+	assert.True(t, success)
+	resultData := result.(*SubscriptionManagementEntryListDataType)
+	assert.Equal(t, 1, len(resultData.SubscriptionManagementEntryData))
+	if len(resultData.SubscriptionManagementEntryData) > 0 {
+		assert.Equal(t, SubscriptionIdType(1), *resultData.SubscriptionManagementEntryData[0].SubscriptionId)
+	}
+
+	// Test 3: filter with non-matching selector should return empty data
+	filter = FilterType{
+		SubscriptionManagementEntryListDataSelectors: &SubscriptionManagementEntryListDataSelectorsType{
+			SubscriptionId: util.Ptr(SubscriptionIdType(3)),
+		},
+	}
+	result, success = testData.ReadPartialData(&filter)
+	assert.True(t, success)
+	resultData = result.(*SubscriptionManagementEntryListDataType)
+	assert.Equal(t, 0, len(resultData.SubscriptionManagementEntryData))
+
+	// Test 4: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}

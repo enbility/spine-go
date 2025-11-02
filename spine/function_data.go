@@ -35,6 +35,10 @@ func (r *FunctionData[T]) SupportsPartialWrite() bool {
 	return util.Implements[T, model.Updater]()
 }
 
+func (r *FunctionData[T]) SupportsPartialRead() bool {
+	return util.Implements[T, model.PartialReader]()
+}
+
 func (r *FunctionData[T]) DataCopy() *T {
 	r.mux.Lock()
 	defer r.mux.Unlock()

@@ -107,35 +107,38 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_PartialFilterIgnored()
 		DeviceRemote:  s.remoteFeature.Device(),
 	}
 
-	// Step 4: Setup expectation - reply should contain FULL data (ignoring filters)
+	// Step 4: Setup expectation - reply should contain FILTERED data (applying filters)
 	s.senderMock.EXPECT().Reply(
 		mock.MatchedBy(func(header *model.HeaderType) bool {
 			return header.MsgCounter != nil && *header.MsgCounter == model.MsgCounterType(100)
 		}),
 		s.localFeature.Address(),
 		mock.MatchedBy(func(replyCmd model.CmdType) bool {
-			// Verify the reply ignores the partial filter and returns full data
+			// Verify the reply applies the partial filter and returns filtered data
 			if replyCmd.LoadControlLimitListData == nil {
 				return false
 			}
 
 			data := replyCmd.LoadControlLimitListData
 
-			// Should contain ALL entries (ignores selector for ID 1)
-			if len(data.LoadControlLimitData) != 2 {
+			// Should contain only one entry (selector filter for ID 1)
+			if len(data.LoadControlLimitData) != 1 {
 				return false
 			}
 
-			// Should contain ALL fields for each entry (ignores element filter)
-			for _, entry := range data.LoadControlLimitData {
-				if entry.LimitId == nil || entry.IsLimitActive == nil || entry.IsLimitChangeable == nil ||
-					entry.Value == nil || entry.TimePeriod == nil {
-					return false
-				}
+			// Should contain only specified fields (element filter)
+			entry := data.LoadControlLimitData[0]
+			// Should have LimitId and IsLimitActive (from element filter), but not other fields
+			if entry.LimitId == nil || *entry.LimitId != 1 || entry.IsLimitActive == nil {
+				return false
+			}
+			// Other fields should be filtered out
+			if entry.IsLimitChangeable != nil || entry.Value != nil || entry.TimePeriod != nil {
+				return false
 			}
 
-			// Verify no filter is included in the reply
-			return len(replyCmd.Filter) == 0
+			// Verify filter is included in the reply (partial filter support)
+			return len(replyCmd.Filter) > 0
 		}),
 	).Return(nil)
 
@@ -149,7 +152,7 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_PartialFilterIgnored()
 
 // Integration test: Verify behavior across different function types
 func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_DifferentFunctionTypes() {
-	// Test with DeviceClassificationManufacturerData (different data type)
+	// Test with DeviceClassificationManufacturerData (this type does NOT support partial reads)
 	manufacturerData := &model.DeviceClassificationManufacturerDataType{
 		BrandName:    util.Ptr(model.DeviceClassificationStringType("Test Brand")),
 		VendorName:   util.Ptr(model.DeviceClassificationStringType("Test Vendor")),
@@ -244,9 +247,9 @@ func (s *PartialFilterIntegrationTestSuite) Test_EndToEnd_NoFilters_FullReply() 
 		DeviceRemote:  s.remoteFeature.Device(),
 	}
 
-	// Expect full data reply
+	// Expect full data reply (no filters provided)
 	s.senderMock.EXPECT().Reply(
-		mock.Anything,
+		mock.MatchedBy(func(header *model.HeaderType) bool { return true }),
 		s.localFeature.Address(),
 		mock.MatchedBy(func(replyCmd model.CmdType) bool {
 			return replyCmd.LoadControlLimitListData != nil &&

@@ -132,3 +132,114 @@ func TestSessionMeasurementRelationListDataType_Update(t *testing.T) {
 	assert.Equal(t, 1, int(*item2.SessionId))
 	assert.Equal(t, []MeasurementIdType{2, 3, 4}, item2.MeasurementId)
 }
+
+func TestSessionIdentificationListDataType_ReadPartialData(t *testing.T) {
+	sessionId := SessionIdType(123)
+	data := &SessionIdentificationListDataType{
+		SessionIdentificationData: []SessionIdentificationDataType{
+			{SessionId: &sessionId},
+			{SessionId: Ptr(SessionIdType(456))},
+		},
+	}
+
+	// Test without filter - should return all data
+	result, ok := data.ReadPartialData(nil)
+	assert.True(t, ok)
+	assert.Equal(t, data, result)
+
+	// Test with session ID filter
+	filter := &FilterType{
+		SessionIdentificationListDataSelectors: &SessionIdentificationListDataSelectorsType{
+			SessionId: &sessionId,
+		},
+	}
+
+	result, ok = data.ReadPartialData(filter)
+	assert.True(t, ok)
+
+	resultData := result.(*SessionIdentificationListDataType)
+	assert.Len(t, resultData.SessionIdentificationData, 1)
+	assert.Equal(t, sessionId, *resultData.SessionIdentificationData[0].SessionId)
+
+	// Test 3: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success := data.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestSessionMeasurementRelationListDataType_ReadPartialData(t *testing.T) {
+	sessionId := SessionIdType(123)
+	measurementId1 := MeasurementIdType(1)
+	measurementId2 := MeasurementIdType(2)
+
+	data := &SessionMeasurementRelationListDataType{
+		SessionMeasurementRelationData: []SessionMeasurementRelationDataType{
+			{
+				SessionId:     &sessionId,
+				MeasurementId: []MeasurementIdType{measurementId1, measurementId2},
+			},
+			{
+				SessionId:     Ptr(SessionIdType(456)),
+				MeasurementId: []MeasurementIdType{measurementId2},
+			},
+		},
+	}
+
+	// Test with measurement ID filter
+	filter := &FilterType{
+		SessionMeasurementRelationListDataSelectors: &SessionMeasurementRelationListDataSelectorsType{
+			MeasurementId: &measurementId1,
+		},
+	}
+
+	result, ok := data.ReadPartialData(filter)
+	assert.True(t, ok)
+
+	resultData := result.(*SessionMeasurementRelationListDataType)
+	assert.Len(t, resultData.SessionMeasurementRelationData, 1)
+	assert.Equal(t, sessionId, *resultData.SessionMeasurementRelationData[0].SessionId)
+
+	// Test 2: ReadPartialData with nil filter
+	_, success := data.ReadPartialData(nil)
+	assert.True(t, success)
+
+	// Test 3: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = data.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}
+
+func TestIdentificationListDataType_ReadPartialData(t *testing.T) {
+	identificationId1 := IdentificationIdType(1)
+	identificationId2 := IdentificationIdType(2)
+
+	testData := &IdentificationListDataType{
+		IdentificationData: []IdentificationDataType{
+			{
+				IdentificationId: &identificationId1,
+			},
+			{
+				IdentificationId: &identificationId2,
+			},
+		},
+	}
+
+	// Test 1: ReadPartialData with nil filter should return all data
+	result, success := testData.ReadPartialData(nil)
+	assert.True(t, success)
+	assert.Equal(t, testData, result)
+
+	// Test 2: ReadPartialData with filter
+	filter := &FilterType{
+		IdentificationListDataSelectors: &IdentificationListDataSelectorsType{
+			IdentificationId: &identificationId1,
+		},
+	}
+	_, success = testData.ReadPartialData(filter)
+	assert.True(t, success)
+
+	// Test 3: ReadPartialData with empty filter
+	emptyFilter := &FilterType{}
+	_, success = testData.ReadPartialData(emptyFilter)
+	assert.False(t, success)
+}

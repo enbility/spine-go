@@ -151,3 +151,163 @@ func (r *HvacOverrunDescriptionListDataType) UpdateList(remoteWrite, persist boo
 
 	return data, success
 }
+
+// HvacOverrunDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*HvacOverrunDescriptionListDataType)(nil)
+
+func (r *HvacOverrunDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacOverrunDescriptionDataType, HvacOverrunDescriptionListDataSelectorsType, HvacOverrunDescriptionDataElementsType](r.HvacOverrunDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacOverrunDescriptionListDataType{
+		HvacOverrunDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacSystemFunctionListDataType PartialReader implementation
+var _ PartialReader = (*HvacSystemFunctionListDataType)(nil)
+
+func (r *HvacSystemFunctionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacSystemFunctionDataType, HvacSystemFunctionListDataSelectorsType, HvacSystemFunctionDataElementsType](r.HvacSystemFunctionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacSystemFunctionListDataType{
+		HvacSystemFunctionData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacSystemFunctionOperationModeRelationListDataType PartialReader implementation
+var _ PartialReader = (*HvacSystemFunctionOperationModeRelationListDataType)(nil)
+
+func (r *HvacSystemFunctionOperationModeRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacSystemFunctionOperationModeRelationDataType, HvacSystemFunctionOperationModeRelationListDataSelectorsType, HvacSystemFunctionOperationModeRelationDataElementsType](r.HvacSystemFunctionOperationModeRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacSystemFunctionOperationModeRelationListDataType{
+		HvacSystemFunctionOperationModeRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacSystemFunctionSetpointRelationListDataType PartialReader implementation
+var _ PartialReader = (*HvacSystemFunctionSetpointRelationListDataType)(nil)
+
+func (r *HvacSystemFunctionSetpointRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacSystemFunctionSetpointRelationDataType, HvacSystemFunctionSetpointRelationListDataSelectorsType, HvacSystemFunctionSetpointRelationDataElementsType](r.HvacSystemFunctionSetpointRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacSystemFunctionSetpointRelationListDataType{
+		HvacSystemFunctionSetpointRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacSystemFunctionPowerSequenceRelationListDataType PartialReader implementation
+var _ PartialReader = (*HvacSystemFunctionPowerSequenceRelationListDataType)(nil)
+
+func (r *HvacSystemFunctionPowerSequenceRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacSystemFunctionPowerSequenceRelationDataType, HvacSystemFunctionPowerSequenceRelationListDataSelectorsType, HvacSystemFunctionPowerSequenceRelationDataElementsType](r.HvacSystemFunctionPowerSequenceRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacSystemFunctionPowerSequenceRelationListDataType{
+		HvacSystemFunctionPowerSequenceRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacSystemFunctionDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*HvacSystemFunctionDescriptionListDataType)(nil)
+
+func (r *HvacSystemFunctionDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacSystemFunctionDescriptionDataType, HvacSystemFunctionDescriptionListDataSelectorsType, HvacSystemFunctionDescriptionDataElementsType](r.HvacSystemFunctionDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacSystemFunctionDescriptionListDataType{
+		HvacSystemFunctionDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacOperationModeDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*HvacOperationModeDescriptionListDataType)(nil)
+
+func (r *HvacOperationModeDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacOperationModeDescriptionDataType, HvacOperationModeDescriptionListDataSelectorsType, HvacOperationModeDescriptionDataElementsType](r.HvacOperationModeDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacOperationModeDescriptionListDataType{
+		HvacOperationModeDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// HvacOverrunListDataType PartialReader implementation
+var _ PartialReader = (*HvacOverrunListDataType)(nil)
+
+func (r *HvacOverrunListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[HvacOverrunDataType, HvacOverrunListDataSelectorsType, HvacOverrunDataElementsType](r.HvacOverrunData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &HvacOverrunListDataType{
+		HvacOverrunData: filteredItems,
+	}
+	return result, true
+}

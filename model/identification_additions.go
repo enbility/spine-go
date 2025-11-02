@@ -56,3 +56,63 @@ func (r *SessionMeasurementRelationListDataType) UpdateList(remoteWrite, persist
 
 	return persist, success
 }
+
+// IdentificationListDataType PartialReader implementation
+var _ PartialReader = (*IdentificationListDataType)(nil)
+
+func (r *IdentificationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[IdentificationDataType, IdentificationListDataSelectorsType, IdentificationDataElementsType](r.IdentificationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &IdentificationListDataType{
+		IdentificationData: filteredItems,
+	}
+	return result, true
+}
+
+// SessionIdentificationListDataType PartialReader implementation
+var _ PartialReader = (*SessionIdentificationListDataType)(nil)
+
+func (r *SessionIdentificationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function with both selector and elements filtering
+	filteredItems, success := partialListDataRead[SessionIdentificationDataType, SessionIdentificationListDataSelectorsType, SessionIdentificationDataElementsType](r.SessionIdentificationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SessionIdentificationListDataType{
+		SessionIdentificationData: filteredItems,
+	}
+	return result, true
+}
+
+// SessionMeasurementRelationListDataType PartialReader implementation
+var _ PartialReader = (*SessionMeasurementRelationListDataType)(nil)
+
+func (r *SessionMeasurementRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles array matching for MeasurementId
+	filteredItems, success := partialListDataRead[SessionMeasurementRelationDataType, SessionMeasurementRelationListDataSelectorsType, SessionMeasurementRelationDataElementsType](r.SessionMeasurementRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SessionMeasurementRelationListDataType{
+		SessionMeasurementRelationData: filteredItems,
+	}
+	return result, true
+}

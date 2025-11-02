@@ -56,3 +56,63 @@ func (r *SupplyConditionThresholdRelationListDataType) UpdateList(remoteWrite, p
 
 	return data, success
 }
+
+// SupplyConditionListDataType PartialReader implementation
+var _ PartialReader = (*SupplyConditionListDataType)(nil)
+
+func (r *SupplyConditionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[SupplyConditionDataType, SupplyConditionListDataSelectorsType, SupplyConditionDataElementsType](r.SupplyConditionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SupplyConditionListDataType{
+		SupplyConditionData: filteredItems,
+	}
+	return result, true
+}
+
+// SupplyConditionDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*SupplyConditionDescriptionListDataType)(nil)
+
+func (r *SupplyConditionDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[SupplyConditionDescriptionDataType, SupplyConditionDescriptionListDataSelectorsType, SupplyConditionDescriptionDataElementsType](r.SupplyConditionDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SupplyConditionDescriptionListDataType{
+		SupplyConditionDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// SupplyConditionThresholdRelationListDataType PartialReader implementation
+var _ PartialReader = (*SupplyConditionThresholdRelationListDataType)(nil)
+
+func (r *SupplyConditionThresholdRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[SupplyConditionThresholdRelationDataType, SupplyConditionThresholdRelationListDataSelectorsType, SupplyConditionThresholdRelationDataElementsType](r.SupplyConditionThresholdRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &SupplyConditionThresholdRelationListDataType{
+		SupplyConditionThresholdRelationData: filteredItems,
+	}
+	return result, true
+}

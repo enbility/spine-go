@@ -12,6 +12,8 @@ type FunctionDataCmdInterface interface {
 	ReadCmdType(partialSelector any, elements any) model.CmdType
 	// Get the CmdType data for a reply command
 	ReplyCmdType(partial bool) model.CmdType
+	// Get the CmdType data for a reply command with filter support for partial reads
+	ReplyCmdTypeWithFilter(partial bool, filter *model.FilterType) model.CmdType
 	// Get the CmdType data for a notify or write command
 	//
 	// Note: partialSelector and elements have to be pointers!
@@ -23,6 +25,8 @@ type FunctionDataInterface interface {
 	FunctionType() model.FunctionType
 	// Return if this function supports partial writes
 	SupportsPartialWrite() bool
+	// Return if this function supports partial read
+	SupportsPartialRead() bool
 	// Get a copy of the functions data
 	DataCopyAny() any
 	// Update the functions data, only persisted if persist is true, otherwise useful for creating full write datasets

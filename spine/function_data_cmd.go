@@ -34,7 +34,34 @@ func (r *FunctionDataCmd[T]) ReadCmdType(partialSelector any, elements any) mode
 }
 
 func (r *FunctionDataCmd[T]) ReplyCmdType(partial bool) model.CmdType {
-	data := r.DataCopy()
+	return r.ReplyCmdTypeWithFilter(partial, nil)
+}
+
+func (r *FunctionDataCmd[T]) ReplyCmdTypeWithFilter(partial bool, filter *model.FilterType) model.CmdType {
+	var data *T
+
+	if partial && filter != nil && r.SupportsPartialRead() {
+		// Use partial reading to get filtered data
+		if reader, ok := any(r.data).(model.PartialReader); ok {
+			if filteredData, success := reader.ReadPartialData(filter); success {
+				if typedData, ok := filteredData.(*T); ok {
+					data = typedData
+				} else {
+					// Fallback to full data if type assertion fails
+					data = r.DataCopy()
+				}
+			} else {
+				// Fallback to full data if partial read fails
+				data = r.DataCopy()
+			}
+		} else {
+			// Fallback to full data if PartialReader interface not implemented
+			data = r.DataCopy()
+		}
+	} else {
+		// Normal full read
+		data = r.DataCopy()
+	}
 	cmd := createCmd(r.functionType, data)
 	if partial {
 		cmd.Filter = filterEmptyPartial()

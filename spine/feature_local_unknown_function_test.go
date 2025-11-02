@@ -15,7 +15,7 @@ import (
 func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 	// Setup
 	_, localEntity := createLocalDeviceAndEntity(1)
-	
+
 	// Create a Measurement server feature
 	localFeature := NewFeatureLocal(
 		localEntity.NextFeatureId(),
@@ -24,7 +24,7 @@ func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 		model.RoleTypeServer,
 	)
 	localEntity.AddFeature(localFeature)
-	
+
 	t.Run("HandleMessage with empty cmd returns error 6", func(t *testing.T) {
 		message := &api.Message{
 			CmdClassifier: model.CmdClassifierTypeRead,
@@ -33,16 +33,16 @@ func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 				MsgCounter: util.Ptr(model.MsgCounterType(1)),
 			},
 		}
-		
+
 		err := localFeature.HandleMessage(message)
-		
+
 		// Verify error code 6 is returned
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber,
 			"Empty cmd should return CommandNotSupported (6), not GeneralError (1)")
 		assert.Equal(t, "Data not found in Cmd", string(*err.Description))
 	})
-	
+
 	t.Run("HandleMessage with no function in cmd returns error 6", func(t *testing.T) {
 		// Create a cmd with valid data but nil Function after Data() processing
 		message := &api.Message{
@@ -54,9 +54,9 @@ func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 				MsgCounter: util.Ptr(model.MsgCounterType(2)),
 			},
 		}
-		
+
 		err := localFeature.HandleMessage(message)
-		
+
 		// Should return error 6
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber)
@@ -67,7 +67,7 @@ func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 // TestFeatureLocal_processRead_UnknownFunction verifies processRead behavior
 func TestFeatureLocal_processRead_UnknownFunction(t *testing.T) {
 	_, localEntity := createLocalDeviceAndEntity(1)
-	
+
 	t.Run("server feature with unknown function", func(t *testing.T) {
 		localFeature := NewFeatureLocal(
 			localEntity.NextFeatureId(),
@@ -76,20 +76,21 @@ func TestFeatureLocal_processRead_UnknownFunction(t *testing.T) {
 			model.RoleTypeServer,
 		)
 		localEntity.AddFeature(localFeature)
-		
+
 		// Try to read an unsupported function
 		err := localFeature.processRead(
 			model.FunctionTypeDeviceClassificationManufacturerData, // Not supported by Measurement
 			nil,
 			nil,
+			&api.Message{},
 		)
-		
+
 		// Should return error code 6
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber)
 		assert.Equal(t, "function data not found", string(*err.Description))
 	})
-	
+
 	t.Run("client feature rejects any read", func(t *testing.T) {
 		localFeature := NewFeatureLocal(
 			localEntity.NextFeatureId(),
@@ -98,14 +99,15 @@ func TestFeatureLocal_processRead_UnknownFunction(t *testing.T) {
 			model.RoleTypeClient,
 		)
 		localEntity.AddFeature(localFeature)
-		
+
 		// Client features reject all reads
 		err := localFeature.processRead(
 			model.FunctionTypeMeasurementListData,
 			nil,
 			nil,
+			&api.Message{},
 		)
-		
+
 		// Should return error code 7 (CommandRejected)
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandRejected, err.ErrorNumber)
@@ -115,7 +117,7 @@ func TestFeatureLocal_processRead_UnknownFunction(t *testing.T) {
 // TestFeatureLocal_executeWrite_UnknownFunction tests write handling
 func TestFeatureLocal_executeWrite_UnknownFunction(t *testing.T) {
 	_, localEntity := createLocalDeviceAndEntity(1)
-	
+
 	localFeature := NewFeatureLocal(
 		localEntity.NextFeatureId(),
 		localEntity,
@@ -123,7 +125,7 @@ func TestFeatureLocal_executeWrite_UnknownFunction(t *testing.T) {
 		model.RoleTypeServer,
 	)
 	localEntity.AddFeature(localFeature)
-	
+
 	t.Run("write unknown function returns error 6", func(t *testing.T) {
 		message := &api.Message{
 			CmdClassifier: model.CmdClassifierTypeWrite,
@@ -133,23 +135,23 @@ func TestFeatureLocal_executeWrite_UnknownFunction(t *testing.T) {
 				},
 			},
 		}
-		
+
 		err := localFeature.executeWrite(message)
-		
+
 		// Should return error code 6
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber)
 		assert.Equal(t, "data not found", string(*err.Description))
 	})
-	
+
 	t.Run("write empty cmd returns error 6", func(t *testing.T) {
 		message := &api.Message{
 			CmdClassifier: model.CmdClassifierTypeWrite,
 			Cmd:           model.CmdType{},
 		}
-		
+
 		err := localFeature.executeWrite(message)
-		
+
 		// Should return error code 6
 		assert.NotNil(t, err)
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber)
@@ -160,12 +162,12 @@ func TestFeatureLocal_executeWrite_UnknownFunction(t *testing.T) {
 // TestFeatureLocal_functionData verifies functionData returns nil for unknown functions
 func TestFeatureLocal_functionData(t *testing.T) {
 	_, localEntity := createLocalDeviceAndEntity(1)
-	
+
 	tests := []struct {
-		name         string
-		featureType  model.FeatureTypeType
-		knownFunc    model.FunctionType
-		unknownFunc  model.FunctionType
+		name        string
+		featureType model.FeatureTypeType
+		knownFunc   model.FunctionType
+		unknownFunc model.FunctionType
 	}{
 		{
 			name:        "LoadControl feature",
@@ -186,7 +188,7 @@ func TestFeatureLocal_functionData(t *testing.T) {
 			unknownFunc: model.FunctionTypeMeasurementListData,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			localFeature := NewFeatureLocal(
@@ -196,11 +198,11 @@ func TestFeatureLocal_functionData(t *testing.T) {
 				model.RoleTypeServer,
 			)
 			localEntity.AddFeature(localFeature)
-			
+
 			// Test known function
 			fd := localFeature.functionData(tt.knownFunc)
 			assert.NotNil(t, fd, "functionData should return data for known function %s", tt.knownFunc)
-			
+
 			// Test unknown function
 			fd = localFeature.functionData(tt.unknownFunc)
 			assert.Nil(t, fd, "functionData should return nil for unknown function %s", tt.unknownFunc)
@@ -216,14 +218,14 @@ func TestErrorTypeCreation(t *testing.T) {
 		assert.Equal(t, model.ErrorNumberTypeGeneralError, err.ErrorNumber,
 			"NewErrorTypeFromString always returns GeneralError (1)")
 	})
-	
+
 	t.Run("NewErrorType with explicit error code - the fix", func(t *testing.T) {
 		// This is the fix: use NewErrorType with explicit error code
 		err := model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function not found")
 		assert.Equal(t, model.ErrorNumberTypeCommandNotSupported, err.ErrorNumber,
 			"NewErrorType with explicit code returns the correct error number")
 	})
-	
+
 	// Summary: The fix was to replace NewErrorTypeFromString with NewErrorType
 	// for all function-related errors to ensure error code 6 is returned
 }

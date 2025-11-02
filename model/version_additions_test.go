@@ -42,3 +42,16 @@ func (s *VersionSuite) Test_UpdateList() {
 	item1 = data[0]
 	assert.Equal(s.T(), "1.0.1", string(item1))
 }
+
+func TestSpecificationVersionListDataType_ReadPartialData(t *testing.T) {
+	data := &SpecificationVersionListDataType{
+		SpecificationVersionData: []SpecificationVersionDataType{
+			SpecificationVersionDataType("1.0.0"),
+		},
+	}
+
+	// Test - should always return all data since selector is empty
+	result, ok := data.ReadPartialData(nil)
+	assert.True(t, ok)
+	assert.Equal(t, data, result)
+}

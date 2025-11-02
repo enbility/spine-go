@@ -227,3 +227,243 @@ func (r *IncentiveDescriptionListDataType) UpdateList(remoteWrite, persist bool,
 
 	return data, success
 }
+
+// TariffListDataType PartialReader implementation
+var _ PartialReader = (*TariffListDataType)(nil)
+
+func (r *TariffListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TariffDataType, TariffListDataSelectorsType, TariffDataElementsType](r.TariffData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TariffListDataType{
+		TariffData: filteredItems,
+	}
+	return result, true
+}
+
+// TariffTierRelationListDataType PartialReader implementation
+var _ PartialReader = (*TariffTierRelationListDataType)(nil)
+
+func (r *TariffTierRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TariffTierRelationDataType, TariffTierRelationListDataSelectorsType, TariffTierRelationDataElementsType](r.TariffTierRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TariffTierRelationListDataType{
+		TariffTierRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// TariffBoundaryRelationListDataType PartialReader implementation
+var _ PartialReader = (*TariffBoundaryRelationListDataType)(nil)
+
+func (r *TariffBoundaryRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TariffBoundaryRelationDataType, TariffBoundaryRelationListDataSelectorsType, TariffBoundaryRelationDataElementsType](r.TariffBoundaryRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TariffBoundaryRelationListDataType{
+		TariffBoundaryRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// TariffDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*TariffDescriptionListDataType)(nil)
+
+func (r *TariffDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TariffDescriptionDataType, TariffDescriptionListDataSelectorsType, TariffDescriptionDataElementsType](r.TariffDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TariffDescriptionListDataType{
+		TariffDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// TierBoundaryListDataType PartialReader implementation
+var _ PartialReader = (*TierBoundaryListDataType)(nil)
+
+func (r *TierBoundaryListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TierBoundaryDataType, TierBoundaryListDataSelectorsType, TierBoundaryDataElementsType](r.TierBoundaryData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TierBoundaryListDataType{
+		TierBoundaryData: filteredItems,
+	}
+	return result, true
+}
+
+// TierBoundaryDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*TierBoundaryDescriptionListDataType)(nil)
+
+func (r *TierBoundaryDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TierBoundaryDescriptionDataType, TierBoundaryDescriptionListDataSelectorsType, TierBoundaryDescriptionDataElementsType](r.TierBoundaryDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TierBoundaryDescriptionListDataType{
+		TierBoundaryDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// CommodityListDataType PartialReader implementation
+var _ PartialReader = (*CommodityListDataType)(nil)
+
+func (r *CommodityListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[CommodityDataType, CommodityListDataSelectorsType, CommodityDataElementsType](r.CommodityData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &CommodityListDataType{
+		CommodityData: filteredItems,
+	}
+	return result, true
+}
+
+// TierListDataType PartialReader implementation
+var _ PartialReader = (*TierListDataType)(nil)
+
+func (r *TierListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TierDataType, TierListDataSelectorsType, TierDataElementsType](r.TierData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TierListDataType{
+		TierData: filteredItems,
+	}
+	return result, true
+}
+
+// TierIncentiveRelationListDataType PartialReader implementation
+var _ PartialReader = (*TierIncentiveRelationListDataType)(nil)
+
+func (r *TierIncentiveRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TierIncentiveRelationDataType, TierIncentiveRelationListDataSelectorsType, TierIncentiveRelationDataElementsType](r.TierIncentiveRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TierIncentiveRelationListDataType{
+		TierIncentiveRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// TierDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*TierDescriptionListDataType)(nil)
+
+func (r *TierDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[TierDescriptionDataType, TierDescriptionListDataSelectorsType, TierDescriptionDataElementsType](r.TierDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &TierDescriptionListDataType{
+		TierDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// IncentiveListDataType PartialReader implementation
+var _ PartialReader = (*IncentiveListDataType)(nil)
+
+func (r *IncentiveListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[IncentiveDataType, IncentiveListDataSelectorsType, IncentiveDataElementsType](r.IncentiveData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &IncentiveListDataType{
+		IncentiveData: filteredItems,
+	}
+	return result, true
+}
+
+// IncentiveDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*IncentiveDescriptionListDataType)(nil)
+
+func (r *IncentiveDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[IncentiveDescriptionDataType, IncentiveDescriptionListDataSelectorsType, IncentiveDescriptionDataElementsType](r.IncentiveDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &IncentiveDescriptionListDataType{
+		IncentiveDescriptionData: filteredItems,
+	}
+	return result, true
+}

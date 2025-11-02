@@ -18,3 +18,11 @@ func (r *SpecificationVersionListDataType) UpdateList(remoteWrite, persist bool,
 
 	return data, success
 }
+
+// SpecificationVersionListDataType PartialReader implementation
+var _ PartialReader = (*SpecificationVersionListDataType)(nil)
+
+func (r *SpecificationVersionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	// SpecificationVersionListDataSelectorsType is empty, so we always return all data
+	return r, true
+}

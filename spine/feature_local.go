@@ -81,12 +81,15 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 			writePartial = fctData.SupportsPartialWrite()
 		}
 	}
-	// Partial reads are intentionally not supported (spec-compliant design decision)
-	// SPINE specification section 5.3.4.5 states: "A server MAY ignore unsupported cmdOption 
-	// combinations and then replies with more than the requested parts instead."
-	// By setting readPartial to false, we ensure all read requests return full data,
-	// which provides the safest interoperability behavior for multi-vendor scenarios.
-	r.operations[function] = NewOperations(read, false, write, writePartial)
+	readPartial := false
+	if read {
+		// check partial read support on the features
+		if fcData := r.functionData(function); fcData != nil {
+			readPartial = fcData.SupportsPartialRead()
+		}
+	}
+
+	r.operations[function] = NewOperations(read, readPartial, write, writePartial)
 
 	if r.role == model.RoleTypeServer &&
 		r.ftype == model.FeatureTypeTypeDeviceDiagnosis &&
@@ -685,7 +688,7 @@ func (r *FeatureLocal) HandleMessage(message *api.Message) *model.ErrorType {
 			return err
 		}
 	case model.CmdClassifierTypeRead:
-		if err := r.processRead(*cmdData.Function, message.RequestHeader, message.FeatureRemote); err != nil {
+		if err := r.processRead(*cmdData.Function, message.RequestHeader, message.FeatureRemote, message); err != nil {
 			return err
 		}
 	case model.CmdClassifierTypeReply:
@@ -748,7 +751,7 @@ func (r *FeatureLocal) processResult(message *api.Message) *model.ErrorType {
 	return nil
 }
 
-func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface) *model.ErrorType {
+func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *model.HeaderType, featureRemote api.FeatureRemoteInterface, message *api.Message) *model.ErrorType {
 	// is this a read request to a local server/special feature?
 	if r.role == model.RoleTypeClient {
 		// Read requests to a client feature are not allowed
@@ -760,20 +763,21 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
-	// SPEC-COMPLIANT BEHAVIOR: Partial filters are intentionally ignored
-	// 
-	// The incoming message may contain FilterPartial with element selectors,
-	// selectors, or other cmdOptions, but we always reply with full data.
-	// This implements SPINE specification section 5.3.4.5:
-	// "A server MAY ignore unsupported cmdOption combinations and then replies 
-	// with more than the requested parts instead."
-	//
-	// Benefits of this approach:
-	// 1. Ensures interoperability - no partial read implementation variations
-	// 2. Prevents data inconsistency in multi-vendor scenarios
-	// 3. Provides predictable behavior for clients
-	// 4. Complies with spec requirement for unsupported cmdOptions
-	cmd := fd.ReplyCmdType(false) // false = full data, ignore any partial filters
+	// Check if this is a partial read request
+	isPartialRead := false
+	if message.FilterPartial != nil && fd.SupportsPartialRead() {
+		isPartialRead = true
+	}
+
+	// For partial reads, we need to apply the filter to the data before sending the reply
+	// Use the enhanced ReplyCmdTypeWithFilter method to handle partial reads properly
+	var cmd model.CmdType
+	if isPartialRead {
+		cmd = fd.ReplyCmdTypeWithFilter(true, message.FilterPartial)
+	} else {
+		cmd = fd.ReplyCmdType(false)
+	}
+
 	if err := featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd); err != nil {
 		return model.NewErrorTypeFromString(err.Error())
 	}

@@ -189,3 +189,203 @@ func (r *PowerSequenceSchedulePreferenceListDataType) UpdateList(remoteWrite, pe
 
 	return data, success
 }
+
+// PowerTimeSlotScheduleListDataType PartialReader implementation
+var _ PartialReader = (*PowerTimeSlotScheduleListDataType)(nil)
+
+func (r *PowerTimeSlotScheduleListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerTimeSlotScheduleDataType, PowerTimeSlotScheduleListDataSelectorsType, PowerTimeSlotScheduleDataElementsType](r.PowerTimeSlotScheduleData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerTimeSlotScheduleListDataType{
+		PowerTimeSlotScheduleData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerTimeSlotValueListDataType PartialReader implementation
+var _ PartialReader = (*PowerTimeSlotValueListDataType)(nil)
+
+func (r *PowerTimeSlotValueListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerTimeSlotValueDataType, PowerTimeSlotValueListDataSelectorsType, PowerTimeSlotValueDataElementsType](r.PowerTimeSlotValueData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerTimeSlotValueListDataType{
+		PowerTimeSlotValueData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerTimeSlotScheduleConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*PowerTimeSlotScheduleConstraintsListDataType)(nil)
+
+func (r *PowerTimeSlotScheduleConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerTimeSlotScheduleConstraintsDataType, PowerTimeSlotScheduleConstraintsListDataSelectorsType, PowerTimeSlotScheduleConstraintsDataElementsType](r.PowerTimeSlotScheduleConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerTimeSlotScheduleConstraintsListDataType{
+		PowerTimeSlotScheduleConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceAlternativesRelationListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceAlternativesRelationListDataType)(nil)
+
+func (r *PowerSequenceAlternativesRelationListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceAlternativesRelationDataType, PowerSequenceAlternativesRelationListDataSelectorsType, PowerSequenceAlternativesRelationDataElementsType](r.PowerSequenceAlternativesRelationData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceAlternativesRelationListDataType{
+		PowerSequenceAlternativesRelationData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceDescriptionListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceDescriptionListDataType)(nil)
+
+func (r *PowerSequenceDescriptionListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceDescriptionDataType, PowerSequenceDescriptionListDataSelectorsType, PowerSequenceDescriptionDataElementsType](r.PowerSequenceDescriptionData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceDescriptionListDataType{
+		PowerSequenceDescriptionData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceStateListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceStateListDataType)(nil)
+
+func (r *PowerSequenceStateListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceStateDataType, PowerSequenceStateListDataSelectorsType, PowerSequenceStateDataElementsType](r.PowerSequenceStateData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceStateListDataType{
+		PowerSequenceStateData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceScheduleListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceScheduleListDataType)(nil)
+
+func (r *PowerSequenceScheduleListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceScheduleDataType, PowerSequenceScheduleListDataSelectorsType, PowerSequenceScheduleDataElementsType](r.PowerSequenceScheduleData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceScheduleListDataType{
+		PowerSequenceScheduleData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceScheduleConstraintsListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceScheduleConstraintsListDataType)(nil)
+
+func (r *PowerSequenceScheduleConstraintsListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceScheduleConstraintsDataType, PowerSequenceScheduleConstraintsListDataSelectorsType, PowerSequenceScheduleConstraintsDataElementsType](r.PowerSequenceScheduleConstraintsData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceScheduleConstraintsListDataType{
+		PowerSequenceScheduleConstraintsData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequencePriceListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequencePriceListDataType)(nil)
+
+func (r *PowerSequencePriceListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequencePriceDataType, PowerSequencePriceListDataSelectorsType, PowerSequencePriceDataElementsType](r.PowerSequencePriceData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequencePriceListDataType{
+		PowerSequencePriceData: filteredItems,
+	}
+	return result, true
+}
+
+// PowerSequenceSchedulePreferenceListDataType PartialReader implementation
+var _ PartialReader = (*PowerSequenceSchedulePreferenceListDataType)(nil)
+
+func (r *PowerSequenceSchedulePreferenceListDataType) ReadPartialData(filter *FilterType) (any, bool) {
+	if filter == nil {
+		return r, true
+	}
+
+	// Use complete generic function - automatically handles address matching
+	filteredItems, success := partialListDataRead[PowerSequenceSchedulePreferenceDataType, PowerSequenceSchedulePreferenceListDataSelectorsType, PowerSequenceSchedulePreferenceDataElementsType](r.PowerSequenceSchedulePreferenceData, filter)
+	if !success {
+		return r, false
+	}
+
+	result := &PowerSequenceSchedulePreferenceListDataType{
+		PowerSequenceSchedulePreferenceData: filteredItems,
+	}
+	return result, true
+}
