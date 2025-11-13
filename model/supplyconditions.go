@@ -38,7 +38,7 @@ type SupplyConditionDataType struct {
 	Timestamp           *AbsoluteOrRelativeTimeType    `json:"timestamp,omitempty"`
 	EventType           *SupplyConditionEventTypeType  `json:"eventType,omitempty"`
 	Originator          *SupplyConditionOriginatorType `json:"originator,omitempty"`
-	ThresholdId         *ThresholdIdType               `json:"thresholdId,omitempty"`
+	ThresholdId         *ThresholdIdType               `json:"thresholdId,omitempty" eebus:"ref:ThresholdDescriptionDataType.ThresholdId"`
 	ThresholdPercentage *ScaledNumberType              `json:"thresholdPercentage,omitempty"`
 	RelevantPeriod      *TimePeriodType                `json:"relevantPeriod,omitempty"`
 	Description         *DescriptionType               `json:"description,omitempty"`

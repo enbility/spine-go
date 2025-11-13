@@ -50,9 +50,9 @@ const (
 
 type HvacSystemFunctionDataType struct {
 	SystemFunctionId            *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
-	CurrentOperationModeId      *HvacOperationModeIdType  `json:"currentOperationModeId,omitempty"`
+	CurrentOperationModeId      *HvacOperationModeIdType  `json:"currentOperationModeId,omitempty" eebus:"ref:HvacOperationModeDescriptionDataType.OperationModeId"`
 	IsOperationModeIdChangeable *bool                     `json:"isOperationModeIdChangeable,omitempty"`
-	CurrentSetpointId           *SetpointIdType           `json:"currentSetpointId,omitempty"`
+	CurrentSetpointId           *SetpointIdType           `json:"currentSetpointId,omitempty" eebus:"ref:SetpointDescriptionDataType.SetpointId"`
 	IsSetpointIdChangeable      *bool                     `json:"isSetpointIdChangeable,omitempty"`
 	IsOverrunActive             *bool                     `json:"isOverrunActive,omitempty"`
 }
@@ -94,7 +94,7 @@ type HvacSystemFunctionOperationModeRelationListDataSelectorsType struct {
 
 type HvacSystemFunctionSetpointRelationDataType struct {
 	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
-	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty"`
+	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty" eebus:"ref:HvacOperationModeDescriptionDataType.OperationModeId"`
 	SetpointId       []SetpointIdType          `json:"setpointId,omitempty"`
 }
 
@@ -178,7 +178,7 @@ type HvacOperationModeDescriptionListDataSelectorsType struct {
 type HvacOverrunDataType struct {
 	OverrunId                 *HvacOverrunIdType     `json:"overrunId,omitempty" eebus:"key,primarykey"`
 	OverrunStatus             *HvacOverrunStatusType `json:"overrunStatus,omitempty"`
-	TimeTableId               *TimeTableIdType       `json:"timeTableId,omitempty"`
+	TimeTableId               *TimeTableIdType       `json:"timeTableId,omitempty" eebus:"ref:TimeTableDescriptionDataType.TimeTableId"`
 	IsOverrunStatusChangeable *bool                  `json:"isOverrunStatusChangeable,omitempty"`
 }
 

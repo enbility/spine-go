@@ -64,7 +64,7 @@ type TimeSeriesDescriptionDataType struct {
 	TimeSeriesType      *TimeSeriesTypeType    `json:"timeSeriesType,omitempty"`
 	TimeSeriesWriteable *bool                  `json:"timeSeriesWriteable,omitempty"`
 	UpdateRequired      *bool                  `json:"updateRequired,omitempty"`
-	MeasurementId       *MeasurementIdType     `json:"measurementId,omitempty"`
+	MeasurementId       *MeasurementIdType     `json:"measurementId,omitempty" eebus:"ref:MeasurementDescriptionDataType.MeasurementId"`
 	Currency            *CurrencyType          `json:"currency,omitempty"`
 	Unit                *UnitOfMeasurementType `json:"unit,omitempty"`
 	Label               *LabelType             `json:"label,omitempty"`

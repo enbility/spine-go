@@ -12,7 +12,7 @@ const (
 
 type AlarmDataType struct {
 	AlarmId          *AlarmIdType                `json:"alarmId,omitempty" eebus:"key,primarykey"`
-	ThresholdId      *ThresholdIdType            `json:"thresholdId,omitempty"`
+	ThresholdId      *ThresholdIdType            `json:"thresholdId,omitempty" eebus:"ref:ThresholdDescriptionDataType.ThresholdId"`
 	Timestamp        *AbsoluteOrRelativeTimeType `json:"timestamp,omitempty"`
 	AlarmType        *AlarmTypeType              `json:"alarmType,omitempty"`
 	MeasuredValue    *ScaledNumberType           `json:"measuredValue,omitempty"`

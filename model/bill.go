@@ -137,7 +137,7 @@ type BillDescriptionDataType struct {
 	BillWriteable     *bool          `json:"billWriteable,omitempty"`
 	UpdateRequired    *bool          `json:"updateRequired,omitempty"`
 	SupportedBillType []BillTypeType `json:"supportedBillType,omitempty"`
-	SessionId         *SessionIdType `json:"sessionId,omitempty"`
+	SessionId         *SessionIdType `json:"sessionId,omitempty" eebus:"ref:SessionIdentificationDataType.SessionId"`
 }
 
 type BillDescriptionDataElementsType struct {
