@@ -204,8 +204,14 @@ func (c *SubscriptionManager) RemoveSubscriptionsForLocalEntity(localEntity api.
 		var remoteDevice api.DeviceRemoteInterface
 
 		if reflect.DeepEqual(subscription.ClientAddress.Device, localDeviceAddress) {
+			if subscription.ServerAddress == nil || subscription.ServerAddress.Device == nil {
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ServerAddress.Device)
 		} else {
+			if subscription.ClientAddress == nil || subscription.ClientAddress.Device == nil {
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
 		}
 

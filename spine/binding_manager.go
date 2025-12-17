@@ -213,8 +213,14 @@ func (c *BindingManager) RemoveBindingsForLocalEntity(localEntity api.EntityLoca
 		var remoteDevice api.DeviceRemoteInterface
 
 		if reflect.DeepEqual(binding.ClientAddress.Device, localDeviceAddress) {
+			if binding.ServerAddress == nil || binding.ServerAddress.Device == nil {
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ServerAddress.Device)
 		} else {
+			if binding.ClientAddress == nil || binding.ClientAddress.Device == nil {
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ClientAddress.Device)
 		}
 
