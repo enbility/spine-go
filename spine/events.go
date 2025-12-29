@@ -6,7 +6,15 @@ import (
 	"github.com/enbility/spine-go/api"
 )
 
-var Events events
+// newEvents creates a new events manager instance.
+// Each DeviceLocal creates its own events manager automatically.
+// Access it via device.Events() to subscribe to events for that device.
+func newEvents() *events {
+	return &events{}
+}
+
+// Verify that *events implements EventsManagerInterface at compile time
+var _ api.EventsManagerInterface = (*events)(nil)
 
 type eventHandlerItem struct {
 	Level   api.EventHandlerLevel

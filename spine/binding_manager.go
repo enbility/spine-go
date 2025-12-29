@@ -76,7 +76,7 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		Feature:      remoteFeature,
 		LocalFeature: localFeature,
 	}
-	Events.Publish(payload)
+	c.localDevice.Events().Publish(payload)
 
 	return nil
 }
@@ -147,7 +147,7 @@ func (c *BindingManager) RemoveBinding(remoteDevice api.DeviceRemoteInterface, d
 				Feature:      remoteFeature,
 				LocalFeature: localFeature,
 			}
-			Events.Publish(payload)
+			c.localDevice.Events().Publish(payload)
 		}
 	}
 

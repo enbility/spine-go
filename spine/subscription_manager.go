@@ -67,7 +67,7 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 		Feature:      remoteFeature,
 		LocalFeature: localFeature,
 	}
-	Events.Publish(payload)
+	c.localDevice.Events().Publish(payload)
 
 	return nil
 }
@@ -138,7 +138,7 @@ func (c *SubscriptionManager) RemoveSubscription(remoteDevice api.DeviceRemoteIn
 				Feature:      remoteFeature,
 				LocalFeature: localFeature,
 			}
-			Events.Publish(payload)
+			c.localDevice.Events().Publish(payload)
 		}
 	}
 

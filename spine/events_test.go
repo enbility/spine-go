@@ -24,10 +24,13 @@ type EventsTestSuite struct {
 
 	mux sync.Mutex
 
+	events *events // use instance instead of global
+
 	handlerInvoked bool
 }
 
 func (s *EventsTestSuite) BeforeTest(suiteName, testName string) {
+	s.events = newEvents() // fresh instance for each test
 	s.setHandlerInvoked(false)
 }
 
@@ -50,47 +53,47 @@ func (s *EventsTestSuite) HandleEvent(event api.EventPayload) {
 }
 
 func (s *EventsTestSuite) Test_Un_Subscribe() {
-	err := Events.Subscribe(s)
+	err := s.events.Subscribe(s)
 	assert.Nil(s.T(), err)
 
-	err = Events.Subscribe(s)
+	err = s.events.Subscribe(s)
 	assert.Nil(s.T(), err)
 
 	testDummy := &TestDummy{}
-	err = Events.Subscribe(testDummy)
+	err = s.events.Subscribe(testDummy)
 	assert.Nil(s.T(), err)
 
-	err = Events.Unsubscribe(s)
+	err = s.events.Unsubscribe(s)
 	assert.Nil(s.T(), err)
 
-	err = Events.Unsubscribe(s)
+	err = s.events.Unsubscribe(s)
 	assert.Nil(s.T(), err)
 
-	err = Events.Unsubscribe(testDummy)
+	err = s.events.Unsubscribe(testDummy)
 	assert.Nil(s.T(), err)
 }
 
 func (s *EventsTestSuite) Test_Publish_Core() {
-	err := Events.subscribe(api.EventHandlerLevelCore, s)
+	err := s.events.subscribe(api.EventHandlerLevelCore, s)
 	assert.Nil(s.T(), err)
 
-	Events.Publish(api.EventPayload{})
+	s.events.Publish(api.EventPayload{})
 
 	assert.True(s.T(), s.isHandlerInvoked())
 
-	err = Events.Unsubscribe(s)
+	err = s.events.Unsubscribe(s)
 	assert.Nil(s.T(), err)
 }
 
 func (s *EventsTestSuite) Test_Publish_Application() {
-	err := Events.Subscribe(s)
+	err := s.events.Subscribe(s)
 	assert.Nil(s.T(), err)
 
-	Events.Publish(api.EventPayload{})
+	s.events.Publish(api.EventPayload{})
 
 	time.Sleep(time.Millisecond * 200)
 	assert.True(s.T(), s.isHandlerInvoked())
 
-	err = Events.Unsubscribe(s)
+	err = s.events.Unsubscribe(s)
 	assert.Nil(s.T(), err)
 }
