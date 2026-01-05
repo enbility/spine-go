@@ -65,8 +65,8 @@ type SetpointConstraintsListDataSelectorsType struct {
 
 type SetpointDescriptionDataType struct {
 	SetpointId    *SetpointIdType        `json:"setpointId,omitempty" eebus:"key,primarykey"`
-	MeasurementId *SetpointIdType        `json:"measurementId,omitempty" eebus:"key"`
-	TimeTableId   *SetpointIdType        `json:"timeTableId,omitempty" eebus:"key"`
+	MeasurementId *MeasurementIdType     `json:"measurementId,omitempty" eebus:"key"`
+	TimeTableId   *TimeTableIdType       `json:"timeTableId,omitempty" eebus:"key"`
 	SetpointType  *SetpointTypeType      `json:"setpointType,omitempty"`
 	Unit          *UnitOfMeasurementType `json:"unit,omitempty"`
 	ScopeType     *ScopeTypeType         `json:"scopeType,omitempty"`

@@ -51,14 +51,14 @@ func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 		SetpointDescriptionData: []SetpointDescriptionDataType{
 			{
 				SetpointId:    util.Ptr(SetpointIdType(0)),
-				MeasurementId: util.Ptr(SetpointIdType(0)),
-				TimeTableId:   util.Ptr(SetpointIdType(0)),
+				MeasurementId: util.Ptr(MeasurementIdType(0)),
+				TimeTableId:   util.Ptr(TimeTableIdType(0)),
 				Description:   util.Ptr(DescriptionType("old")),
 			},
 			{
 				SetpointId:    util.Ptr(SetpointIdType(1)),
-				MeasurementId: util.Ptr(SetpointIdType(1)),
-				TimeTableId:   util.Ptr(SetpointIdType(1)),
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				TimeTableId:   util.Ptr(TimeTableIdType(1)),
 				Description:   util.Ptr(DescriptionType("old")),
 			},
 		},
@@ -68,8 +68,8 @@ func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 		SetpointDescriptionData: []SetpointDescriptionDataType{
 			{
 				SetpointId:    util.Ptr(SetpointIdType(1)),
-				MeasurementId: util.Ptr(SetpointIdType(1)),
-				TimeTableId:   util.Ptr(SetpointIdType(1)),
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				TimeTableId:   util.Ptr(TimeTableIdType(1)),
 				Description:   util.Ptr(DescriptionType("new")),
 			},
 		},

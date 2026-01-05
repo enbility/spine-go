@@ -3,9 +3,9 @@ package model
 type DirectControlActivityStateType string
 
 const (
-	DirectControlActivityStateTypeRunning  AlarmTypeType = "running"
-	DirectControlActivityStateTypePaused   AlarmTypeType = "paused"
-	DirectControlActivityStateTypeInactive AlarmTypeType = "inactive"
+	DirectControlActivityStateTypeRunning  DirectControlActivityStateType = "running"
+	DirectControlActivityStateTypePaused   DirectControlActivityStateType = "paused"
+	DirectControlActivityStateTypeInactive DirectControlActivityStateType = "inactive"
 )
 
 type DirectControlActivityDataType struct {
@@ -18,7 +18,7 @@ type DirectControlActivityDataType struct {
 	IsPowerChangeable         *bool                           `json:"isPowerChangeable,omitempty"`
 	Energy                    *ScaledNumberType               `json:"energy,omitempty"`
 	IsEnergyChangeable        *bool                           `json:"isEnergyChangeable,omitempty"`
-	SequenceId                *PowerSequenceIdType            `json:"sequence_id,omitempty"`
+	SequenceId                *PowerSequenceIdType            `json:"sequenceId,omitempty"`
 }
 
 type DirectControlActivityDataElementsType struct {
@@ -31,11 +31,11 @@ type DirectControlActivityDataElementsType struct {
 	IsPowerChangeable         *ElementTagType           `json:"isPowerChangeable,omitempty"`
 	Energy                    *ScaledNumberElementsType `json:"energy,omitempty"`
 	IsEnergyChangeable        *ElementTagType           `json:"isEnergyChangeable,omitempty"`
-	SequenceId                *ElementTagType           `json:"sequence_id,omitempty"`
+	SequenceId                *ElementTagType           `json:"sequenceId,omitempty"`
 }
 
 type DirectControlActivityListDataType struct {
-	DirectControlActivityDataElements []DirectControlActivityDataType `json:"directControlActivityDataElements,omitempty"`
+	DirectControlActivityData []DirectControlActivityDataType `json:"directControlActivityData,omitempty"`
 }
 
 type DirectControlActivityListDataSelectorsType struct {
