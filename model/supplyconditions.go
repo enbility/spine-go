@@ -34,7 +34,7 @@ const (
 )
 
 type SupplyConditionDataType struct {
-	ConditionId         *ConditionIdType               `json:"conditionId,omitempty" eebus:"key,primarykey"`
+	ConditionId         *ConditionIdType               `json:"conditionId,omitempty" eebus:"key,primarykey,ref:SupplyConditionDescriptionDataType.ConditionId"`
 	Timestamp           *AbsoluteOrRelativeTimeType    `json:"timestamp,omitempty"`
 	EventType           *SupplyConditionEventTypeType  `json:"eventType,omitempty"`
 	Originator          *SupplyConditionOriginatorType `json:"originator,omitempty"`

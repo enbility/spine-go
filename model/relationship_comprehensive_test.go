@@ -97,9 +97,24 @@ func TestNewRelationships_TierBoundaryData(t *testing.T) {
 	data := TierBoundaryDataType{}
 	rels := GetRelationships(data)
 
-	assert.Len(t, rels, 1)
-	assert.Equal(t, "TimeTableId", rels[0].FieldName)
-	assert.Equal(t, "TimeTableDescriptionDataType", rels[0].TargetType)
+	assert.Len(t, rels, 2)
+
+	// Check both relationships exist
+	var foundBoundaryId, foundTimeTableId bool
+	for _, rel := range rels {
+		if rel.FieldName == "BoundaryId" {
+			assert.Equal(t, "TierBoundaryDescriptionDataType", rel.TargetType)
+			assert.True(t, rel.IsComposite, "BoundaryId is the primary key")
+			foundBoundaryId = true
+		}
+		if rel.FieldName == "TimeTableId" {
+			assert.Equal(t, "TimeTableDescriptionDataType", rel.TargetType)
+			assert.False(t, rel.IsComposite, "TimeTableId is not part of the primary key")
+			foundTimeTableId = true
+		}
+	}
+	assert.True(t, foundBoundaryId, "Should have BoundaryId relationship")
+	assert.True(t, foundTimeTableId, "Should have TimeTableId relationship")
 }
 
 // TestNewRelationships_SessionIdentification tests SessionIdentification relationships
@@ -117,11 +132,16 @@ func TestNewRelationships_HvacSystemFunction(t *testing.T) {
 	data := HvacSystemFunctionDataType{}
 	rels := GetRelationships(data)
 
-	assert.Len(t, rels, 2)
+	assert.Len(t, rels, 3)
 
-	// Check both relationships exist
-	var foundOperationMode, foundSetpoint bool
+	// Check all relationships exist
+	var foundSystemFunctionId, foundOperationMode, foundSetpoint bool
 	for _, rel := range rels {
+		if rel.FieldName == "SystemFunctionId" {
+			assert.Equal(t, "HvacSystemFunctionDescriptionDataType", rel.TargetType)
+			assert.True(t, rel.IsComposite, "SystemFunctionId is the primary key")
+			foundSystemFunctionId = true
+		}
 		if rel.FieldName == "CurrentOperationModeId" {
 			assert.Equal(t, "HvacOperationModeDescriptionDataType", rel.TargetType)
 			foundOperationMode = true
@@ -131,6 +151,7 @@ func TestNewRelationships_HvacSystemFunction(t *testing.T) {
 			foundSetpoint = true
 		}
 	}
+	assert.True(t, foundSystemFunctionId, "Should have SystemFunctionId relationship")
 	assert.True(t, foundOperationMode, "Should have CurrentOperationModeId relationship")
 	assert.True(t, foundSetpoint, "Should have CurrentSetpointId relationship")
 }
@@ -140,9 +161,24 @@ func TestNewRelationships_SupplyCondition(t *testing.T) {
 	data := SupplyConditionDataType{}
 	rels := GetRelationships(data)
 
-	assert.Len(t, rels, 1)
-	assert.Equal(t, "ThresholdId", rels[0].FieldName)
-	assert.Equal(t, "ThresholdDescriptionDataType", rels[0].TargetType)
+	assert.Len(t, rels, 2)
+
+	// Check both relationships exist
+	var foundConditionId, foundThresholdId bool
+	for _, rel := range rels {
+		if rel.FieldName == "ConditionId" {
+			assert.Equal(t, "SupplyConditionDescriptionDataType", rel.TargetType)
+			assert.True(t, rel.IsComposite, "ConditionId is the primary key")
+			foundConditionId = true
+		}
+		if rel.FieldName == "ThresholdId" {
+			assert.Equal(t, "ThresholdDescriptionDataType", rel.TargetType)
+			assert.False(t, rel.IsComposite, "ThresholdId is not part of the primary key")
+			foundThresholdId = true
+		}
+	}
+	assert.True(t, foundConditionId, "Should have ConditionId relationship")
+	assert.True(t, foundThresholdId, "Should have ThresholdId relationship")
 }
 
 // TestNewRelationships_TaskManagement tests TaskManagement cross-feature relationships

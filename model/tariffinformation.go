@@ -76,7 +76,7 @@ type TariffOverallConstraintsDataElementsType struct {
 }
 
 type TariffDataType struct {
-	TariffId     *TariffIdType `json:"tariffId,omitempty" eebus:"key,primarykey"`
+	TariffId     *TariffIdType `json:"tariffId,omitempty" eebus:"key,primarykey,ref:TariffDescriptionDataType.TariffId"`
 	ActiveTierId []TierIdType  `json:"activeTierId,omitempty"`
 }
 
@@ -95,7 +95,7 @@ type TariffListDataSelectorsType struct {
 }
 
 type TariffTierRelationDataType struct {
-	TariffId *TariffIdType `json:"tariffId,omitempty" eebus:"key,primarykey"`
+	TariffId *TariffIdType `json:"tariffId,omitempty" eebus:"key,primarykey,ref:TariffDescriptionDataType.TariffId"`
 	TierId   []TierIdType  `json:"tierId,omitempty"`
 }
 
@@ -114,7 +114,7 @@ type TariffTierRelationListDataSelectorsType struct {
 }
 
 type TariffBoundaryRelationDataType struct {
-	TariffId   *TariffIdType        `json:"tariffId,omitempty" eebus:"key,primarykey"`
+	TariffId   *TariffIdType        `json:"tariffId,omitempty" eebus:"key,primarykey,ref:TariffDescriptionDataType.TariffId"`
 	BoundaryId []TierBoundaryIdType `json:"boundaryId,omitempty"`
 }
 
@@ -168,7 +168,7 @@ type TariffDescriptionListDataSelectorsType struct {
 }
 
 type TierBoundaryDataType struct {
-	BoundaryId         *TierBoundaryIdType `json:"boundaryId,omitempty" eebus:"key,primarykey"`
+	BoundaryId         *TierBoundaryIdType `json:"boundaryId,omitempty" eebus:"key,primarykey,ref:TierBoundaryDescriptionDataType.BoundaryId"`
 	TimePeriod         *TimePeriodType     `json:"timePeriod,omitempty"`
 	TimeTableId        *TimeTableIdType    `json:"timeTableId,omitempty" eebus:"ref:TimeTableDescriptionDataType.TimeTableId"`
 	LowerBoundaryValue *ScaledNumberType   `json:"lowerBoundaryValue,omitempty"`
@@ -248,7 +248,7 @@ type CommodityListDataSelectorsType struct {
 }
 
 type TierDataType struct {
-	TierId            *TierIdType       `json:"tierId,omitempty" eebus:"key,primarykey"`
+	TierId            *TierIdType       `json:"tierId,omitempty" eebus:"key,primarykey,ref:TierDescriptionDataType.TierId"`
 	TimePeriod        *TimePeriodType   `json:"timePeriod,omitempty"`
 	TimeTableId       *TimeTableIdType  `json:"timeTableId,omitempty" eebus:"ref:TimeTableDescriptionDataType.TimeTableId"`
 	ActiveIncentiveId []IncentiveIdType `json:"activeIncentiveId,omitempty"`
@@ -271,7 +271,7 @@ type TierListDataSelectorsType struct {
 }
 
 type TierIncentiveRelationDataType struct {
-	TierId      *TierIdType       `json:"tierId,omitempty" eebus:"key,primarykey"`
+	TierId      *TierIdType       `json:"tierId,omitempty" eebus:"key,primarykey,ref:TierDescriptionDataType.TierId"`
 	IncentiveId []IncentiveIdType `json:"incentiveId,omitempty"`
 }
 
@@ -313,7 +313,7 @@ type TierDescriptionListDataSelectorsType struct {
 }
 
 type IncentiveDataType struct {
-	IncentiveId *IncentiveIdType            `json:"incentiveId,omitempty" eebus:"key,primarykey"`
+	IncentiveId *IncentiveIdType            `json:"incentiveId,omitempty" eebus:"key,primarykey,ref:IncentiveDescriptionDataType.IncentiveId"`
 	ValueType   *IncentiveValueTypeType     `json:"valueType,omitempty"`
 	Timestamp   *AbsoluteOrRelativeTimeType `json:"timestamp,omitempty"`
 	TimePeriod  *TimePeriodType             `json:"timePeriod,omitempty"`

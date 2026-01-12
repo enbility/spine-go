@@ -43,11 +43,26 @@ func TestGetRelationships_ElectricalConnectionParameterDescription(t *testing.T)
 	data := ElectricalConnectionParameterDescriptionDataType{}
 	rels := GetRelationships(data)
 
-	assert.Len(t, rels, 1, "ElectricalConnectionParameterDescriptionDataType should have 1 relationship")
-	assert.Equal(t, "MeasurementId", rels[0].FieldName)
-	assert.Equal(t, "MeasurementDescriptionDataType", rels[0].TargetType)
-	assert.Equal(t, "MeasurementId", rels[0].TargetField)
-	assert.False(t, rels[0].IsComposite, "MeasurementId is not part of the composite key")
+	assert.Len(t, rels, 2, "ElectricalConnectionParameterDescriptionDataType should have 2 relationships")
+
+	// Check both relationships exist
+	var foundElectricalConnectionId, foundMeasurementId bool
+	for _, rel := range rels {
+		if rel.FieldName == "ElectricalConnectionId" {
+			assert.Equal(t, "ElectricalConnectionDescriptionDataType", rel.TargetType)
+			assert.Equal(t, "ElectricalConnectionId", rel.TargetField)
+			assert.True(t, rel.IsComposite, "ElectricalConnectionId is part of the composite key")
+			foundElectricalConnectionId = true
+		}
+		if rel.FieldName == "MeasurementId" {
+			assert.Equal(t, "MeasurementDescriptionDataType", rel.TargetType)
+			assert.Equal(t, "MeasurementId", rel.TargetField)
+			assert.False(t, rel.IsComposite, "MeasurementId is not part of the composite key")
+			foundMeasurementId = true
+		}
+	}
+	assert.True(t, foundElectricalConnectionId, "Should have ElectricalConnectionId relationship")
+	assert.True(t, foundMeasurementId, "Should have MeasurementId relationship")
 }
 
 func TestGetRelationships_ElectricalConnectionCharacteristic_CompositeKey(t *testing.T) {

@@ -134,7 +134,7 @@ type DeviceConfigurationKeyValueDescriptionListDataSelectorsType struct {
 }
 
 type DeviceConfigurationKeyValueConstraintsDataType struct {
-	KeyId         *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key,primarykey"`
+	KeyId         *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key,primarykey,ref:DeviceConfigurationKeyValueDescriptionDataType.KeyId"`
 	ValueRangeMin *DeviceConfigurationKeyValueValueType `json:"valueRangeMin,omitempty"`
 	ValueRangeMax *DeviceConfigurationKeyValueValueType `json:"valueRangeMax,omitempty"`
 	ValueStepSize *DeviceConfigurationKeyValueValueType `json:"valueStepSize,omitempty"`
