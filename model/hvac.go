@@ -94,7 +94,7 @@ type HvacSystemFunctionOperationModeRelationListDataSelectorsType struct {
 
 type HvacSystemFunctionSetpointRelationDataType struct {
 	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey,ref:HvacSystemFunctionDescriptionDataType.SystemFunctionId"`
-	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty" eebus:"ref:HvacOperationModeDescriptionDataType.OperationModeId"`
+	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty" eebus:"key,ref:HvacOperationModeDescriptionDataType.OperationModeId"`
 	SetpointId       []SetpointIdType          `json:"setpointId,omitempty"`
 }
 
