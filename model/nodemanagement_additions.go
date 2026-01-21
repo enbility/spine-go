@@ -244,9 +244,9 @@ func NewFeatureInformationForNodeManagement(
 	entityAddr []AddressEntityType,
 	featureAddr *AddressFeatureType,
 	featureType *FeatureTypeType,
-	Role *RoleType,
-	Description *DescriptionType,
-	SupportedFunction []FunctionPropertyType,
+	role *RoleType,
+	description *DescriptionType,
+	supportedFunction []FunctionPropertyType,
 ) *NodeManagementDetailedDiscoveryFeatureInformationType {
 	return &NodeManagementDetailedDiscoveryFeatureInformationType{
 		Description: &NetworkManagementFeatureDescriptionDataType{
@@ -256,9 +256,9 @@ func NewFeatureInformationForNodeManagement(
 				Feature: featureAddr,
 			},
 			FeatureType:       featureType,
-			Role:              Role,
-			SupportedFunction: SupportedFunction,
-			Description:       Description,
+			Role:              role,
+			SupportedFunction: supportedFunction,
+			Description:       description,
 		},
 	}
 }
