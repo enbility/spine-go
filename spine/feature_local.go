@@ -915,15 +915,5 @@ func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatu
 		funs = append(funs, sf)
 	}
 
-	res := model.NodeManagementDetailedDiscoveryFeatureInformationType{
-		Description: &model.NetworkManagementFeatureDescriptionDataType{
-			FeatureAddress:    r.Address(),
-			FeatureType:       &r.ftype,
-			Role:              &r.role,
-			Description:       r.description,
-			SupportedFunction: funs,
-		},
-	}
-
-	return &res
+	return model.NewFeatureInformationForNodeManagement(r.address.Entity, r.address.Feature, &r.ftype, &r.role, r.description, funs)
 }

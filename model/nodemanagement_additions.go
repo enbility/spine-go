@@ -237,3 +237,38 @@ func (e *NodeManagementDetailedDiscoveryEntityInformationType) ValidateXSD() err
 	}
 	return nil
 }
+
+// NewFeatureInformationForNodeManagement creates XSD-compliant NodeManagementDetailedDiscoveryFeatureInformationType
+// Per XSD specification, FeatureAddress in this context should only contain the 'entity' and 'feature' fields (device field omitted)
+func NewFeatureInformationForNodeManagement(
+	entityAddr []AddressEntityType,
+	featureAddr *AddressFeatureType,
+	featureType *FeatureTypeType,
+	role *RoleType,
+	description *DescriptionType,
+	supportedFunction []FunctionPropertyType,
+) *NodeManagementDetailedDiscoveryFeatureInformationType {
+	return &NodeManagementDetailedDiscoveryFeatureInformationType{
+		Description: &NetworkManagementFeatureDescriptionDataType{
+			FeatureAddress: &FeatureAddressType{
+				// Device field intentionally omitted for XSD compliance
+				Entity:  entityAddr,
+				Feature: featureAddr,
+			},
+			FeatureType:       featureType,
+			Role:              role,
+			SupportedFunction: supportedFunction,
+			Description:       description,
+		},
+	}
+}
+
+// ValidateXSD validates that the NodeManagementDetailedDiscoveryFeatureInformationType complies with XSD restrictions
+func (e *NodeManagementDetailedDiscoveryFeatureInformationType) ValidateXSD() error {
+	if e.Description != nil &&
+		e.Description.FeatureAddress != nil &&
+		e.Description.FeatureAddress.Device != nil {
+		return fmt.Errorf("XSD violation: Device field not allowed in NodeManagementDetailedDiscovery context")
+	}
+	return nil
+}
