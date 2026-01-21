@@ -353,7 +353,6 @@ type DeviceMeasurements struct {
 
 func (d *DeviceMeasurements) UpdateList(remoteWrite, persist bool, newList any,
 	filterPartial, filterDelete *model.FilterType) (any, bool) {
-
 	// Type assertion for incoming data
 	newData, ok := newList.([]model.MeasurementDataType)
 	if !ok {
