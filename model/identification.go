@@ -39,7 +39,7 @@ type IdentificationListDataSelectorsType struct {
 
 type SessionIdentificationDataType struct {
 	SessionId        *SessionIdType        `json:"sessionId,omitempty" eebus:"key,primarykey"`
-	IdentificationId *IdentificationIdType `json:"identificationId,omitempty"`
+	IdentificationId *IdentificationIdType `json:"identificationId,omitempty" eebus:"ref:IdentificationDataType.IdentificationId"`
 	IsLatestSession  *bool                 `json:"isLatestSession,omitempty"`
 	TimePeriod       *TimePeriodType       `json:"timePeriod,omitempty"`
 }

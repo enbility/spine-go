@@ -49,10 +49,10 @@ const (
 )
 
 type HvacSystemFunctionDataType struct {
-	SystemFunctionId            *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
-	CurrentOperationModeId      *HvacOperationModeIdType  `json:"currentOperationModeId,omitempty"`
+	SystemFunctionId            *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey,ref:HvacSystemFunctionDescriptionDataType.SystemFunctionId"`
+	CurrentOperationModeId      *HvacOperationModeIdType  `json:"currentOperationModeId,omitempty" eebus:"ref:HvacOperationModeDescriptionDataType.OperationModeId"`
 	IsOperationModeIdChangeable *bool                     `json:"isOperationModeIdChangeable,omitempty"`
-	CurrentSetpointId           *SetpointIdType           `json:"currentSetpointId,omitempty"`
+	CurrentSetpointId           *SetpointIdType           `json:"currentSetpointId,omitempty" eebus:"ref:SetpointDescriptionDataType.SetpointId"`
 	IsSetpointIdChangeable      *bool                     `json:"isSetpointIdChangeable,omitempty"`
 	IsOverrunActive             *bool                     `json:"isOverrunActive,omitempty"`
 }
@@ -75,7 +75,7 @@ type HvacSystemFunctionListDataSelectorsType struct {
 }
 
 type HvacSystemFunctionOperationModeRelationDataType struct {
-	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
+	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey,ref:HvacSystemFunctionDescriptionDataType.SystemFunctionId"`
 	OperationModeId  []HvacOperationModeIdType `json:"operationModeId,omitempty"`
 }
 
@@ -93,8 +93,8 @@ type HvacSystemFunctionOperationModeRelationListDataSelectorsType struct {
 }
 
 type HvacSystemFunctionSetpointRelationDataType struct {
-	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
-	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty"`
+	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey,ref:HvacSystemFunctionDescriptionDataType.SystemFunctionId"`
+	OperationModeId  *HvacOperationModeIdType  `json:"operationModeId,omitempty" eebus:"ref:HvacOperationModeDescriptionDataType.OperationModeId"`
 	SetpointId       []SetpointIdType          `json:"setpointId,omitempty"`
 }
 
@@ -114,7 +114,7 @@ type HvacSystemFunctionSetpointRelationListDataSelectorsType struct {
 }
 
 type HvacSystemFunctionPowerSequenceRelationDataType struct {
-	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey"`
+	SystemFunctionId *HvacSystemFunctionIdType `json:"systemFunctionId,omitempty" eebus:"key,primarykey,ref:HvacSystemFunctionDescriptionDataType.SystemFunctionId"`
 	SequenceId       []PowerSequenceIdType     `json:"sequenceId,omitempty"`
 }
 
@@ -176,9 +176,9 @@ type HvacOperationModeDescriptionListDataSelectorsType struct {
 }
 
 type HvacOverrunDataType struct {
-	OverrunId                 *HvacOverrunIdType     `json:"overrunId,omitempty" eebus:"key,primarykey"`
+	OverrunId                 *HvacOverrunIdType     `json:"overrunId,omitempty" eebus:"key,primarykey,ref:HvacOverrunDescriptionDataType.OverrunId"`
 	OverrunStatus             *HvacOverrunStatusType `json:"overrunStatus,omitempty"`
-	TimeTableId               *TimeTableIdType       `json:"timeTableId,omitempty"`
+	TimeTableId               *TimeTableIdType       `json:"timeTableId,omitempty" eebus:"ref:TimeTableDescriptionDataType.TimeTableId"`
 	IsOverrunStatusChangeable *bool                  `json:"isOverrunStatusChangeable,omitempty"`
 }
 
