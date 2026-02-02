@@ -41,7 +41,7 @@ func (r *NodeManagement) processReplyUseCaseData(message *api.Message, data *mod
 		CmdClassifier: util.Ptr(message.CmdClassifier),
 		Data:          data,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	return nil
 }

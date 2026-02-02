@@ -28,6 +28,8 @@ type DeviceLocal struct {
 	deviceCode   string
 	serialNumber string
 
+	events *events // events manager owned by this device
+
 	mux sync.Mutex
 }
 
@@ -54,6 +56,7 @@ func NewDeviceLocal(
 		deviceModel:   deviceModel,
 		serialNumber:  serialNumber,
 		deviceCode:    deviceCode,
+		events:        newEvents(), // each device owns its events manager
 	}
 
 	res.subscriptionManager = NewSubscriptionManager(res)
@@ -132,7 +135,7 @@ func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectio
 	r.AddRemoteDeviceForSki(ski, rDevice)
 
 	// always add subscription, as it checks if it already exists
-	_ = Events.subscribe(api.EventHandlerLevelCore, r)
+	_ = r.events.subscribe(api.EventHandlerLevelCore, r)
 
 	// Request Detailed Discovery Data
 	_, _ = r.RequestRemoteDetailedDiscoveryData(rDevice)
@@ -174,7 +177,7 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 		ChangeType: api.ElementChangeRemove,
 		Device:     remoteDevice,
 	}
-	Events.Publish(payload)
+	r.events.Publish(payload)
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
@@ -197,7 +200,7 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 
 	// only unsubscribe if we don't have any remote devices left
 	if len(r.remoteDevices) == 0 {
-		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
+		_ = r.events.unsubscribe(api.EventHandlerLevelCore, r)
 	}
 
 	r.mux.Unlock()
@@ -481,6 +484,10 @@ func (r *DeviceLocal) SubscriptionManager() api.SubscriptionManagerInterface {
 
 func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
 	return r.bindingManager
+}
+
+func (r *DeviceLocal) Events() api.EventsManagerInterface {
+	return r.events
 }
 
 func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {

@@ -73,7 +73,7 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 		Device:     remoteDevice,
 		Data:       data,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	// publish event for each added remote entity
 	for _, entity := range entities {
@@ -85,7 +85,7 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 			Entity:     entity,
 			Data:       data,
 		}
-		Events.Publish(payload)
+		r.Device().Events().Publish(payload)
 	}
 
 	return nil
@@ -241,7 +241,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 					Entity:     entity,
 					Data:       data,
 				}
-				Events.Publish(payload)
+				r.Device().Events().Publish(payload)
 			}
 		}
 
@@ -283,7 +283,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 					Entity:     removedEntity,
 					Data:       data,
 				}
-				Events.Publish(payload)
+				r.Device().Events().Publish(payload)
 
 				// remove all subscriptions for this entity
 				subscriptionMgr := r.Device().SubscriptionManager()
