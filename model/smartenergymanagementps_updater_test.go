@@ -76,7 +76,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_AlternativeCreation(t *testin
 	}
 
 	// Act - Full replacement (no partial filter)
-	result, success := existing.UpdateList(false, true, update, nil, nil)
+	result, success := existing.UpdateList(false, true, update, nil, nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -115,7 +115,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_PartialScheduleUpdate(t *test
 	}
 
 	// Act - Partial update
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -155,7 +155,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_StateTransitions(t *testing.T
 		}},
 	}
 
-	result1, success1 := existing.UpdateList(false, true, scheduledUpdate, NewFilterTypePartial(), nil)
+	result1, success1 := existing.UpdateList(false, true, scheduledUpdate, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success1)
 	resultData1 := result1.(*SmartEnergyManagementPsDataType)
 	assert.Equal(t, PowerSequenceStateTypeScheduled, *resultData1.Alternatives[0].PowerSequence[0].State.State)
@@ -181,7 +181,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_StateTransitions(t *testing.T
 		}},
 	}
 
-	result2, success2 := resultData1.UpdateList(false, true, runningUpdate, NewFilterTypePartial(), nil)
+	result2, success2 := resultData1.UpdateList(false, true, runningUpdate, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success2)
 	resultData2 := result2.(*SmartEnergyManagementPsDataType)
 	assert.Equal(t, PowerSequenceStateTypeRunning, *resultData2.Alternatives[0].PowerSequence[0].State.State)
@@ -206,7 +206,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_StateTransitions(t *testing.T
 		}},
 	}
 
-	result3, success3 := resultData2.UpdateList(false, true, completedUpdate, NewFilterTypePartial(), nil)
+	result3, success3 := resultData2.UpdateList(false, true, completedUpdate, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success3)
 	resultData3 := result3.(*SmartEnergyManagementPsDataType)
 	assert.Equal(t, PowerSequenceStateTypeCompleted, *resultData3.Alternatives[0].PowerSequence[0].State.State)
@@ -279,7 +279,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_KeyBasedMatching(t *testing.T
 	}
 
 	// Act - Partial update
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert - This test demonstrates the current limitation
 	assert.True(t, success)
@@ -290,18 +290,18 @@ func TestSmartEnergyManagementPsDataType_RealWorld_KeyBasedMatching(t *testing.T
 	// CURRENT BEHAVIOR (positional): Updates sequence at index 0 (sequenceId: 0) instead of sequenceId: 2
 	// This is INCORRECT but shows current implementation
 	// NOTE: This assertion will PASS with current implementation but shows wrong behavior
-	
+
 	// What SHOULD happen with proper key-based matching:
 	// - Sequence 0 (index 0): Should remain inactive
-	// - Sequence 5 (index 1): Should remain inactive  
+	// - Sequence 5 (index 1): Should remain inactive
 	// - Sequence 2 (index 2): Should be updated to running
-	
+
 	// What ACTUALLY happens with current positional implementation:
 	// - Updates sequence at index 0 (sequenceId: 0) instead of the target
 
 	// Test for EXPECTED behavior (proper key-based matching)
 	// These assertions will FAIL with current implementation:
-	
+
 	// Find sequence with sequenceId: 2 in result
 	var targetSequence *SmartEnergyManagementPsPowerSequenceType
 	for i := range resultData.Alternatives[0].PowerSequence {
@@ -310,7 +310,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_KeyBasedMatching(t *testing.T
 			break
 		}
 	}
-	
+
 	assert.NotNil(t, targetSequence, "Should find sequence with sequenceId: 2")
 	if targetSequence != nil {
 		// FAILS with current implementation: sequence 2 should be running, but it remains inactive
@@ -356,7 +356,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_CompositeKeyValidation(t *tes
 	// 2. Be rejected for incomplete key
 	// Current implementation will apply positionally to first sequence
 
-	result1, success1 := existing.UpdateList(false, true, updateMissingSequenceId, NewFilterTypePartial(), nil)
+	result1, success1 := existing.UpdateList(false, true, updateMissingSequenceId, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success1) // Currently succeeds with positional logic
 
 	// Test 2: Update with missing alternativesId
@@ -374,7 +374,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_CompositeKeyValidation(t *tes
 		}},
 	}
 
-	result2, success2 := existing.UpdateList(false, true, updateMissingAlternativesId, NewFilterTypePartial(), nil)
+	result2, success2 := existing.UpdateList(false, true, updateMissingAlternativesId, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success2) // Currently succeeds with positional logic
 
 	// Both tests pass with current implementation but don't follow proper key semantics
@@ -442,7 +442,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_UpdateAllSemantics(t *testing
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, updateAllSequences, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, updateAllSequences, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -459,7 +459,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_UpdateAllSemantics(t *testing
 
 	// EXPECTED behavior (proper "update all"): All sequences updated
 	// ACTUAL behavior (current): Only first sequence updated
-	
+
 	// This test demonstrates the gap between SPINE spec and current implementation
 	// In a proper key-based implementation:
 	// - All sequences would have SequenceRemoteControllable: false
@@ -561,7 +561,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_ComplexNestedUpdate(t *testin
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -576,7 +576,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_ComplexNestedUpdate(t *testin
 
 	// Current positional implementation likely updates wrong slot/value
 	// This test demonstrates the complexity of nested composite key matching
-	
+
 	slots := resultData.Alternatives[0].PowerSequence[0].PowerTimeSlot
 	assert.Equal(t, 2, len(slots))
 
@@ -671,7 +671,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_AtomicityTest(t *testing.T) {
 	}
 
 	// Test 1: persist = false - original should not be modified
-	result1, success1 := original.UpdateList(false, false, update, NewFilterTypePartial(), nil)
+	result1, success1 := original.UpdateList(false, false, update, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success1)
 	assert.NotNil(t, result1)
 
@@ -683,7 +683,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_AtomicityTest(t *testing.T) {
 	assert.Equal(t, PowerSequenceStateTypeRunning, *result1Data.Alternatives[0].PowerSequence[0].State.State)
 
 	// Test 2: persist = true - original should be modified
-	result2, success2 := original.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result2, success2 := original.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success2)
 	assert.NotNil(t, result2)
 
@@ -712,7 +712,7 @@ func TestSmartEnergyManagementPsDataType_RealWorld_DeepCopyBehavior(t *testing.T
 	}
 
 	// Act - persist = false to test deep copy
-	result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil)
+	result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	resultData := result.(*SmartEnergyManagementPsDataType)
@@ -844,7 +844,7 @@ func TestSmartEnergyManagementPsDataType_KeyBasedMatching_MultipleAlternatives(t
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	resultData := result.(*SmartEnergyManagementPsDataType)

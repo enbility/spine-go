@@ -29,7 +29,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_BasicReplacement(t *testing.
 	}
 
 	// Act - this should fail initially as UpdateList is not implemented
-	result, success := existing.UpdateList(false, true, newData, nil, nil)
+	result, success := existing.UpdateList(false, true, newData, nil, nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -49,7 +49,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_InvalidType(t *testing.T) {
 	invalidData := "not a SmartEnergyManagementPsDataType"
 
 	// Act
-	result, success := existing.UpdateList(false, true, invalidData, nil, nil)
+	result, success := existing.UpdateList(false, true, invalidData, nil, nil, nil)
 
 	// Assert
 	assert.False(t, success)
@@ -73,7 +73,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_SequenceState(t *testing.T) 
 	}
 
 	// Act - this should update only the state field
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -105,7 +105,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_ScheduleStartTime(t *testing
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -135,7 +135,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_NoPersist(t *testing.T) {
 	}
 
 	// Act - persist = false
-	result, success := existing.UpdateList(false, false, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, false, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -169,7 +169,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_NoAlternatives(t *testing.T)
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert - should succeed but not crash
 	assert.True(t, success)
@@ -201,7 +201,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_MultipleFields(t *testing.T)
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -224,7 +224,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_DeleteNotSupported(t *testin
 	deleteFilter := &FilterType{
 		CmdControl: &CmdControlType{Delete: &ElementTagType{}},
 	}
-	result, success := existing.UpdateList(false, true, existing, nil, deleteFilter)
+	result, success := existing.UpdateList(false, true, existing, nil, deleteFilter, nil)
 
 	// Assert
 	assert.False(t, success)
@@ -250,7 +250,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_StateChangeNotification(t *t
 	}
 
 	// Act - handle partial update notification
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -282,7 +282,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_ActiveSlotNumberUpdate(t *te
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -316,7 +316,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_ElapsedTimeUpdate(t *testing
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -354,7 +354,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_MultipleRuntimeUpdates(t *te
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -390,7 +390,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_NonExistentSequence(t *testi
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert - should succeed but not crash, existing data unchanged
 	assert.True(t, success)
@@ -421,7 +421,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_InvalidSlotNumber(t *testing
 	}
 
 	// Act - should accept the update (validation is higher layer responsibility)
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -451,7 +451,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_StateTransitionFlow(t *testi
 		}},
 	}
 
-	result1, success1 := existing.UpdateList(false, true, runningNotification, NewFilterTypePartial(), nil)
+	result1, success1 := existing.UpdateList(false, true, runningNotification, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success1)
 
 	// Step 2: Device completes execution
@@ -467,7 +467,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_StateTransitionFlow(t *testi
 		}},
 	}
 
-	result2, success2 := result1.(*SmartEnergyManagementPsDataType).UpdateList(false, true, completedNotification, NewFilterTypePartial(), nil)
+	result2, success2 := result1.(*SmartEnergyManagementPsDataType).UpdateList(false, true, completedNotification, NewFilterTypePartial(), nil, nil)
 
 	// Assert final state
 	assert.True(t, success2)
@@ -501,7 +501,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_ElapsedTimeOnly(t *testing.T
 	}
 
 	// Act
-	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil)
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
 
 	// Assert
 	assert.True(t, success)
@@ -540,7 +540,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_CompleteNotificationScenario
 		}},
 	}
 
-	result1, success1 := heatPump.UpdateList(false, true, startNotification, NewFilterTypePartial(), nil)
+	result1, success1 := heatPump.UpdateList(false, true, startNotification, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success1)
 	heatPump = result1.(*SmartEnergyManagementPsDataType)
 
@@ -561,7 +561,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_CompleteNotificationScenario
 		}},
 	}
 
-	result2, success2 := heatPump.UpdateList(false, true, progressNotification, NewFilterTypePartial(), nil)
+	result2, success2 := heatPump.UpdateList(false, true, progressNotification, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success2)
 	heatPump = result2.(*SmartEnergyManagementPsDataType)
 
@@ -583,7 +583,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_CompleteNotificationScenario
 		}},
 	}
 
-	result3, success3 := heatPump.UpdateList(false, true, completeNotification, NewFilterTypePartial(), nil)
+	result3, success3 := heatPump.UpdateList(false, true, completeNotification, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success3)
 	heatPump = result3.(*SmartEnergyManagementPsDataType)
 

@@ -71,7 +71,7 @@ func TestOHPCF_SimpleValidation(t *testing.T) {
 	}
 
 	// Apply alternative creation as full replacement
-	result1, success1 := ohpcfDevice.UpdateList(false, true, alternativeCreation, nil, nil)
+	result1, success1 := ohpcfDevice.UpdateList(false, true, alternativeCreation, nil, nil, nil)
 	require.True(t, success1, "Alternative creation should succeed")
 	ohpcfDevice = result1.(*SmartEnergyManagementPsDataType)
 
@@ -109,7 +109,7 @@ func TestOHPCF_SimpleValidation(t *testing.T) {
 	partialFilter := &FilterType{
 		CmdControl: &CmdControlType{Partial: &ElementTagType{}},
 	}
-	result2, success2 := ohpcfDevice.UpdateList(false, true, scheduleUpdate, partialFilter, nil)
+	result2, success2 := ohpcfDevice.UpdateList(false, true, scheduleUpdate, partialFilter, nil, nil)
 	require.True(t, success2, "Schedule update should succeed")
 	ohpcfDevice = result2.(*SmartEnergyManagementPsDataType)
 
@@ -144,7 +144,7 @@ func TestOHPCF_SimpleValidation(t *testing.T) {
 		}},
 	}
 
-	result3, success3 := ohpcfDevice.UpdateList(false, true, scheduledUpdate, partialFilter, nil)
+	result3, success3 := ohpcfDevice.UpdateList(false, true, scheduledUpdate, partialFilter, nil, nil)
 	require.True(t, success3, "Scheduled state update should succeed")
 	ohpcfDevice = result3.(*SmartEnergyManagementPsDataType)
 
@@ -171,7 +171,7 @@ func TestOHPCF_SimpleValidation(t *testing.T) {
 		}},
 	}
 
-	result4, success4 := ohpcfDevice.UpdateList(false, true, runningUpdate, partialFilter, nil)
+	result4, success4 := ohpcfDevice.UpdateList(false, true, runningUpdate, partialFilter, nil, nil)
 	require.True(t, success4, "Running state update should succeed")
 	ohpcfDevice = result4.(*SmartEnergyManagementPsDataType)
 
@@ -197,7 +197,7 @@ func TestOHPCF_SimpleValidation(t *testing.T) {
 		}},
 	}
 
-	result5, success5 := ohpcfDevice.UpdateList(false, true, completedUpdate, partialFilter, nil)
+	result5, success5 := ohpcfDevice.UpdateList(false, true, completedUpdate, partialFilter, nil, nil)
 	require.True(t, success5, "Completed state update should succeed")
 	ohpcfDevice = result5.(*SmartEnergyManagementPsDataType)
 
@@ -255,7 +255,7 @@ func TestOHPCF_KeyBasedMatchingWithZeroIDs(t *testing.T) {
 	partialFilter := &FilterType{
 		CmdControl: &CmdControlType{Partial: &ElementTagType{}},
 	}
-	result, success := device.UpdateList(false, true, update, partialFilter, nil)
+	result, success := device.UpdateList(false, true, update, partialFilter, nil, nil)
 	require.True(t, success, "Update with ID 0 should succeed")
 
 	// Validate that ID 0 was matched correctly (not treated as missing)
@@ -391,7 +391,7 @@ func TestOHPCF_KeyBasedUpdatesVsPositional(t *testing.T) {
 	partialFilter := &FilterType{
 		CmdControl: &CmdControlType{Partial: &ElementTagType{}},
 	}
-	result, success := device.UpdateList(false, true, keyBasedUpdate, partialFilter, nil)
+	result, success := device.UpdateList(false, true, keyBasedUpdate, partialFilter, nil, nil)
 	require.True(t, success, "Key-based update should succeed")
 
 	// Validate that only the targeted alternative (ID 0) was updated

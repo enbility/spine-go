@@ -45,7 +45,7 @@ func TestSmartEnergyManagementPsDataType_PersistFlagBehavior(t *testing.T) {
 		}
 
 		// Act - persist=true
-		result, success := original.UpdateList(false, true, update, NewFilterTypePartial(), nil)
+		result, success := original.UpdateList(false, true, update, NewFilterTypePartial(), nil, nil)
 
 		// Assert
 		assert.True(t, success)
@@ -96,7 +96,7 @@ func TestSmartEnergyManagementPsDataType_PersistFlagBehavior(t *testing.T) {
 		}
 
 		// Act - persist=false
-		result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil)
+		result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil, nil)
 
 		// Assert
 		assert.True(t, success)
@@ -148,7 +148,7 @@ func TestSmartEnergyManagementPsDataType_PersistFlagBehavior(t *testing.T) {
 		}
 
 		// Act - persist=false
-		result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil)
+		result, success := original.UpdateList(false, false, update, NewFilterTypePartial(), nil, nil)
 
 		// Assert
 		assert.True(t, success)

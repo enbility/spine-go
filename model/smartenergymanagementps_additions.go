@@ -13,7 +13,7 @@ var _ Updater = (*SmartEnergyManagementPsDataType)(nil)
 //   - Composite key matching for time slot values (slotNumber + valueType)
 //   - "Update all" semantics when keys are missing per SPINE spec
 //   - Proper atomicity through persist flag handling
-func (s *SmartEnergyManagementPsDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (s *SmartEnergyManagementPsDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	// Type check
 	newData, ok := newList.(*SmartEnergyManagementPsDataType)
 	if !ok {
