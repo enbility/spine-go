@@ -3,13 +3,16 @@ package spine
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 
 	shipapi "github.com/enbility/ship-go/api"
 	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
+	"github.com/enbility/spine-go/util"
 )
 
 type DeviceRemote struct {
@@ -23,6 +26,17 @@ type DeviceRemote struct {
 	sender api.SenderInterface
 
 	localDevice api.DeviceLocalInterface
+
+	// Version tracking fields
+	supportedVersions []string      // List of versions supported by remote device
+	negotiatedVersion string        // The negotiated common version
+	
+	// Version detection fields
+	estimatedRemoteVersion string   // Our estimate of remote's version based on compatibility
+	detectedRemoteVersion  string   // Actual version seen in remote's messages
+	versionChanged         bool     // Track if version has changed
+	
+	versionsMutex     sync.RWMutex  // Mutex for thread-safe access to version fields
 }
 
 func NewDeviceRemote(localDevice api.DeviceLocalInterface, ski string, sender api.SenderInterface) *DeviceRemote {
@@ -156,6 +170,16 @@ func (d *DeviceRemote) HandleSpineMesssage(message []byte) (*model.MsgCounterTyp
 		return nil, err
 	}
 
+	// Check if this is a discovery message (which establishes version negotiation)
+	isDiscoveryMessage := d.isDiscoveryMessage(&datagram.Datagram)
+	
+	// Validate protocol version
+	if err := d.validateProtocolVersion(datagram.Datagram.Header.SpecificationVersion, isDiscoveryMessage); err != nil {
+		// Send error response if appropriate
+		d.sendVersionErrorResponse(&datagram.Datagram, err)
+		return nil, err
+	}
+
 	if datagram.Datagram.Header.MsgCounterReference != nil {
 		d.sender.ProcessResponseForMsgCounterReference(datagram.Datagram.Header.MsgCounterReference)
 	}
@@ -163,6 +187,10 @@ func (d *DeviceRemote) HandleSpineMesssage(message []byte) (*model.MsgCounterTyp
 	err := d.localDevice.ProcessCmd(datagram.Datagram, d)
 	if err != nil {
 		logging.Log().Trace(err)
+		// Only propagate version incompatibility errors, preserve original behavior for others
+		if IsVersionIncompatibilityError(err) {
+			return datagram.Datagram.Header.MsgCounter, err
+		}
 	}
 
 	return datagram.Datagram.Header.MsgCounter, nil
@@ -296,3 +324,334 @@ func unmarshalFeature(entity api.EntityRemoteInterface,
 
 	return result, true
 }
+
+// isDiscoveryMessage checks if the datagram contains discovery data
+func (d *DeviceRemote) isDiscoveryMessage(datagram *model.DatagramType) bool {
+	if len(datagram.Payload.Cmd) == 0 {
+		return false
+	}
+	
+	// Check if any command contains NodeManagementDetailedDiscoveryData
+	for _, cmd := range datagram.Payload.Cmd {
+		if cmd.NodeManagementDetailedDiscoveryData != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// validateProtocolVersion checks if the incoming message version is valid
+// For discovery messages: uses compatibility checking
+// For regular messages: detects and validates version
+func (d *DeviceRemote) validateProtocolVersion(version *model.SpecificationVersionType, isDiscoveryMessage bool) error {
+	// If no version provided, assume compatible (handle real-world devices)
+	if version == nil {
+		logging.Log().Debug("No protocol version in message from", d.address)
+		// Update detected version for tracking
+		if !isDiscoveryMessage {
+			_ = d.UpdateDetectedVersion("")
+		}
+		return nil
+	}
+
+	versionStr := strings.TrimSpace(string(*version))
+	
+	// Check SPINE specification limit: max 128 characters
+	if len(versionStr) > 128 {
+		return fmt.Errorf("version string exceeds SPINE specification limit of 128 characters: %d", len(versionStr))
+	}
+	
+	// Empty version - assume compatible
+	if versionStr == "" {
+		logging.Log().Debug("Empty protocol version from", d.address)
+		// Update detected version for tracking
+		if !isDiscoveryMessage {
+			_ = d.UpdateDetectedVersion("")
+		}
+		return nil
+	}
+
+	// Discovery messages - accept any version, don't update detected version
+	if isDiscoveryMessage {
+		logging.Log().Trace("Discovery message - accepting any version:", versionStr)
+		return nil
+	}
+
+	// Regular messages - detect and track the version
+	if err := d.UpdateDetectedVersion(versionStr); err != nil {
+		return err
+	}
+
+	// Log if detected version differs from estimate
+	d.versionsMutex.RLock()
+	estimated := d.estimatedRemoteVersion
+	d.versionsMutex.RUnlock()
+	
+	if estimated != "" && estimated != versionStr {
+		logging.Log().Debugf("Remote device %s using version %s (estimated: %s)", 
+			d.ski, versionStr, estimated)
+	}
+
+	// Validate compatibility
+	return d.validateVersionCompatibility(versionStr)
+}
+
+// validateVersionCompatibility performs compatibility checking for version strings
+func (d *DeviceRemote) validateVersionCompatibility(versionStr string) error {
+	// Try to parse as semantic version (major.minor.patch)
+	major, minor, patch, valid := parseSemanticVersion(versionStr)
+	
+	if !valid {
+		// Not a valid semantic version format - log and assume compatible
+		logging.Log().Debug("Non-compliant protocol version format from", d.address, ":", versionStr)
+		return nil
+	}
+
+	// Valid semantic version - check major version compatibility  
+	if major >= 2 {
+		return fmt.Errorf("incompatible major version: %s", versionStr)
+	}
+
+	// Log successful validation of compliant version
+	logging.Log().Trace("Valid protocol version from", d.address, ":", major, ".", minor, ".", patch)
+
+	// Major version 0 or 1 - compatible
+	return nil
+}
+
+// parseSemanticVersion attempts to parse a version string as major.minor.patch
+// Returns the parsed values and whether the format is valid
+func parseSemanticVersion(version string) (major, minor, patch int, valid bool) {
+	// Split by dots
+	parts := strings.Split(version, ".")
+	if len(parts) != 3 {
+		return 0, 0, 0, false
+	}
+
+	// Parse major version
+	majorVal, err := parseVersionNumber(parts[0])
+	if err != nil || majorVal < 0 {
+		return 0, 0, 0, false
+	}
+
+	// Parse minor version
+	minorVal, err := parseVersionNumber(parts[1])
+	if err != nil || minorVal < 0 {
+		return 0, 0, 0, false
+	}
+
+	// Parse patch version
+	patchVal, err := parseVersionNumber(parts[2])
+	if err != nil || patchVal < 0 {
+		return 0, 0, 0, false
+	}
+
+	return majorVal, minorVal, patchVal, true
+}
+
+// parseVersionNumber parses a single version number component
+func parseVersionNumber(s string) (int, error) {
+	// Must be non-empty
+	if s == "" {
+		return 0, fmt.Errorf("empty version component")
+	}
+
+	// Must contain only digits
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return 0, fmt.Errorf("non-numeric character in version component")
+		}
+	}
+
+	// Convert to int - handle potential overflow by checking length
+	if len(s) > 9 { // Prevent integer overflow
+		return 0, fmt.Errorf("version number too large")
+	}
+
+	val := 0
+	for _, r := range s {
+		val = val*10 + int(r-'0')
+	}
+
+	return val, nil
+}
+
+// sendVersionErrorResponse sends an error response for version incompatibility when appropriate
+func (d *DeviceRemote) sendVersionErrorResponse(datagram *model.DatagramType, versionErr error) {
+	// Only send error response if the message expects a response
+	if datagram.Header.CmdClassifier == nil {
+		return
+	}
+
+	// Don't send error responses to REPLY or RESULT messages (avoid loops)
+	if *datagram.Header.CmdClassifier == model.CmdClassifierTypeReply ||
+		*datagram.Header.CmdClassifier == model.CmdClassifierTypeResult {
+		return
+	}
+
+	// Send error for READ, WRITE, or messages with ackRequest
+	shouldSendError := false
+	if *datagram.Header.CmdClassifier == model.CmdClassifierTypeRead ||
+		*datagram.Header.CmdClassifier == model.CmdClassifierTypeWrite {
+		shouldSendError = true
+	} else if datagram.Header.AckRequest != nil && *datagram.Header.AckRequest {
+		shouldSendError = true
+	}
+
+	if !shouldSendError {
+		return
+	}
+
+	// Create appropriate sender address
+	senderAddress := &model.FeatureAddressType{
+		Device:  d.address,
+		Entity:  []model.AddressEntityType{0},
+		Feature: util.Ptr(model.AddressFeatureType(0)),
+	}
+
+	// Send error response
+	errorType := model.NewErrorType(
+		model.ErrorNumberTypeGeneralError,
+		fmt.Sprintf("Protocol version incompatibility: %s", versionErr.Error()),
+	)
+
+	_ = d.sender.ResultError(&datagram.Header, senderAddress, errorType)
+}
+
+// UpdateEstimatedRemoteVersion calculates what version the remote device will likely use
+// based on its supported versions and compatibility groups
+func (d *DeviceRemote) UpdateEstimatedRemoteVersion() {
+	d.versionsMutex.Lock()
+	defer d.versionsMutex.Unlock()
+	
+	if len(d.supportedVersions) == 0 {
+		d.estimatedRemoteVersion = ""
+		return
+	}
+	
+	// Get our local version's major number for compatibility group
+	localVersion := string(SpecificationVersion)
+	localMajor, _, _, _ := parseSemanticVersion(localVersion)
+	
+	// Find highest version in compatible group
+	// Major versions 0 and 1 are compatible
+	highestCompatible := ""
+	for _, v := range d.supportedVersions {
+		major, _, _, valid := parseSemanticVersion(v)
+		if valid && (major == localMajor || (localMajor <= 1 && major <= 1)) {
+			if highestCompatible == "" || compareVersions(v, highestCompatible) > 0 {
+				highestCompatible = v
+			}
+		}
+	}
+	
+	d.estimatedRemoteVersion = highestCompatible
+}
+
+// EstimatedRemoteVersion returns the estimated version the remote will use
+func (d *DeviceRemote) EstimatedRemoteVersion() string {
+	d.versionsMutex.RLock()
+	defer d.versionsMutex.RUnlock()
+	return d.estimatedRemoteVersion
+}
+
+// UpdateDetectedVersion updates the detected version from actual messages
+func (d *DeviceRemote) UpdateDetectedVersion(version string) error {
+	d.versionsMutex.Lock()
+	defer d.versionsMutex.Unlock()
+	
+	// Check if this is an incompatible version
+	if version != "" && version != "..." && version != "draft" {
+		major, _, _, valid := parseSemanticVersion(version)
+		if valid && major >= 2 {
+			return fmt.Errorf("incompatible major version: %s", version)
+		}
+	}
+	
+	// Track version changes
+	if d.detectedRemoteVersion != "" && d.detectedRemoteVersion != version {
+		d.versionChanged = true
+		logging.Log().Debugf("Remote device %s changed version from %s to %s", 
+			d.ski, d.detectedRemoteVersion, version)
+	}
+	
+	d.detectedRemoteVersion = version
+	return nil
+}
+
+// DetectedRemoteVersion returns the actual version seen in messages
+func (d *DeviceRemote) DetectedRemoteVersion() string {
+	d.versionsMutex.RLock()
+	defer d.versionsMutex.RUnlock()
+	return d.detectedRemoteVersion
+}
+
+// HasVersionChanged returns whether the remote has changed versions
+func (d *DeviceRemote) HasVersionChanged() bool {
+	d.versionsMutex.RLock()
+	defer d.versionsMutex.RUnlock()
+	return d.versionChanged
+}
+
+// ValidateDatagramVersion validates the version in a datagram
+func (d *DeviceRemote) ValidateDatagramVersion(datagram *model.DatagramType) error {
+	// Handle nil datagram
+	if datagram == nil {
+		return nil
+	}
+	
+	// Discovery messages are never rejected
+	if d.isDiscoveryMessage(datagram) {
+		return nil
+	}
+	
+	// Extract version
+	versionStr := ""
+	if datagram.Header.SpecificationVersion != nil {
+		versionStr = string(*datagram.Header.SpecificationVersion)
+	}
+	
+	// Update detected version
+	if versionStr != "" {
+		if err := d.UpdateDetectedVersion(versionStr); err != nil {
+			return err
+		}
+	}
+	
+	return nil
+}
+
+// SetSupportedProtocolVersions stores the supported versions from remote device
+func (d *DeviceRemote) SetSupportedProtocolVersions(versions []string) {
+	d.versionsMutex.Lock()
+	defer d.versionsMutex.Unlock()
+	d.supportedVersions = make([]string, len(versions))
+	copy(d.supportedVersions, versions)
+}
+
+// SupportedProtocolVersions returns the supported versions (thread-safe)
+func (d *DeviceRemote) SupportedProtocolVersions() []string {
+	d.versionsMutex.RLock()
+	defer d.versionsMutex.RUnlock()
+	if d.supportedVersions == nil {
+		return nil
+	}
+	result := make([]string, len(d.supportedVersions))
+	copy(result, d.supportedVersions)
+	return result
+}
+
+// SetNegotiatedProtocolVersion stores the negotiated version
+func (d *DeviceRemote) SetNegotiatedProtocolVersion(version string) {
+	d.versionsMutex.Lock()
+	defer d.versionsMutex.Unlock()
+	d.negotiatedVersion = version
+}
+
+// NegotiatedProtocolVersion returns the negotiated version (thread-safe)
+func (d *DeviceRemote) NegotiatedProtocolVersion() string {
+	d.versionsMutex.RLock()
+	defer d.versionsMutex.RUnlock()
+	return d.negotiatedVersion
+}
+

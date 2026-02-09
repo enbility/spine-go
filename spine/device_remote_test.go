@@ -34,7 +34,7 @@ func (s *DeviceRemoteSuite) BeforeTest(suiteName, testName string) {
 	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
 	ski := "test"
-	sender := NewSender(s)
+	sender := NewSender(s, nil)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
 	desc := &model.NetworkManagementDeviceDescriptionDataType{
 		DeviceAddress: &model.DeviceAddressType{

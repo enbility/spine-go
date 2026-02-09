@@ -27,6 +27,7 @@ type Sender struct {
 	datagramNotifyCache *lrucache.LRUCache[model.MsgCounterType, model.DatagramType]
 
 	writeHandler shipapi.ShipConnectionDataWriterInterface
+	localDevice  api.DeviceLocalInterface // Reference to local device for version lookups
 
 	reqMsgCache reqMsgCacheData // cache for unanswered request messages, so we can filter duplicates and not send them
 
@@ -38,11 +39,12 @@ type Sender struct {
 
 var _ api.SenderInterface = (*Sender)(nil)
 
-func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInterface {
+func NewSender(writeI shipapi.ShipConnectionDataWriterInterface, localDevice api.DeviceLocalInterface) api.SenderInterface {
 	cache := lrucache.New[model.MsgCounterType, model.DatagramType](100, 0)
 	return &Sender{
 		datagramNotifyCache: &cache,
 		writeHandler:        writeI,
+		localDevice:         localDevice,
 		reqMsgCache:         make(reqMsgCacheData),
 	}
 }
@@ -152,6 +154,26 @@ func (c *Sender) ProcessResponseForMsgCounterReference(msgCounterRef *model.MsgC
 	}
 }
 
+// getVersionForDestination determines which version to use for messages to a destination
+func (c *Sender) getVersionForDestination(destinationAddress *model.FeatureAddressType) model.SpecificationVersionType {
+	// Default to current version
+	version := SpecificationVersion
+	
+	// If we have local device context and destination device address
+	if c.localDevice != nil && destinationAddress != nil && destinationAddress.Device != nil {
+		// Look up the remote device
+		remoteDevice := c.localDevice.RemoteDeviceForAddress(*destinationAddress.Device)
+		if remoteDevice != nil {
+			// Use negotiated version if available
+			if negotiated := remoteDevice.NegotiatedProtocolVersion(); negotiated != "" {
+				version = model.SpecificationVersionType(negotiated)
+			}
+		}
+	}
+	
+	return version
+}
+
 // Sends request
 func (c *Sender) Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error) {
 	// lock the method so caching works if the method is called really simultaniously and the cache therefor was not updated yet
@@ -168,9 +190,10 @@ func (c *Sender) Request(cmdClassifier model.CmdClassifierType, senderAddress, d
 
 	msgCounter := c.getMsgCounter()
 
+	version := c.getVersionForDestination(destinationAddress)
 	datagram := model.DatagramType{
 		Header: model.HeaderType{
-			SpecificationVersion: &SpecificationVersion,
+			SpecificationVersion: &version,
 			AddressSource:        senderAddress,
 			AddressDestination:   destinationAddress,
 			MsgCounter:           msgCounter,
@@ -226,9 +249,10 @@ func (c *Sender) result(requestHeader *model.HeaderType, senderAddress *model.Fe
 		ResultData: &resultData,
 	}
 
+	version := c.getVersionForDestination(requestHeader.AddressSource)
 	datagram := model.DatagramType{
 		Header: model.HeaderType{
-			SpecificationVersion: &SpecificationVersion,
+			SpecificationVersion: &version,
 			AddressSource:        &addressSource,
 			AddressDestination:   requestHeader.AddressSource,
 			MsgCounter:           c.getMsgCounter(),
@@ -250,9 +274,10 @@ func (c *Sender) Reply(requestHeader *model.HeaderType, senderAddress *model.Fea
 	addressSource := *requestHeader.AddressDestination
 	addressSource.Device = senderAddress.Device
 
+	version := c.getVersionForDestination(requestHeader.AddressSource)
 	datagram := model.DatagramType{
 		Header: model.HeaderType{
-			SpecificationVersion: &SpecificationVersion,
+			SpecificationVersion: &version,
 			AddressSource:        &addressSource,
 			AddressDestination:   requestHeader.AddressSource,
 			MsgCounter:           c.getMsgCounter(),
@@ -273,9 +298,10 @@ func (c *Sender) Notify(senderAddress, destinationAddress *model.FeatureAddressT
 
 	cmdClassifier := model.CmdClassifierTypeNotify
 
+	version := c.getVersionForDestination(destinationAddress)
 	datagram := model.DatagramType{
 		Header: model.HeaderType{
-			SpecificationVersion: &SpecificationVersion,
+			SpecificationVersion: &version,
 			AddressSource:        senderAddress,
 			AddressDestination:   destinationAddress,
 			MsgCounter:           msgCounter,
@@ -300,9 +326,10 @@ func (c *Sender) Write(senderAddress, destinationAddress *model.FeatureAddressTy
 	cmdClassifier := model.CmdClassifierTypeWrite
 	ackRequest := true
 
+	version := c.getVersionForDestination(destinationAddress)
 	datagram := model.DatagramType{
 		Header: model.HeaderType{
-			SpecificationVersion: &SpecificationVersion,
+			SpecificationVersion: &version,
 			AddressSource:        senderAddress,
 			AddressDestination:   destinationAddress,
 			MsgCounter:           msgCounter,

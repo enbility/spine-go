@@ -124,4 +124,26 @@ type DeviceRemoteInterface interface {
 
 	// Helper method for checking incoming NodeManagementDetailedDiscoveryEntityInformation data
 	CheckEntityInformation(initialData bool, entity model.NodeManagementDetailedDiscoveryEntityInformationType) error
+
+	// Protocol version tracking methods
+	// Get the list of protocol versions supported by the remote device
+	SupportedProtocolVersions() []string
+	// Set the list of protocol versions supported by the remote device
+	SetSupportedProtocolVersions(versions []string)
+	// Get the negotiated protocol version between local and remote device
+	NegotiatedProtocolVersion() string
+	// Set the negotiated protocol version between local and remote device
+	SetNegotiatedProtocolVersion(version string)
+	
+	// Version detection methods
+	// Update the estimated version the remote device will use based on compatibility groups
+	UpdateEstimatedRemoteVersion()
+	// Get the estimated version the remote device will use
+	EstimatedRemoteVersion() string
+	// Update the detected version from actual messages
+	UpdateDetectedVersion(version string) error
+	// Get the actual version detected in remote's messages
+	DetectedRemoteVersion() string
+	// Check if the remote device has changed versions during the session
+	HasVersionChanged() bool
 }

@@ -32,7 +32,7 @@ func (s *BindingManagerSuite) BeforeTest(suiteName, testName string) {
 
 	s.writeHandler = &WriteMessageHandler{}
 
-	sender := NewSender(s.writeHandler)
+	sender := NewSender(s.writeHandler, nil)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, remoteSki, sender)
 	s.remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 

@@ -66,7 +66,7 @@ func (s *UtilsSuite) Test_addressDetails() {
 	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
 	remoteSki := "TestRemoteSki"
-	sender := NewSender(s)
+	sender := NewSender(s, nil)
 	remoteDevice := NewDeviceRemote(s.localDevice, remoteSki, sender)
 	remoteDevice.address = util.Ptr(model.AddressDeviceType("Address"))
 
@@ -185,7 +185,7 @@ func (s *UtilsSuite) Test_DataCopyOfType() {
 	assert.NotNil(s.T(), err)
 
 	ski := "test"
-	sender := NewSender(s)
+	sender := NewSender(s, nil)
 
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
 	remoteEntity := NewEntityRemote(s.remoteDevice, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}))

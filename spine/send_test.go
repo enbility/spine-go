@@ -25,7 +25,7 @@ func Test_SendSpineMessage(t *testing.T) {
 
 func Test_Cache(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	cmdClassifier := model.CmdClassifierTypeRead
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
@@ -71,7 +71,7 @@ func Test_Cache(t *testing.T) {
 
 func TestSender_Reply_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -100,7 +100,7 @@ func TestSender_Reply_MsgCounter(t *testing.T) {
 
 func TestSender_Notify_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -130,7 +130,7 @@ func TestSender_Notify_MsgCounter(t *testing.T) {
 
 func TestSender_Write_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -154,7 +154,7 @@ func TestSender_Write_MsgCounter(t *testing.T) {
 
 func TestSender_Subscribe_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -186,7 +186,7 @@ func TestSender_Subscribe_MsgCounter(t *testing.T) {
 
 func TestSender_Unsubscribe_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -218,7 +218,7 @@ func TestSender_Unsubscribe_MsgCounter(t *testing.T) {
 
 func TestSender_Bind_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -250,7 +250,7 @@ func TestSender_Bind_MsgCounter(t *testing.T) {
 
 func TestSender_Unbind_MsgCounter(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 
 	senderAddress := featureAddressType(1, NewEntityAddressType("Sender", []uint{1}))
 	destinationAddress := featureAddressType(2, NewEntityAddressType("destination", []uint{1}))
@@ -285,7 +285,7 @@ func TestSender_Unbind_MsgCounter(t *testing.T) {
 // TestSender_MsgCounter_ThreadSafety verifies thread-safe msgCounter generation
 func TestSender_MsgCounter_ThreadSafety(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 	senderImpl := sut.(*Sender)
 
 	const numGoroutines = 100
@@ -340,7 +340,7 @@ func TestSender_MsgCounter_ThreadSafety(t *testing.T) {
 // TestSender_MsgCounter_Uniqueness verifies msgCounters are unique within window
 func TestSender_MsgCounter_Uniqueness(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 	senderImpl := sut.(*Sender)
 
 	const numMessages = 10000
@@ -372,7 +372,7 @@ func TestSender_MsgCounter_StartingValue(t *testing.T) {
 	// Create multiple new senders to verify consistent behavior
 	for i := 0; i < 5; i++ {
 		temp := &WriteMessageHandler{}
-		sut := NewSender(temp)
+		sut := NewSender(temp, nil)
 		senderImpl := sut.(*Sender)
 		
 		counter := senderImpl.getMsgCounter()
@@ -384,7 +384,7 @@ func TestSender_MsgCounter_StartingValue(t *testing.T) {
 // TestSender_MsgCounter_OverflowSimulation simulates overflow behavior at implementation level
 func TestSender_MsgCounter_OverflowSimulation(t *testing.T) {
 	temp := &WriteMessageHandler{}
-	sut := NewSender(temp)
+	sut := NewSender(temp, nil)
 	senderImpl := sut.(*Sender)
 	
 	// Set msgNum to max value - 1 to test overflow

@@ -33,7 +33,7 @@ func (s *HeartBeatManagerSuite) BeforeTest(suiteName, testName string) {
 	s.localDevice.AddEntity(s.localEntity)
 
 	ski := "test"
-	sender := NewSender(s)
+	sender := NewSender(s, nil)
 	s.remoteDevice = NewDeviceRemote(s.localDevice, ski, sender)
 	s.remoteDevice.address = util.Ptr(model.AddressDeviceType("remoteDevice"))
 

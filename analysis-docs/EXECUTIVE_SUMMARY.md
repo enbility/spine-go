@@ -7,6 +7,10 @@
 
 ## Change History
 
+### 2025-07-07
+- Added critical finding about "hope-based" version negotiation mechanism
+- Updated critical gaps to include version negotiation flaws
+
 ### 2025-06-25
 - Initial executive summary for business stakeholders
 - Highlighted fundamental SPINE design limitations
@@ -45,6 +49,7 @@ Our analysis reveals that **SPINE is a communication protocol, not a system orch
 
 **Critical Gaps:**
 - ❌ **No Version Validation** - Security risk, compatibility issues
+- ❌ **"Hope-Based" Version Negotiation** - No protocol to ensure devices agree on version
 - ❌ **Limited Orchestration** - Requires custom system coordination
 
 ## Business Impact by Scenario
