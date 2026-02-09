@@ -43,6 +43,62 @@ func TestSmartEnergyManagementPsDataType_UpdateList_BasicReplacement(t *testing.
 	assert.Equal(t, true, *resultData.NodeScheduleInformation.SupportsReselection)
 }
 
+func TestSmartEnergyManagementPsDataType_UpdateList_MergeNodeScheduleInformation(t *testing.T) {
+	// Arrange - existing data structure
+	existing := &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			NodeRemoteControllable:           util.Ptr(false),
+			SupportsSingleSlotSchedulingOnly: util.Ptr(false),
+			AlternativesCount:                util.Ptr(uint(2)),
+			SupportsReselection:              util.Ptr(true),
+		},
+	}
+
+	// Change only NodeRemoteControllable, to test its merge
+	newData := &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			NodeRemoteControllable: util.Ptr(true),
+		},
+	}
+
+	result, success := existing.UpdateList(false, true, newData, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+	assert.NotNil(t, result)
+
+	// Verify the replaced data and the persistence of the existing ones
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	assert.Equal(t, true, *resultData.NodeScheduleInformation.NodeRemoteControllable)
+	assert.Equal(t, false, *resultData.NodeScheduleInformation.SupportsSingleSlotSchedulingOnly)
+	assert.Equal(t, uint(2), *resultData.NodeScheduleInformation.AlternativesCount)
+	assert.Equal(t, true, *resultData.NodeScheduleInformation.SupportsReselection)
+	assert.Nil(t, resultData.NodeScheduleInformation.TotalSequencesCountMax)
+
+	// Try again by updating the rest
+	newData = &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			SupportsSingleSlotSchedulingOnly: util.Ptr(false),
+			AlternativesCount:                util.Ptr(uint(1)),
+			TotalSequencesCountMax:           util.Ptr(uint(1)),
+			SupportsReselection:              util.Ptr(false),
+		},
+	}
+	result, success = existing.UpdateList(false, true, newData, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+	assert.NotNil(t, result)
+
+	// Verify the data was replaced
+	resultData = result.(*SmartEnergyManagementPsDataType)
+	assert.Equal(t, true, *resultData.NodeScheduleInformation.NodeRemoteControllable)
+	assert.Equal(t, false, *resultData.NodeScheduleInformation.SupportsSingleSlotSchedulingOnly)
+	assert.Equal(t, uint(1), *resultData.NodeScheduleInformation.AlternativesCount)
+	assert.Equal(t, false, *resultData.NodeScheduleInformation.SupportsReselection)
+	assert.Equal(t, uint(1), *resultData.NodeScheduleInformation.TotalSequencesCountMax)
+}
+
 func TestSmartEnergyManagementPsDataType_UpdateList_InvalidType(t *testing.T) {
 	// Arrange
 	existing := &SmartEnergyManagementPsDataType{}
