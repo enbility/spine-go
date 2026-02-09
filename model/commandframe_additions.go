@@ -290,6 +290,9 @@ func (cmd *CmdType) DataName() string {
 func (cmd *CmdType) ExtractFilter() (filterPartial *FilterType, filterDelete *FilterType) {
 	if cmd != nil && cmd.Filter != nil && len(cmd.Filter) > 0 {
 		for i := range cmd.Filter {
+			if cmd.Filter[i].CmdControl == nil {
+				continue
+			}
 			if cmd.Filter[i].CmdControl.Partial != nil {
 				filterPartial = &cmd.Filter[i]
 			} else if cmd.Filter[i].CmdControl.Delete != nil {

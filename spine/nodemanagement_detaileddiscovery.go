@@ -53,6 +53,9 @@ func (r *NodeManagement) processReadDetailedDiscoveryData(deviceRemote api.Devic
 func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	remoteDevice := message.DeviceRemote
 
+	if data.DeviceInformation == nil {
+		return errors.New("nodemanagement.replyDetailedDiscoveryData: invalid DeviceInformation")
+	}
 	deviceDescription := data.DeviceInformation.Description
 	if deviceDescription == nil {
 		return errors.New("nodemanagement.replyDetailedDiscoveryData: invalid DeviceInformation.Description")
