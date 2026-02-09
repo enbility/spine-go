@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
