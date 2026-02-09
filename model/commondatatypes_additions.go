@@ -215,88 +215,42 @@ func NewDurationType(duration time.Duration) *DurationType {
 		return &value
 	}
 
-	// For relative durations, always calculate from "now" to preserve calendar structure
-	// This gives us accurate year/month representation instead of just seconds
-	now := time.Now()
-	target := now.Add(duration)
+	// Use pure arithmetic decomposition into days/hours/minutes/seconds only.
+	// Months and years are avoided because they have variable lengths, causing
+	// lossy round-trips when parsed back via fixed averages (e.g. P1M ≈ 30.44 days).
+	totalSeconds := int64(duration.Seconds())
 
-	// Calculate calendar units between now and target
-	years := 0
-	months := 0
-	days := 0
-	hours := 0
-	minutes := 0
-	seconds := 0
+	days := totalSeconds / 86400
+	totalSeconds %= 86400
 
-	// Calculate years first
-	for now.AddDate(years+1, 0, 0).Before(target) || now.AddDate(years+1, 0, 0).Equal(target) {
-		years++
-	}
-
-	// Then months
-	tempTime := now.AddDate(years, 0, 0)
-	for tempTime.AddDate(0, months+1, 0).Before(target) || tempTime.AddDate(0, months+1, 0).Equal(target) {
-		months++
-	}
-
-	// Then days
-	tempTime = now.AddDate(years, months, 0)
-	for tempTime.AddDate(0, 0, days+1).Before(target) || tempTime.AddDate(0, 0, days+1).Equal(target) {
-		days++
-	}
-
-	// Now handle time components
-	tempTime = now.AddDate(years, months, days)
-	remainingDuration := target.Sub(tempTime)
-
-	// Extract hours, minutes, seconds from remaining duration
-	totalSeconds := int64(remainingDuration.Seconds())
-	hours = int(totalSeconds / 3600)
+	hours := totalSeconds / 3600
 	totalSeconds %= 3600
-	minutes = int(totalSeconds / 60)
-	seconds = int(totalSeconds % 60)
 
-	// Handle nanoseconds for sub-second precision
-	nanos := remainingDuration.Nanoseconds() % 1e9
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
 
 	// Build ISO 8601 duration string
 	var result strings.Builder
 	result.WriteString("P")
 
-	// Date part
-	if years > 0 {
-		result.WriteString(fmt.Sprintf("%dY", years))
-	}
-	if months > 0 {
-		result.WriteString(fmt.Sprintf("%dM", months))
-	}
 	if days > 0 {
-		result.WriteString(fmt.Sprintf("%dD", days))
+		fmt.Fprintf(&result, "%dD", days)
 	}
 
-	// Time part
-	if hours > 0 || minutes > 0 || seconds > 0 || nanos > 0 {
+	if hours > 0 || minutes > 0 || seconds > 0 {
 		result.WriteString("T")
 		if hours > 0 {
-			result.WriteString(fmt.Sprintf("%dH", hours))
+			fmt.Fprintf(&result, "%dH", hours)
 		}
 		if minutes > 0 {
-			result.WriteString(fmt.Sprintf("%dM", minutes))
+			fmt.Fprintf(&result, "%dM", minutes)
 		}
-		if seconds > 0 || nanos > 0 {
-			if nanos > 0 {
-				// Format seconds with fractional part
-				fractionalSeconds := float64(seconds) + float64(nanos)/1e9
-				result.WriteString(fmt.Sprintf("%gS", fractionalSeconds))
-			} else {
-				result.WriteString(fmt.Sprintf("%dS", seconds))
-			}
+		if seconds > 0 {
+			fmt.Fprintf(&result, "%dS", seconds)
 		}
 	}
 
-	// Handle edge case of zero duration
 	if result.String() == "P" {
-		// ISO 8601 specifies P0D for zero duration, though PT0S is also valid
 		result.WriteString("0D")
 	}
 

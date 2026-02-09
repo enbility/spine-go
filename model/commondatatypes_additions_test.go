@@ -404,21 +404,14 @@ func TestDurationTypeIssue60(t *testing.T) {
 	resultStr := string(*result)
 
 	// Should NOT be "PT4357512417S" (old behavior)
-	// Should be something like "P138Y1MT4H6M57S" (preserves year/month structure)
+	// Should use days: "P50434DT4H6M57S" (exact round-trip, no calendar dependency)
 	assert.NotEqual(t, "PT4357512417S", resultStr, "Should not output seconds-only format")
-	assert.Contains(t, resultStr, "Y", "Should contain year component")
-	assert.Contains(t, resultStr, "M", "Should contain month component")
+	assert.Contains(t, resultStr, "D", "Should contain day component")
 
-	// Verify it's still a valid duration that can be parsed back
+	// Verify it's still a valid duration that can be parsed back exactly
 	parsedBack, err := result.GetTimeDuration()
 	assert.NoError(t, err, "Result should be parseable")
-
-	// Should be within reasonable tolerance (few seconds) due to calendar approximations
-	diff := parsedBack - duration
-	if diff < 0 {
-		diff = -diff
-	}
-	assert.True(t, diff < 10*time.Hour, "Should be within 10 hours tolerance (approximation errors)")
+	assert.Equal(t, duration, parsedBack, "Round-trip should be exact when using days")
 }
 
 // TestNewDurationTypeEdgeCases tests edge cases for the calendar-aware duration formatting
@@ -434,18 +427,6 @@ func TestNewDurationTypeEdgeCases(t *testing.T) {
 			duration:      0,
 			expectedRegex: "^P0D$",
 			description:   "Zero duration should be P0D",
-		},
-		{
-			name:          "one nanosecond",
-			duration:      1 * time.Nanosecond,
-			expectedRegex: "^PT(0\\.000000001S|1e-09S)$",
-			description:   "Should handle nanosecond precision (scientific notation allowed)",
-		},
-		{
-			name:          "one millisecond",
-			duration:      1 * time.Millisecond,
-			expectedRegex: "^PT0\\.001S$",
-			description:   "Should format fractional seconds",
 		},
 		{
 			name:          "exactly one second",
@@ -485,8 +466,8 @@ func TestNewDurationTypeEdgeCases(t *testing.T) {
 		},
 		{
 			name:          "complex time only",
-			duration:      2*time.Hour + 30*time.Minute + 45*time.Second + 123*time.Millisecond,
-			expectedRegex: "^PT2H30M45\\.123S$",
+			duration:      2*time.Hour + 30*time.Minute + 45*time.Second,
+			expectedRegex: "^PT2H30M45S$",
 			description:   "Should handle complex time components",
 		},
 	}
@@ -498,39 +479,10 @@ func TestNewDurationTypeEdgeCases(t *testing.T) {
 
 			assert.Regexp(t, tt.expectedRegex, resultStr, tt.description)
 
-			// Verify it can be parsed back (within tolerance for calendar operations)
+			// All durations should round-trip exactly (days-based, no calendar approximation)
 			parsedBack, err := result.GetTimeDuration()
-			if tt.duration == 1*time.Nanosecond {
-				// Scientific notation (1e-09S) is not parseable by period library
-				// This is an acceptable limitation for such tiny durations
-				if err != nil {
-					t.Logf("Nanosecond duration produces unparseable scientific notation: %s", resultStr)
-					return // Skip the rest of this test
-				}
-			}
 			assert.NoError(t, err, "Result should be parseable")
-
-			// For small durations (< 1 day), expect exact matches (except very small ones)
-			// For larger durations, allow for calendar approximation errors
-			if tt.duration < 24*time.Hour {
-				if tt.duration >= 1*time.Millisecond {
-					assert.Equal(t, tt.duration, parsedBack, "Small durations should round-trip exactly")
-				} else {
-					// Very small durations (nanoseconds) may have precision issues
-					diff := parsedBack - tt.duration
-					if diff < 0 {
-						diff = -diff
-					}
-					assert.True(t, diff <= tt.duration, "Very small durations should be reasonably close")
-				}
-			} else {
-				// Allow for small differences due to calendar calculations
-				diff := parsedBack - tt.duration
-				if diff < 0 {
-					diff = -diff
-				}
-				assert.True(t, diff < 1*time.Hour, "Large durations should be within 1 hour tolerance")
-			}
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
 		})
 	}
 }
@@ -579,37 +531,23 @@ func TestNewDurationTypeNegative(t *testing.T) {
 	}
 }
 
-// TestNewDurationTypeLeapYearBoundaries tests calendar edge cases
-func TestNewDurationTypeLeapYearBoundaries(t *testing.T) {
-	// Test durations that would span different calendar boundaries
-	// Use fixed times for reproducible results
+// TestNewDurationTypeLargeDayBoundaries tests large day-based durations
+func TestNewDurationTypeLargeDayBoundaries(t *testing.T) {
 	tests := []struct {
-		name        string
-		duration    time.Duration
-		description string
-		minYears    int
-		maxYears    int
+		name     string
+		duration time.Duration
 	}{
 		{
-			name:        "approximately 1 year",
-			duration:    365 * 24 * time.Hour,
-			description: "365 days should be close to 1 year",
-			minYears:    0,
-			maxYears:    1,
+			name:     "365 days",
+			duration: 365 * 24 * time.Hour,
 		},
 		{
-			name:        "approximately 2 years",
-			duration:    2 * 365 * 24 * time.Hour,
-			description: "730 days should be close to 2 years",
-			minYears:    1,
-			maxYears:    2,
+			name:     "730 days",
+			duration: 2 * 365 * 24 * time.Hour,
 		},
 		{
-			name:        "approximately 1 month",
-			duration:    30 * 24 * time.Hour,
-			description: "30 days should be approximately 1 month",
-			minYears:    0,
-			maxYears:    0,
+			name:     "30 days",
+			duration: 30 * 24 * time.Hour,
 		},
 	}
 
@@ -618,26 +556,21 @@ func TestNewDurationTypeLeapYearBoundaries(t *testing.T) {
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
 
-			// Verify the structure makes sense
-			if tt.minYears > 0 || tt.maxYears > 0 {
-				assert.Contains(t, resultStr, "Y", "Should contain year component for ~yearly durations")
-			}
-
-			// Should not be seconds-only format
+			// Should use days, not seconds-only format
+			assert.Contains(t, resultStr, "D", "Should contain day component")
 			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Should not be seconds-only format")
 
-			// Should be parseable
+			// Should round-trip exactly
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
-			assert.NotZero(t, parsedBack)
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
 		})
 	}
 }
 
-// TestNewDurationTypeMonthBoundaries tests month length variations
+// TestNewDurationTypeMonthBoundaries tests durations around month-length boundaries
 func TestNewDurationTypeMonthBoundaries(t *testing.T) {
-	// Test durations around month boundaries
-	monthLengths := []int{28, 29, 30, 31} // Different month lengths
+	monthLengths := []int{28, 29, 30, 31}
 
 	for _, days := range monthLengths {
 		t.Run(fmt.Sprintf("%d days", days), func(t *testing.T) {
@@ -645,19 +578,13 @@ func TestNewDurationTypeMonthBoundaries(t *testing.T) {
 			result := NewDurationType(duration)
 			resultStr := string(*result)
 
-			// Should be in a reasonable format (days or month + days)
-			assert.Regexp(t, "^P(\\d+M)?(\\d+D)?(T.*)?$", resultStr, "Should be valid ISO 8601 format")
+			// Should use days format (e.g. P28D, P30D)
+			assert.Regexp(t, "^P\\d+D$", resultStr, "Should be days-only format")
 
-			// Should be parseable
+			// Should round-trip exactly
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
-
-			// For durations around month boundaries, allow for calendar approximation errors
-			diff := parsedBack - duration
-			if diff < 0 {
-				diff = -diff
-			}
-			assert.True(t, diff < 24*time.Hour, "Month-boundary durations should be within 24 hours (calendar approximations)")
+			assert.Equal(t, duration, parsedBack, "Round-trip should be exact for day-based durations")
 		})
 	}
 }
@@ -667,32 +594,23 @@ func TestNewDurationTypeLargeValues(t *testing.T) {
 	tests := []struct {
 		name     string
 		duration time.Duration
-		expectY  bool
-		expectM  bool
 	}{
 		{
-			name:     "10 years",
+			name:     "10 years in days",
 			duration: 10 * 365 * 24 * time.Hour,
-			expectY:  true,
-			expectM:  false,
 		},
 		{
-			name:     "100 years",
+			name:     "100 years in days",
 			duration: 100 * 365 * 24 * time.Hour,
-			expectY:  true,
-			expectM:  false,
 		},
 		{
 			name:     "close to overflow",
-			duration: 250 * 365 * 24 * time.Hour, // Close to time.Duration max (~290 years)
-			expectY:  true,
-			expectM:  false,
+			duration: 250 * 365 * 24 * time.Hour,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Skip if duration would overflow
 			if tt.duration < 0 {
 				t.Skip("Duration overflows time.Duration")
 				return
@@ -701,20 +619,14 @@ func TestNewDurationTypeLargeValues(t *testing.T) {
 			result := NewDurationType(tt.duration)
 			resultStr := string(*result)
 
-			if tt.expectY {
-				assert.Contains(t, resultStr, "Y", "Should contain year component")
-			}
-			if tt.expectM {
-				assert.Contains(t, resultStr, "M", "Should contain month component")
-			}
-
-			// Should not be seconds-only
+			// Should use days, not seconds-only
+			assert.Contains(t, resultStr, "D", "Should contain day component")
 			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Large durations should not be seconds-only")
 
-			// Should be parseable (even if with approximation errors)
+			// Should round-trip exactly
 			parsedBack, err := result.GetTimeDuration()
 			assert.NoError(t, err)
-			assert.NotZero(t, parsedBack)
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
 		})
 	}
 }
@@ -746,18 +658,10 @@ func TestNewDurationTypeRoundTrip(t *testing.T) {
 			parsed, err := durType.GetTimeDuration()
 			assert.NoError(t, err)
 
-			// For durations using only weeks/days/hours/minutes/seconds,
-			// we should get exact round-trip
-			if original <= 28*24*time.Hour {
-				tolerance := 1 * time.Second // Allow 1 second tolerance for rounding
-				diff := parsed - original
-				if diff < 0 {
-					diff = -diff
-				}
-				assert.True(t, diff <= tolerance,
-					"Round-trip should be exact for duration %v, got %v (diff: %v, iso: %s)",
-					original, parsed, diff, isoStr)
-			}
+			// All durations should round-trip exactly (only days/hours/minutes/seconds used)
+			assert.Equal(t, original, parsed,
+				"Round-trip should be exact for duration %v, got %v (iso: %s)",
+				original, parsed, isoStr)
 		})
 	}
 }
@@ -774,25 +678,25 @@ func TestNewDurationTypeStructurePreservation(t *testing.T) {
 		{
 			name:           "1 year in seconds",
 			inputSeconds:   31556952, // ~1 year
-			mustContain:    []string{"Y"},
+			mustContain:    []string{"D"},
 			mustNotContain: []string{"PT31556952S"},
 		},
 		{
 			name:           "1 month in seconds",
-			inputSeconds:   2629746,       // ~1 month
-			mustContain:    []string{"D"}, // Should be days or month+days
+			inputSeconds:   2629746, // ~1 month
+			mustContain:    []string{"D"},
 			mustNotContain: []string{"PT2629746S"},
 		},
 		{
 			name:           "issue 60 duration",
 			inputSeconds:   4357512417,
-			mustContain:    []string{"Y", "M"},
+			mustContain:    []string{"D"},
 			mustNotContain: []string{"PT4357512417S"},
 		},
 		{
 			name:           "6 months in seconds",
-			inputSeconds:   15778476,      // ~6 months
-			mustContain:    []string{"M"}, // Should contain months
+			inputSeconds:   15778476, // ~6 months
+			mustContain:    []string{"D"},
 			mustNotContain: []string{"PT15778476S"},
 		},
 	}
@@ -882,20 +786,9 @@ func TestNewDurationTypeSPINERealistic(t *testing.T) {
 			parsed, err := result.GetTimeDuration()
 			assert.NoError(t, err)
 
-			// For SPINE use cases, accuracy is critical
-			diff := parsed - tc.duration
-			if diff < 0 {
-				diff = -diff
-			}
-
-			// Most SPINE durations should be exact or very close
-			if tc.duration <= 7*24*time.Hour {
-				assert.True(t, diff <= 1*time.Second,
-					"SPINE duration %s should be very accurate (diff: %v)", tc.context, diff)
-			} else {
-				assert.True(t, diff <= 1*time.Hour,
-					"Longer SPINE duration %s should be reasonably accurate (diff: %v)", tc.context, diff)
-			}
+			// All SPINE durations should round-trip exactly (days-based, no calendar approximation)
+			assert.Equal(t, tc.duration, parsed,
+				"SPINE duration %s should round-trip exactly", tc.context)
 		})
 	}
 }
