@@ -99,7 +99,15 @@ func (s *DeviceRemoteSuite) Test_Usecases() {
 
 // our simple EEBUS JSON to JSON conversion in ship is converting empty arrays to empty objects which will break unmarshalling
 func (s *DeviceRemoteSuite) Test_EmptyArrayDataStructure() {
-	_, err := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_detaileddiscovery_emptyarray_file_path))
+	message := loadFileData(s.T(), nm_detaileddiscovery_emptyarray_file_path)
+
+	// parsing fails when what should be an empty array is passed as an empty object
+	datagram := model.Datagram{}
+	err := json.Unmarshal([]byte(message), &datagram)
+	assert.NotNil(s.T(), err)
+
+	// parsing works in the actual implementation which passes the message through fixupSliceFields
+	_, err = s.remoteDevice.HandleSpineMesssage(message)
 	assert.Nil(s.T(), err)
 }
 
@@ -234,6 +242,7 @@ func Test_findFieldTypeByJSONTag_WithModelTypes(t *testing.T) {
 
 	// Check for a known field in CmdType
 	result = findFieldTypeByJSONTag(cmdType, "function")
+	assert.NotNil(t, result, "expected to find 'function' field in CmdType type")
 	if result != nil {
 		assert.Equal(t, reflect.Ptr, (*result).Kind())
 	}
@@ -485,7 +494,16 @@ func Test_fixupSliceFieldsRecursive_WithModelTypes(t *testing.T) {
 
 	resultMap, ok := result.(map[string]interface{})
 	assert.True(t, ok)
-	assert.NotNil(t, resultMap["datagram"])
+	datagramMap, ok := resultMap["datagram"].(map[string]interface{})
+	assert.True(t, ok)
+	payloadMap, ok := datagramMap["payload"].(map[string]interface{})
+	assert.True(t, ok)
+
+	cmdVal, ok := payloadMap["cmd"]
+	assert.True(t, ok)
+	cmdSlice, ok := cmdVal.([]interface{})
+	assert.True(t, ok)
+	assert.Empty(t, cmdSlice)
 }
 
 func Test_fixupSliceFields(t *testing.T) {
@@ -507,7 +525,7 @@ func Test_fixupSliceFields(t *testing.T) {
 		{
 			name:     "empty object pattern triggers fixup",
 			input:    `{"datagram":{"payload":{"cmd":{}}}}`,
-			contains: `"cmd"`,
+			contains: `"cmd":[]`,
 		},
 	}
 
