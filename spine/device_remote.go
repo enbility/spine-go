@@ -306,7 +306,8 @@ func unmarshalFeature(entity api.EntityRemoteInterface,
 func fixupSliceFields(jsonData []byte) []byte {
 	// Quick check: if there's no empty object "{}" that could be a wrongly-converted
 	// slice, skip the expensive reflection walk entirely.
-	// We look for ":{}" pattern (key followed by empty object).
+	// Note: This may trigger on "{}" inside strings, but that's harmless - the actual
+	// fix logic only converts empty maps that are values of slice-typed fields.
 	if !bytes.Contains(jsonData, []byte("{}")) {
 		return jsonData
 	}

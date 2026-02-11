@@ -528,6 +528,16 @@ func Test_fixupSliceFields(t *testing.T) {
 			input:    `{"datagram":{"payload":{"cmd":{}}}}`,
 			contains: `"cmd":[]`,
 		},
+		{
+			name:     "empty object in string value not modified",
+			input:    `{"datagram":{"header":{"specificationVersion":"config is {}"}}}`,
+			contains: `"specificationVersion":"config is {}"`,
+		},
+		{
+			name:     "mixed empty objects - only slice fields converted",
+			input:    `{"datagram":{"payload":{"cmd":{}},"header":{"addressSource":{}}}}`,
+			contains: `"cmd":[]`,
+		},
 	}
 
 	for _, tt := range tests {
