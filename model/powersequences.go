@@ -88,7 +88,7 @@ type PowerTimeSlotValueDataElementsType struct {
 }
 
 type PowerTimeSlotValueListDataType struct {
-	PowerTimeSlotValueData []PowerTimeSlotValueDataType `json:"powerTimeSlotValueListData,omitempty"`
+	PowerTimeSlotValueData []PowerTimeSlotValueDataType `json:"powerTimeSlotValueData,omitempty"`
 }
 
 type PowerTimeSlotValueListDataSelectorsType struct {
@@ -141,8 +141,8 @@ type PowerSequenceAlternativesRelationListDataType struct {
 }
 
 type PowerSequenceAlternativesRelationListDataSelectorsType struct {
-	AlternativesId *AlternativesIdType   `json:"alternativesId,omitempty"`
-	SequenceId     []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	AlternativesId *AlternativesIdType  `json:"alternativesId,omitempty"`
+	SequenceId     *PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceDescriptionDataType struct {
@@ -174,7 +174,7 @@ type PowerSequenceDescriptionListDataType struct {
 }
 
 type PowerSequenceDescriptionListDataSelectorsType struct {
-	SequenceId []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceStateDataType struct {
