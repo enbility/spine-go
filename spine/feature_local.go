@@ -25,7 +25,6 @@ type FeatureLocal struct {
 
 	writeTimeout           time.Duration
 	writeApprovalCallbacks []api.WriteApprovalCallbackFunc
-	muxWriteReceived       sync.Mutex
 	writeApprovalReceived  map[string]map[model.MsgCounterType]int
 	pendingWriteApprovals  map[string]map[model.MsgCounterType]*time.Timer
 
@@ -193,6 +192,10 @@ func (r *FeatureLocal) addPendingApproval(msg *api.Message) {
 
 	newTimer := time.AfterFunc(r.writeTimeout, func() {
 		r.muxResponseCB.Lock()
+		if _, ok := r.pendingWriteApprovals[ski]; !ok {
+			r.muxResponseCB.Unlock()
+			return
+		}
 		delete(r.pendingWriteApprovals[ski], *msg.RequestHeader.MsgCounter)
 		r.muxResponseCB.Unlock()
 
@@ -217,18 +220,17 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 	ski := msg.DeviceRemote.Ski()
 
 	r.muxResponseCB.Lock()
-	timer, ok := r.pendingWriteApprovals[ski][*msg.RequestHeader.MsgCounter]
-	count := len(r.writeApprovalCallbacks)
-	r.muxResponseCB.Unlock()
 
-	// if there is no timer running, we are too late and error has already been sent
+	timer, ok := r.pendingWriteApprovals[ski][*msg.RequestHeader.MsgCounter]
+	// if there is no timer, we are too late and error has already been sent
 	if !ok || timer == nil {
+		r.muxResponseCB.Unlock()
 		return
 	}
 
+	count := len(r.writeApprovalCallbacks)
+
 	// do we have enough approvals?
-	r.muxWriteReceived.Lock()
-	defer r.muxWriteReceived.Unlock()
 	if count > 1 && err.ErrorNumber == 0 {
 		amount, ok := r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter]
 		if ok {
@@ -239,18 +241,20 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 		}
 		// do we have enough approve messages, if not exit
 		if r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] < count {
+			r.muxResponseCB.Unlock()
 			return
 		}
 	}
 
+	// Atomically stop the timer and clean up entries under the lock.
+	// This prevents the TOCTOU race where the timer fires between lock acquisitions.
 	timer.Stop()
-
 	delete(r.writeApprovalReceived[ski], *msg.RequestHeader.MsgCounter)
-
-	r.muxResponseCB.Lock()
-	defer r.muxResponseCB.Unlock()
 	delete(r.pendingWriteApprovals[ski], *msg.RequestHeader.MsgCounter)
 
+	r.muxResponseCB.Unlock()
+
+	// Process outside the lock to avoid holding it during network I/O
 	if err.ErrorNumber == 0 {
 		r.processWrite(msg)
 		return
@@ -266,6 +270,13 @@ func (r *FeatureLocal) SetWriteApprovalTimeout(duration time.Duration) {
 func (r *FeatureLocal) CleanWriteApprovalCaches(ski string) {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
+
+	// Stop all pending timers for this SKI before deleting
+	if timers, ok := r.pendingWriteApprovals[ski]; ok {
+		for _, timer := range timers {
+			timer.Stop()
+		}
+	}
 
 	delete(r.pendingWriteApprovals, ski)
 	delete(r.writeApprovalReceived, ski)

@@ -129,6 +129,11 @@ var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
 
 // Setup a new remote device with a given SKI and triggers SPINE requesting device details
 func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface {
+	// Clean up any existing device for this SKI (e.g., fast reconnect)
+	if existing := r.RemoteDeviceForSki(ski); existing != nil {
+		r.RemoveRemoteDevice(ski)
+	}
+
 	sender := NewSender(writeI)
 	rDevice := NewDeviceRemote(r, ski, sender)
 
@@ -286,6 +291,45 @@ func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	r.notifySubscribersOfEntity(entity, model.NetworkManagementStateChangeTypeRemoved)
 }
 
+// Close shuts down the DeviceLocal, stopping all goroutines and cleaning up all state.
+// It removes all remote device connections, waits for pending event handlers,
+// removes all application entities (stopping heartbeats), and unsubscribes from events.
+// Safe to call multiple times.
+func (r *DeviceLocal) Close() {
+	// Snapshot remote device SKIs
+	r.mux.Lock()
+	skis := make([]string, 0, len(r.remoteDevices))
+	for ski := range r.remoteDevices {
+		skis = append(skis, ski)
+	}
+	r.mux.Unlock()
+
+	// Remove all remote devices (cleans subscriptions, bindings, write approval timers)
+	for _, ski := range skis {
+		r.RemoveRemoteDeviceConnection(ski)
+	}
+
+	// Wait for disconnect event handlers to finish
+	r.events.drain()
+
+	// Snapshot entities
+	r.mux.Lock()
+	entities := make([]api.EntityLocalInterface, len(r.entities))
+	copy(entities, r.entities)
+	r.mux.Unlock()
+
+	// Remove all application entities (stops heartbeats), skip DeviceInformation entity[0]
+	for _, entity := range entities {
+		addr := entity.Address().Entity
+		if len(addr) > 0 && addr[0] != model.AddressEntityType(DeviceInformationEntityId) {
+			r.RemoveEntity(entity)
+		}
+	}
+
+	// Unsubscribe from core events
+	_ = r.events.unsubscribe(api.EventHandlerLevelCore, r)
+}
+
 func (r *DeviceLocal) Entities() []api.EntityLocalInterface {
 	r.mux.Lock()
 	defer r.mux.Unlock()
@@ -346,28 +390,28 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	// Validate cmd.function consistency when filters are present
 	// Per SPINE spec section 5.3.4: "SHALL be present if datagram.payload.cmd.filter is present."
 	// The primary security concern is type confusion attacks when filters target wrong functions
-	
+
 	filterPartial, filterDelete := cmd.ExtractFilter()
 	hasFilters := filterPartial != nil || filterDelete != nil
-	
+
 	if hasFilters {
 		// Filters present: cmd.Function MUST be present and consistent
 		// This is the critical validation to prevent type confusion attacks
 		if err := cmd.ValidateFunctionConsistencyStrict(); err != nil {
 			inconsistencies := cmd.GetInconsistentFunctions()
 			errorMsg := fmt.Sprintf("cmd function validation failed: %s", err.Error())
-			
+
 			// Log validation failure for security monitoring (non-sensitive info only)
-			logging.Log().Debugf("Command function validation failed: %s (inconsistencies: %d, device: %s, classifier: %v)", 
-				err.Error(), 
+			logging.Log().Debugf("Command function validation failed: %s (inconsistencies: %d, device: %s, classifier: %v)",
+				err.Error(),
 				len(inconsistencies),
 				remoteDevice.Address(),
 				cmdClassifier)
-			
+
 			// Send proper error response to remote device
 			validationError := model.NewErrorType(model.ErrorNumberTypeCommandRejected, errorMsg)
 			_ = remoteDevice.Sender().ResultError(&datagram.Header, destAddr, validationError)
-			
+
 			return fmt.Errorf("cmd function validation failed: %w", err)
 		}
 	}

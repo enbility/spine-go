@@ -1,6 +1,8 @@
 package spine
 
 import (
+	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -177,4 +179,81 @@ func (s *HeartBeatManagerSuite) Test_HeartbeatSuccess() {
 
 	isHeartbeatRunning = s.sut.IsHeartbeatRunning()
 	assert.Equal(s.T(), false, isHeartbeatRunning)
+}
+
+// Step 1 — Issue 5: Verify ticker is stopped when heartbeat goroutine exits.
+// After multiple start/stop cycles, goroutine count should return to baseline.
+func (s *HeartBeatManagerSuite) Test_TickerStoppedOnShutdown() {
+	localFeature := s.localEntity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+	s.localEntity.AddFeature(localFeature)
+
+	runtime.GC()
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	for i := 0; i < 10; i++ {
+		_ = s.sut.StartHeartbeat()
+		time.Sleep(20 * time.Millisecond)
+		s.sut.StopHeartbeat()
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	runtime.GC()
+	time.Sleep(100 * time.Millisecond)
+	after := runtime.NumGoroutine()
+
+	// With the ticker leak, goroutine count would grow. After fix, it should be stable.
+	assert.LessOrEqual(s.T(), after, baseline+1,
+		"goroutine count should not grow after repeated start/stop cycles")
+}
+
+// Step 2 — Issue 4: Concurrent StartHeartbeat/IsHeartbeatRunning must not race.
+// Run with: go test -race -run TestHeartbeatManagerSuite/Test_StartStopHeartbeat_ConcurrentAccess
+func (s *HeartBeatManagerSuite) Test_StartStopHeartbeat_ConcurrentAccess() {
+	localFeature := s.localEntity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+	s.localEntity.AddFeature(localFeature)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 20; i++ {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			_ = s.sut.StartHeartbeat()
+		}()
+		go func() {
+			defer wg.Done()
+			_ = s.sut.IsHeartbeatRunning()
+		}()
+	}
+	wg.Wait()
+
+	s.sut.StopHeartbeat()
+	time.Sleep(50 * time.Millisecond)
+	assert.False(s.T(), s.sut.IsHeartbeatRunning())
+}
+
+// Step 5 — Issue 3: StopHeartbeat must wait for the goroutine to exit.
+func (s *HeartBeatManagerSuite) Test_StopHeartbeat_WaitsForGoroutine() {
+	localFeature := s.localEntity.GetOrAddFeature(model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	localFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+	s.localEntity.AddFeature(localFeature)
+
+	runtime.GC()
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	_ = s.sut.StartHeartbeat()
+	time.Sleep(20 * time.Millisecond)
+	assert.True(s.T(), s.sut.IsHeartbeatRunning())
+
+	// After StopHeartbeat returns, the goroutine should be fully exited.
+	s.sut.StopHeartbeat()
+
+	// No sleep needed — StopHeartbeat should block until goroutine exits.
+	after := runtime.NumGoroutine()
+	assert.LessOrEqual(s.T(), after, baseline+1,
+		"goroutine should be fully stopped when StopHeartbeat returns")
+	assert.False(s.T(), s.sut.IsHeartbeatRunning())
 }

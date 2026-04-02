@@ -24,6 +24,7 @@ type eventHandlerItem struct {
 type events struct {
 	mu       sync.Mutex
 	muHandle sync.Mutex
+	wg       sync.WaitGroup
 
 	handlers []eventHandlerItem // event handling outside of the core stack
 }
@@ -105,9 +106,19 @@ func (r *events) Publish(payload api.EventPayload) {
 				// and expected actions are taken
 				item.Handler.HandleEvent(payload)
 			} else {
-				go item.Handler.HandleEvent(payload)
+				r.wg.Add(1)
+				go func(h api.EventHandlerInterface) {
+					defer r.wg.Done()
+					h.HandleEvent(payload)
+				}(item.Handler)
 			}
 		}
 	}
 	r.muHandle.Unlock()
+}
+
+// drain waits for all dispatched application-level event handlers to complete.
+// Used during shutdown to ensure no handlers are still running.
+func (r *events) drain() {
+	r.wg.Wait()
 }
