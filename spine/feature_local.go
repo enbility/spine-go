@@ -457,6 +457,9 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 	}
 
 	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		return nil, model.NewErrorTypeFromString("feature not found")
+	}
 	remoteFeatureType := remoteFeature.Type()
 	if remoteFeature.Role() == model.RoleTypeClient {
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
@@ -580,6 +583,9 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 	}
 
 	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		return nil, model.NewErrorTypeFromString("feature not found")
+	}
 	remoteFeatureType := remoteFeature.Type()
 	if remoteFeature.Role() == model.RoleTypeClient {
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
