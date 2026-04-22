@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 )
@@ -213,8 +214,18 @@ func (c *BindingManager) RemoveBindingsForLocalEntity(localEntity api.EntityLoca
 		var remoteDevice api.DeviceRemoteInterface
 
 		if reflect.DeepEqual(binding.ClientAddress.Device, localDeviceAddress) {
+			// defense in depth in case invalid bindings are ever added
+			if binding.ServerAddress == nil || binding.ServerAddress.Device == nil {
+				logging.Log().Debug("skipping invalid binding with unset ServerAddress")
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ServerAddress.Device)
 		} else {
+			// defense in depth in case invalid bindings are ever added
+			if binding.ClientAddress == nil || binding.ClientAddress.Device == nil {
+				logging.Log().Debug("skipping invalid binding with unset ClientAddress")
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*binding.ClientAddress.Device)
 		}
 

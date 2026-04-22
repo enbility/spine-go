@@ -508,6 +508,9 @@ func (r *DeviceLocal) NotifySubscribers(featureAddress *model.FeatureAddressType
 	for _, subscription := range subscriptions {
 		// get the server feature, it has to be a local feature
 		serverFeature := r.FeatureByAddress(subscription.ServerAddress)
+		if subscription.ClientAddress == nil || subscription.ClientAddress.Device == nil {
+			continue
+		}
 		remoteDevice := r.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
 		if serverFeature == nil || remoteDevice == nil {
 			continue

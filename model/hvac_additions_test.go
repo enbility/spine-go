@@ -94,7 +94,7 @@ func TestHvacSystemFunctionSetpointRelationListDataType_Update(t *testing.T) {
 			},
 			{
 				SystemFunctionId: util.Ptr(HvacSystemFunctionIdType(1)),
-				OperationModeId:  util.Ptr(HvacOperationModeIdType(0)),
+				OperationModeId:  util.Ptr(HvacOperationModeIdType(1)),
 			},
 		},
 	}
@@ -104,6 +104,7 @@ func TestHvacSystemFunctionSetpointRelationListDataType_Update(t *testing.T) {
 			{
 				SystemFunctionId: util.Ptr(HvacSystemFunctionIdType(1)),
 				OperationModeId:  util.Ptr(HvacOperationModeIdType(1)),
+				SetpointId:       []SetpointIdType{1},
 			},
 		},
 	}
@@ -118,10 +119,12 @@ func TestHvacSystemFunctionSetpointRelationListDataType_Update(t *testing.T) {
 	item1 := data[0]
 	assert.Equal(t, 0, int(*item1.SystemFunctionId))
 	assert.Equal(t, 0, int(*item1.OperationModeId))
+	assert.Nil(t, item1.SetpointId)
 	// check properties of updated item
 	item2 := data[1]
 	assert.Equal(t, 1, int(*item2.SystemFunctionId))
 	assert.Equal(t, 1, int(*item2.OperationModeId))
+	assert.NotNil(t, item2.SetpointId)
 }
 
 func TestHvacSystemFunctionPowerSequenceRelationListDataType_Update(t *testing.T) {

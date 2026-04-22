@@ -118,7 +118,7 @@ type MeasurementListDataSelectorsType struct {
 type MeasurementSeriesDataType struct {
 	MeasurementId    *MeasurementIdType            `json:"measurementId,omitempty" eebus:"key,primarykey,ref:MeasurementDescriptionDataType.MeasurementId"`
 	ValueType        *MeasurementValueTypeType     `json:"valueType,omitempty" eebus:"key"`
-	Timestamp        *AbsoluteOrRelativeTimeType   `json:"timestamp,omitempty"`
+	Timestamp        *AbsoluteOrRelativeTimeType   `json:"timestamp,omitempty" eebus:"key"`
 	Value            *ScaledNumberType             `json:"value,omitempty"`
 	EvaluationPeriod *TimePeriodType               `json:"evaluationPeriod,omitempty"`
 	ValueSource      *MeasurementValueSourceType   `json:"valueSource,omitempty"`

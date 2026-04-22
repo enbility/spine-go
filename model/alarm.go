@@ -35,7 +35,7 @@ type AlarmDataElementsType struct {
 }
 
 type AlarmListDataType struct {
-	AlarmListData []AlarmDataType `json:"alarmListData,omitempty"`
+	AlarmData []AlarmDataType `json:"alarmData,omitempty"`
 }
 
 type AlarmListDataSelectorsType struct {

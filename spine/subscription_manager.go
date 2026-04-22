@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 )
@@ -204,8 +205,18 @@ func (c *SubscriptionManager) RemoveSubscriptionsForLocalEntity(localEntity api.
 		var remoteDevice api.DeviceRemoteInterface
 
 		if reflect.DeepEqual(subscription.ClientAddress.Device, localDeviceAddress) {
+			// defense in depth in case invalid subscriptions are ever added
+			if subscription.ServerAddress == nil || subscription.ServerAddress.Device == nil {
+				logging.Log().Debug("skipping invalid subscription with unset ServerAddress")
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ServerAddress.Device)
 		} else {
+			// defense in depth in case invalid subscriptions are ever added
+			if subscription.ClientAddress == nil || subscription.ClientAddress.Device == nil {
+				logging.Log().Debug("skipping invalid subscription with unset ClientAddress")
+				continue
+			}
 			remoteDevice = c.localDevice.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
 		}
 
@@ -216,7 +227,7 @@ func (c *SubscriptionManager) RemoveSubscriptionsForLocalEntity(localEntity api.
 	}
 }
 
-// Checks if a binding between the client and server feature exists
+// Checks if a subscription between the client and server feature exists
 func (c *SubscriptionManager) HasSubscription(clientAddress, serverAddress *model.FeatureAddressType) bool {
 	subscriptionData := c.subscriptionData()
 
