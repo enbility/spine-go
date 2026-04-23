@@ -457,6 +457,15 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 	}
 
 	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		// FeatureByAddress returns nil when the remote device advertises
+		// an address that is not yet materialized locally (e.g. racy
+		// EEBUS handshake before the remote LoadControl feature has
+		// been published). Previously the next line panicked and the
+		// goroutine — spawned by events.Publish — could not be
+		// recovered from, exiting the entire process.
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature for address %s not found", remoteAddress))
+	}
 	remoteFeatureType := remoteFeature.Type()
 	if remoteFeature.Role() == model.RoleTypeClient {
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
@@ -580,6 +589,11 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 	}
 
 	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		// Mirrors SubscribeToRemote's guard: FeatureByAddress returns
+		// nil when the remote address has not been materialized yet.
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature for address %s not found", remoteAddress))
+	}
 	remoteFeatureType := remoteFeature.Type()
 	if remoteFeature.Role() == model.RoleTypeClient {
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
