@@ -9,7 +9,7 @@ import (
 
 func TestAlarmListDataType_Update(t *testing.T) {
 	sut := AlarmListDataType{
-		AlarmListData: []AlarmDataType{
+		AlarmData: []AlarmDataType{
 			{
 				AlarmId:     util.Ptr(AlarmIdType(0)),
 				Description: util.Ptr(DescriptionType("old")),
@@ -22,7 +22,7 @@ func TestAlarmListDataType_Update(t *testing.T) {
 	}
 
 	newData := AlarmListDataType{
-		AlarmListData: []AlarmDataType{
+		AlarmData: []AlarmDataType{
 			{
 				AlarmId:     util.Ptr(AlarmIdType(1)),
 				Description: util.Ptr(DescriptionType("new")),
@@ -31,10 +31,10 @@ func TestAlarmListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
-	data := sut.AlarmListData
+	data := sut.AlarmData
 	// check the non changing items
 	assert.Equal(t, 2, len(data))
 	item1 := data[0]

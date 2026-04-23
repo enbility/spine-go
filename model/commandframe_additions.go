@@ -116,8 +116,10 @@ func (f *FilterType) SetDataForFunction(tagType EEBusTagTypeType, fct FunctionTy
 	}
 }
 
-// Get the data and some meta data for the current value
-func (f *FilterType) Data() (*FilterData, error) {
+// Data extracts data from the filter using the provided cmdFunction as fallback
+// The cmdFunction is required for partial filters without selectors (which mean "all fields")
+// In SPINE, when filters are present, cmd.Function is always available and required
+func (f *FilterType) Data(cmdFunction *FunctionType) (*FilterData, error) {
 	var elements any = nil
 	var selector any = nil
 	var function string
@@ -157,6 +159,12 @@ func (f *FilterType) Data() (*FilterData, error) {
 		case string(EEbusTagTypeTypeElements):
 			elements = f.Interface()
 		}
+	}
+
+	// If no function was found from selectors/elements but cmdFunction is provided, use it
+	// This handles valid partial filters without selectors (meaning "all fields")
+	if len(function) == 0 && cmdFunction != nil && *cmdFunction != "" {
+		function = string(*cmdFunction)
 	}
 
 	if len(function) == 0 {
@@ -282,6 +290,9 @@ func (cmd *CmdType) DataName() string {
 func (cmd *CmdType) ExtractFilter() (filterPartial *FilterType, filterDelete *FilterType) {
 	if cmd != nil && cmd.Filter != nil && len(cmd.Filter) > 0 {
 		for i := range cmd.Filter {
+			if cmd.Filter[i].CmdControl == nil {
+				continue
+			}
 			if cmd.Filter[i].CmdControl.Partial != nil {
 				filterPartial = &cmd.Filter[i]
 			} else if cmd.Filter[i].CmdControl.Delete != nil {

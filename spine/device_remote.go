@@ -1,9 +1,11 @@
 package spine
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"sync"
 
 	shipapi "github.com/enbility/ship-go/api"
@@ -151,8 +153,10 @@ func (r *DeviceRemote) FeatureByEntityTypeAndRole(entity api.EntityRemoteInterfa
 }
 
 func (d *DeviceRemote) HandleSpineMesssage(message []byte) (*model.MsgCounterType, error) {
+	fixedMessage := fixupSliceFields(message)
+
 	datagram := model.Datagram{}
-	if err := json.Unmarshal([]byte(message), &datagram); err != nil {
+	if err := json.Unmarshal([]byte(fixedMessage), &datagram); err != nil {
 		return nil, err
 	}
 
@@ -199,7 +203,11 @@ func (d *DeviceRemote) UpdateDevice(description *model.NetworkManagementDeviceDe
 	}
 }
 
-func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]api.EntityRemoteInterface, error) {
+func (d *DeviceRemote) AddEntityAndFeatures(
+	initialData bool,
+	data *model.NodeManagementDetailedDiscoveryDataType,
+	entityAddressToAdd *model.EntityAddressType,
+) ([]api.EntityRemoteInterface, error) {
 	rEntites := make([]api.EntityRemoteInterface, 0)
 
 	for _, ei := range data.EntityInformation {
@@ -208,6 +216,10 @@ func (d *DeviceRemote) AddEntityAndFeatures(initialData bool, data *model.NodeMa
 		}
 
 		entityAddress := ei.Description.EntityAddress.Entity
+		// if entityAddressToAdd, make sure we are adding the correct entity
+		if entityAddressToAdd != nil && !reflect.DeepEqual(entityAddress, entityAddressToAdd.Entity) {
+			continue
+		}
 
 		entity := d.Entity(entityAddress)
 		if entity == nil {
@@ -287,4 +299,134 @@ func unmarshalFeature(entity api.EntityRemoteInterface,
 	result.SetOperations(fid.SupportedFunction)
 
 	return result, true
+}
+
+// fixupSliceFields walks the JSON structure and converts {} back to [] for fields
+// that are defined as slices in the spine-go model.
+func fixupSliceFields(jsonData []byte) []byte {
+	// Quick check: if there's no empty object "{}" that could be a wrongly-converted
+	// slice, skip the expensive reflection walk entirely.
+	// Note: This may trigger on "{}" inside strings, but that's harmless - the actual
+	// fix logic only converts empty maps that are values of slice-typed fields.
+	if !bytes.Contains(jsonData, []byte("{}")) {
+		return jsonData
+	}
+
+	// Parse into generic structure
+	var generic interface{}
+	if err := json.Unmarshal(jsonData, &generic); err != nil {
+		// If parsing fails, return as-is
+		return jsonData
+	}
+
+	// Get the type of model.Datagram for schema reference
+	datagramType := reflect.TypeOf(model.Datagram{})
+
+	// Walk and fix the structure
+	fixed := fixupSliceFieldsRecursive(generic, datagramType)
+
+	// Re-marshal
+	result, err := json.Marshal(fixed)
+	if err != nil {
+		return jsonData
+	}
+
+	return result
+}
+
+// fixupSliceFieldsRecursive recursively walks the JSON structure and fixes slice fields.
+// modelType is the expected Go type for this level of the structure.
+func fixupSliceFieldsRecursive(v interface{}, modelType reflect.Type) interface{} {
+	// Dereference pointer types
+	for modelType.Kind() == reflect.Ptr {
+		modelType = modelType.Elem()
+	}
+
+	switch val := v.(type) {
+	case map[string]interface{}:
+		// For struct types, check each field against the model
+		if modelType.Kind() == reflect.Struct {
+			result := make(map[string]interface{})
+			for key, value := range val {
+				// Find the field in the model type by JSON tag
+				fieldType := findFieldTypeByJSONTag(modelType, key)
+				if fieldType != nil {
+					// Check if this field is a slice and the value is an empty map
+					actualFieldType := *fieldType
+					for actualFieldType.Kind() == reflect.Ptr {
+						actualFieldType = actualFieldType.Elem()
+					}
+
+					if actualFieldType.Kind() == reflect.Slice {
+						// This is a slice field
+						if emptyMap, ok := value.(map[string]interface{}); ok && len(emptyMap) == 0 {
+							// Empty map {} should be empty slice []
+							result[key] = []interface{}{}
+							continue
+						}
+					}
+
+					// Recurse with the field's type
+					result[key] = fixupSliceFieldsRecursive(value, *fieldType)
+				} else {
+					// Field not found in model, keep as-is but still recurse
+					result[key] = fixupSliceFieldsRecursive(value, reflect.TypeOf((*interface{})(nil)).Elem())
+				}
+			}
+			return result
+		}
+
+		// For non-struct types (like interface{}), just recurse on values
+		result := make(map[string]interface{})
+		for key, value := range val {
+			result[key] = fixupSliceFieldsRecursive(value, reflect.TypeOf((*interface{})(nil)).Elem())
+		}
+		return result
+
+	case []interface{}:
+		// For arrays, get the element type and recurse
+		var elemType reflect.Type
+		if modelType.Kind() == reflect.Slice {
+			elemType = modelType.Elem()
+		} else {
+			elemType = reflect.TypeOf((*interface{})(nil)).Elem()
+		}
+
+		result := make([]interface{}, len(val))
+		for i, elem := range val {
+			result[i] = fixupSliceFieldsRecursive(elem, elemType)
+		}
+		return result
+
+	default:
+		// Primitive value, return as-is
+		return val
+	}
+}
+
+// findFieldTypeByJSONTag finds a struct field by its JSON tag name and returns its type.
+func findFieldTypeByJSONTag(structType reflect.Type, jsonName string) *reflect.Type {
+	for structType.Kind() == reflect.Ptr {
+		structType = structType.Elem()
+	}
+
+	if structType.Kind() != reflect.Struct {
+		return nil
+	}
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		tag := field.Tag.Get("json")
+		if tag == "" {
+			continue
+		}
+
+		// JSON tag format: "fieldName,omitempty"
+		tagName := strings.Split(tag, ",")[0]
+		if tagName == jsonName {
+			return &field.Type
+		}
+	}
+
+	return nil
 }

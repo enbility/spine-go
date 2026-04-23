@@ -26,7 +26,7 @@ func (suite *FctDataCmdSuite) SetupSuite() {
 		DeviceName: util.Ptr(model.DeviceClassificationStringType("device name")),
 	}
 	suite.sut = NewFunctionDataCmd[model.DeviceClassificationManufacturerDataType](suite.function)
-	_, _ = suite.sut.UpdateData(false, true, suite.data, nil, nil)
+	_, _ = suite.sut.UpdateData(false, true, suite.data, nil, nil, nil)
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReadCmd() {
@@ -43,7 +43,8 @@ func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReadCmd() {
 	assert.NotNil(suite.T(), readCmd.DeviceClassificationManufacturerData)
 	assert.Nil(suite.T(), readCmd.DeviceClassificationManufacturerData.DeviceName)
 	assert.NotNil(suite.T(), readCmd.Function)
-	assert.Equal(suite.T(), 0, len(string(*readCmd.Function)))
+	// Function should now be set to the actual function type, not empty string
+	assert.Equal(suite.T(), "deviceClassificationManufacturerData", string(*readCmd.Function))
 }
 
 func (suite *FctDataCmdSuite) TestFunctionDataCmd_ReplyCmd() {

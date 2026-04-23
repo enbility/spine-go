@@ -249,10 +249,10 @@ func (s *NodeManagementSuite) TestSubscriptionRequestCall_BeforeDetailedDiscover
 	checkSentData(s.T(), sentResult, nm_subscriptionRequestCall_send_result_file_prefix)
 
 	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
-	subscriptionsForDevice := s.sut.SubscriptionManager().Subscriptions(remoteDevice)
-	assert.Equal(s.T(), 1, len(subscriptionsForDevice))
-	subscriptionsOnFeature := s.sut.SubscriptionManager().SubscriptionsOnFeature(*NodeManagementAddress(s.sut.Address()))
-	assert.Equal(s.T(), 1, len(subscriptionsOnFeature))
+	subscriptionsForDevice := s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)
+	assert.Equal(s.T(), 0, len(subscriptionsForDevice))
+	subscriptionsOnFeature := s.sut.SubscriptionManager().SubscriptionsForFeatureAddress(*NodeManagementAddress(s.sut.Address()))
+	assert.Equal(s.T(), 0, len(subscriptionsOnFeature))
 }
 
 func (s *NodeManagementSuite) TestDestinationList_SendReply() {

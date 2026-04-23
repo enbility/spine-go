@@ -28,6 +28,8 @@ type DeviceLocal struct {
 	deviceCode   string
 	serialNumber string
 
+	events *events // events manager owned by this device
+
 	mux sync.Mutex
 }
 
@@ -54,6 +56,7 @@ func NewDeviceLocal(
 		deviceModel:   deviceModel,
 		serialNumber:  serialNumber,
 		deviceCode:    deviceCode,
+		events:        newEvents(), // each device owns its events manager
 	}
 
 	res.subscriptionManager = NewSubscriptionManager(res)
@@ -91,15 +94,33 @@ func (r *DeviceLocal) HandleEvent(payload api.EventPayload) {
 	//revive:disable-next-line
 	switch payload.Data.(type) {
 	case *model.NodeManagementDetailedDiscoveryDataType:
-		address := payload.Feature.Address()
-		if address.Device == nil {
-			address.Device = remoteDevice.Address()
+		// get the node management feature of the remote device, so we can send a subscription request
+		if nodeMgmtFeature := r.remoteNodeManagementFeature(remoteDevice); nodeMgmtFeature != nil {
+			address := nodeMgmtFeature.Address()
+			if address.Device == nil {
+				address.Device = remoteDevice.Address()
+			}
+			_, _ = r.nodeManagement.SubscribeToRemote(address)
 		}
-		_, _ = r.nodeManagement.SubscribeToRemote(address)
 
 		// Request Use Case Data
 		_, _ = r.nodeManagement.RequestUseCaseData(payload.Device.Ski(), remoteDevice.Address(), payload.Device.Sender())
 	}
+}
+
+// provide the node management feature of a remote device
+func (r *DeviceLocal) remoteNodeManagementFeature(remoteDevice api.DeviceRemoteInterface) api.FeatureRemoteInterface {
+	if remoteDevice == nil {
+		return nil
+	}
+
+	entityDeviceInformation := remoteDevice.Entity([]model.AddressEntityType{0})
+	if entityDeviceInformation == nil {
+		return nil
+	}
+
+	nodeMgmtFeature := entityDeviceInformation.FeatureOfTypeAndRole(model.FeatureTypeTypeNodeManagement, model.RoleTypeSpecial)
+	return nodeMgmtFeature
 }
 
 var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
@@ -114,7 +135,7 @@ func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectio
 	r.AddRemoteDeviceForSki(ski, rDevice)
 
 	// always add subscription, as it checks if it already exists
-	_ = Events.subscribe(api.EventHandlerLevelCore, r)
+	_ = r.events.subscribe(api.EventHandlerLevelCore, r)
 
 	// Request Detailed Discovery Data
 	_, _ = r.RequestRemoteDetailedDiscoveryData(rDevice)
@@ -141,6 +162,12 @@ func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemote
 func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 	remoteDevice := r.RemoteDeviceForSki(ski)
 
+	// we get the events for any disconnection, even for cases where SHIP
+	// closed a connection and therefor it never reached SPINE
+	if remoteDevice == nil {
+		return
+	}
+
 	r.RemoveRemoteDevice(ski)
 
 	// inform about the disconnection
@@ -150,7 +177,7 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 		ChangeType: api.ElementChangeRemove,
 		Device:     remoteDevice,
 	}
-	Events.Publish(payload)
+	r.events.Publish(payload)
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
@@ -161,18 +188,22 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 
 	// remove all subscriptions for this device
 	subscriptionMgr := r.SubscriptionManager()
-	subscriptionMgr.RemoveSubscriptionsForDevice(r.remoteDevices[ski])
+	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
 
 	// remove all bindings for this device
 	bindingMgr := r.BindingManager()
-	bindingMgr.RemoveBindingsForDevice(r.remoteDevices[ski])
+	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
+
+	r.mux.Lock()
 
 	delete(r.remoteDevices, ski)
 
 	// only unsubscribe if we don't have any remote devices left
 	if len(r.remoteDevices) == 0 {
-		_ = Events.unsubscribe(api.EventHandlerLevelCore, r)
+		_ = r.events.unsubscribe(api.EventHandlerLevelCore, r)
 	}
+
+	r.mux.Unlock()
 
 	remoteDeviceAddress := &model.DeviceAddressType{
 		Device: remoteDevice.Address(),
@@ -230,8 +261,10 @@ func (r *DeviceLocal) AddEntity(entity api.EntityLocalInterface) {
 
 func (r *DeviceLocal) RemoveEntity(entity api.EntityLocalInterface) {
 	entity.RemoveAllUseCaseSupports()
-	entity.RemoveAllSubscriptions()
-	entity.RemoveAllBindings()
+
+	// do not wait for responses to delete the subscriptions and bindings
+	r.subscriptionManager.RemoveSubscriptionsForLocalEntity(entity)
+	r.bindingManager.RemoveBindingsForLocalEntity(entity)
 
 	if heartbeatMgr := entity.HeartbeatManager(); heartbeatMgr != nil {
 		heartbeatMgr.StopHeartbeat()
@@ -310,8 +343,36 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	}
 	cmd := datagram.Payload.Cmd[0]
 
-	// TODO check if cmd.Function is the same as the provided cmd value
+	// Validate cmd.function consistency when filters are present
+	// Per SPINE spec section 5.3.4: "SHALL be present if datagram.payload.cmd.filter is present."
+	// The primary security concern is type confusion attacks when filters target wrong functions
+	
 	filterPartial, filterDelete := cmd.ExtractFilter()
+	hasFilters := filterPartial != nil || filterDelete != nil
+	
+	if hasFilters {
+		// Filters present: cmd.Function MUST be present and consistent
+		// This is the critical validation to prevent type confusion attacks
+		if err := cmd.ValidateFunctionConsistencyStrict(); err != nil {
+			inconsistencies := cmd.GetInconsistentFunctions()
+			errorMsg := fmt.Sprintf("cmd function validation failed: %s", err.Error())
+			
+			// Log validation failure for security monitoring (non-sensitive info only)
+			logging.Log().Debugf("Command function validation failed: %s (inconsistencies: %d, device: %s, classifier: %v)", 
+				err.Error(), 
+				len(inconsistencies),
+				remoteDevice.Address(),
+				cmdClassifier)
+			
+			// Send proper error response to remote device
+			validationError := model.NewErrorType(model.ErrorNumberTypeCommandRejected, errorMsg)
+			_ = remoteDevice.Sender().ResultError(&datagram.Header, destAddr, validationError)
+			
+			return fmt.Errorf("cmd function validation failed: %w", err)
+		}
+	}
+	// Note: Commands without filters don't require strict function validation
+	// The security risk (type confusion) only exists when filters are present
 
 	remoteEntity := remoteDevice.Entity(datagram.Header.AddressSource.Entity)
 	remoteFeature := remoteDevice.FeatureByAddress(datagram.Header.AddressSource)
@@ -355,19 +416,24 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 	if message.CmdClassifier == model.CmdClassifierTypeWrite {
 		cmdData, err := cmd.Data()
 		if err != nil || cmdData.Function == nil {
-			err := model.NewErrorTypeFromString("no function found for cmd data")
+			err := model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "no function found for cmd data")
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
 
 		if operations, ok := localFeature.Operations()[*cmdData.Function]; !ok || !operations.Write() {
-			err := model.NewErrorTypeFromString("write is not allowed on this function")
+			// More specific error message to distinguish between function not found vs write not supported
+			errorMsg := "function not found in feature operations"
+			if ok && !operations.Write() {
+				errorMsg = "write operation not supported for this function"
+			}
+			err := model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, errorMsg)
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
 
-		if !r.BindingManager().HasLocalFeatureRemoteBinding(localFeature.Address(), remoteFeature.Address()) {
-			err := model.NewErrorTypeFromString("write denied due to missing binding")
+		if !r.BindingManager().HasBinding(remoteFeature.Address(), localFeature.Address()) {
+			err := model.NewErrorType(model.ErrorNumberTypeBindingIsNecessaryForThisCommand, "write denied due to missing binding")
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
@@ -420,6 +486,10 @@ func (r *DeviceLocal) BindingManager() api.BindingManagerInterface {
 	return r.bindingManager
 }
 
+func (r *DeviceLocal) Events() api.EventsManagerInterface {
+	return r.events
+}
+
 func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType {
 	res := model.NodeManagementDetailedDiscoveryDeviceInformationType{
 		Description: &model.NetworkManagementDeviceDescriptionDataType{
@@ -434,10 +504,20 @@ func (r *DeviceLocal) Information() *model.NodeManagementDetailedDiscoveryDevice
 }
 
 func (r *DeviceLocal) NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType) {
-	subscriptions := r.SubscriptionManager().SubscriptionsOnFeature(*featureAddress)
+	subscriptions := r.SubscriptionManager().SubscriptionsForFeatureAddress(*featureAddress)
 	for _, subscription := range subscriptions {
+		// get the server feature, it has to be a local feature
+		serverFeature := r.FeatureByAddress(subscription.ServerAddress)
+		if subscription.ClientAddress == nil || subscription.ClientAddress.Device == nil {
+			continue
+		}
+		remoteDevice := r.RemoteDeviceForAddress(*subscription.ClientAddress.Device)
+		if serverFeature == nil || remoteDevice == nil {
+			continue
+		}
+
 		// TODO: error handling
-		_, _ = subscription.ClientFeature.Device().Sender().Notify(subscription.ServerFeature.Address(), subscription.ClientFeature.Address(), cmd)
+		_, _ = remoteDevice.Sender().Notify(subscription.ServerAddress, subscription.ClientAddress, cmd)
 	}
 }
 
@@ -475,6 +555,14 @@ func (r *DeviceLocal) addDeviceInformation() {
 
 	{
 		r.nodeManagement = NewNodeManagement(entity.NextFeatureId(), entity)
+
+		r.nodeManagement.SetData(model.FunctionTypeNodeManagementBindingData, &model.NodeManagementBindingDataType{
+			BindingEntry: []model.BindingManagementEntryDataType{},
+		})
+		r.nodeManagement.SetData(model.FunctionTypeNodeManagementSubscriptionData, &model.NodeManagementSubscriptionDataType{
+			SubscriptionEntry: []model.SubscriptionManagementEntryDataType{},
+		})
+
 		entity.AddFeature(r.nodeManagement)
 	}
 	{

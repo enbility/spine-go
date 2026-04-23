@@ -30,6 +30,8 @@ type Sender struct {
 
 	reqMsgCache reqMsgCacheData // cache for unanswered request messages, so we can filter duplicates and not send them
 
+	muxRequestSend sync.Mutex
+
 	muxNotifyCache sync.RWMutex
 	muxReadCache   sync.RWMutex
 }
@@ -45,7 +47,7 @@ func NewSender(writeI shipapi.ShipConnectionDataWriterInterface) api.SenderInter
 	}
 }
 
-// return the datagram for a given msgCounter (only availbe for Notify messasges!), error if not found
+// return the datagram for a given msgCounter (only availabe for Notify messages!), error if not found
 func (c *Sender) DatagramForMsgCounter(msgCounter model.MsgCounterType) (model.DatagramType, error) {
 	c.muxNotifyCache.RLock()
 	defer c.muxNotifyCache.RUnlock()
@@ -152,6 +154,10 @@ func (c *Sender) ProcessResponseForMsgCounterReference(msgCounterRef *model.MsgC
 
 // Sends request
 func (c *Sender) Request(cmdClassifier model.CmdClassifierType, senderAddress, destinationAddress *model.FeatureAddressType, ackRequest bool, cmd []model.CmdType) (*model.MsgCounterType, error) {
+	// lock the method so caching works if the method is called really simultaniously and the cache therefor was not updated yet
+	c.muxRequestSend.Lock()
+	defer c.muxRequestSend.Unlock()
+
 	// check if there is an unanswered subscribe message for this destination and cmd and return that msgCounter
 	hash := c.hashForMessage(destinationAddress, cmd)
 	if len(hash) > 0 {

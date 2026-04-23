@@ -27,6 +27,23 @@ func (d *DeviceLocalTestSuite) WriteShipMessageWithPayload(msg []byte) {
 	d.lastMessage = string(msg)
 }
 
+func (d *DeviceLocalTestSuite) Test_remoteNodeManagementFeature() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	feature := sut.remoteNodeManagementFeature(nil)
+	assert.Nil(d.T(), feature)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+	remoteDevice := sut.RemoteDeviceForSki(ski)
+
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.NotNil(d.T(), feature)
+
+	remoteDevice.RemoveEntityByAddress([]model.AddressEntityType{0})
+	feature = sut.remoteNodeManagementFeature(remoteDevice)
+	assert.Nil(d.T(), feature)
+}
+
 func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 
@@ -37,6 +54,11 @@ func (d *DeviceLocalTestSuite) Test_RemoveRemoteDevice() {
 
 	sut.RemoveRemoteDeviceConnection(ski)
 
+	rDevice = sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), rDevice)
+
+	// removing twice should not trigger anything
+	sut.RemoveRemoteDeviceConnection(ski)
 	rDevice = sut.RemoteDeviceForSki(ski)
 	assert.Nil(d.T(), rDevice)
 }
@@ -50,17 +72,26 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	localEntity.AddFeature(f)
 	f = NewFeatureLocal(2, localEntity, model.FeatureTypeTypeMeasurement, model.RoleTypeClient)
 	localEntity.AddFeature(f)
+	f = NewFeatureLocal(3, localEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeClient)
+	localEntity.AddFeature(f)
 
 	ski := "test"
-	remote := sut.RemoteDeviceForSki(ski)
-	assert.Nil(d.T(), remote)
+	remoteI := sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), remoteI)
 
 	devices := sut.RemoteDevices()
 	assert.Equal(d.T(), 0, len(devices))
 
 	_ = sut.SetupRemoteDevice(ski, d)
-	remote = sut.RemoteDeviceForSki(ski)
-	assert.NotNil(d.T(), remote)
+	remoteI = sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), remoteI)
+	remote := remoteI.(*DeviceRemote)
+	remote.address = util.Ptr(model.AddressDeviceType("remoteDevice"))
+
+	re := NewEntityRemote(remote, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	rf := NewFeatureRemote(1, re, model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	re.AddFeature(rf)
+	remote.AddEntity(re)
 
 	devices = sut.RemoteDevices()
 	assert.Equal(d.T(), 1, len(devices))
@@ -71,7 +102,13 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	entity1 := sut.Entity([]model.AddressEntityType{1})
 	assert.NotNil(d.T(), entity1)
 
+	entity1 = sut.EntityForType(model.EntityTypeTypeCEM)
+	assert.NotNil(d.T(), entity1)
+
 	entity2 := sut.Entity([]model.AddressEntityType{2})
+	assert.Nil(d.T(), entity2)
+
+	entity2 = sut.EntityForType(model.EntityTypeTypeGridGuard)
 	assert.Nil(d.T(), entity2)
 
 	featureAddress := &model.FeatureAddressType{
@@ -104,16 +141,25 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	newSubEntity.AddFeature(f)
 
 	sut.AddEntity(newSubEntity)
+
 	// A notification should have been sent
-	expectedNotifyMsg := `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":2,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"added"}}],"featureInformation":[{"description":{"featureAddress":{"device":"address","entity":[1,1],"feature":1},"featureType":"LoadControl","role":"server","supportedFunction":[{"function":"loadControlLimitListData","possibleOperations":{"read":{},"write":{"partial":{}}}}]}}]}}]}}}`
+	expectedNotifyMsg := `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":2,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"entity":[1,1]},"entityType":"EV","lastStateChange":"added"}}],"featureInformation":[{"description":{"featureAddress":{"entity":[1,1],"feature":1},"featureType":"LoadControl","role":"server","supportedFunction":[{"function":"loadControlLimitListData","possibleOperations":{"read":{},"write":{"partial":{}}}}]}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
 	assert.Equal(d.T(), 3, len(entities))
 
+	binding := model.BindingManagementRequestCallType{
+		ClientAddress:     rf.Address(),
+		ServerAddress:     f.Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeLoadControl),
+	}
+	err = sut.BindingManager().AddBinding(remote, binding)
+	assert.Nil(d.T(), err)
+
 	sut.RemoveEntity(newSubEntity)
 	// A notification should have been sent
-	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":3,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1,1]},"entityType":"EV","lastStateChange":"removed"}}]}}]}}}`
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":3,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"entity":[1,1]},"entityType":"EV","lastStateChange":"removed"}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
@@ -121,15 +167,15 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 
 	sut.RemoveEntity(entity1)
 	// A notification should have been sent
-	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"entity":[0],"feature":0},"msgCounter":4,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"device":"address","entity":[1]},"entityType":"CEM","lastStateChange":"removed"}}]}}]}}}`
+	expectedNotifyMsg = `{"datagram":{"header":{"specificationVersion":"1.3.0","addressSource":{"device":"address","entity":[0],"feature":0},"addressDestination":{"device":"remoteDevice","entity":[0],"feature":0},"msgCounter":4,"cmdClassifier":"notify"},"payload":{"cmd":[{"function":"nodeManagementDetailedDiscoveryData","filter":[{"cmdControl":{"partial":{}}}],"nodeManagementDetailedDiscoveryData":{"specificationVersionList":{"specificationVersion":["1.3.0"]},"deviceInformation":{"description":{"deviceAddress":{"device":"address"},"deviceType":"EnergyManagementSystem","networkFeatureSet":"smart"}},"entityInformation":[{"description":{"entityAddress":{"entity":[1]},"entityType":"CEM","lastStateChange":"removed"}}]}}]}}}`
 	assert.Equal(d.T(), expectedNotifyMsg, d.lastMessage)
 
 	entities = sut.Entities()
 	assert.Equal(d.T(), 1, len(entities))
 
 	sut.RemoveRemoteDevice(ski)
-	remote = sut.RemoteDeviceForSki(ski)
-	assert.Nil(d.T(), remote)
+	remoteI = sut.RemoteDeviceForSki(ski)
+	assert.Nil(d.T(), remoteI)
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
@@ -246,6 +292,14 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	remote := sut.RemoteDeviceForSki(ski)
 	assert.NotNil(d.T(), remote)
 
+	entityAddress1 := &model.EntityAddressType{
+		Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+		Entity: []model.AddressEntityType{1},
+	}
+	entityAddress2 := &model.EntityAddressType{
+		Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+		Entity: []model.AddressEntityType{2},
+	}
 	detailedData := &model.NodeManagementDetailedDiscoveryDataType{
 		DeviceInformation: &model.NodeManagementDetailedDiscoveryDeviceInformationType{
 			Description: &model.NetworkManagementDeviceDescriptionDataType{
@@ -257,11 +311,16 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 		EntityInformation: []model.NodeManagementDetailedDiscoveryEntityInformationType{
 			{
 				Description: &model.NetworkManagementEntityDescriptionDataType{
-					EntityAddress: &model.EntityAddressType{
-						Device: util.Ptr(model.AddressDeviceType(remoteDeviceName)),
-						Entity: []model.AddressEntityType{1},
-					},
-					EntityType: util.Ptr(model.EntityTypeTypeEVSE),
+					EntityAddress:   entityAddress1,
+					EntityType:      util.Ptr(model.EntityTypeTypeEVSE),
+					LastStateChange: util.Ptr(model.NetworkManagementStateChangeTypeAdded),
+				},
+			},
+			{
+				Description: &model.NetworkManagementEntityDescriptionDataType{
+					EntityAddress:   entityAddress2,
+					EntityType:      util.Ptr(model.EntityTypeTypeEVSE),
+					LastStateChange: util.Ptr(model.NetworkManagementStateChangeTypeAdded),
 				},
 			},
 		},
@@ -277,9 +336,20 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 					Role:        util.Ptr(model.RoleTypeServer),
 				},
 			},
+			{
+				Description: &model.NetworkManagementFeatureDescriptionDataType{
+					FeatureAddress: &model.FeatureAddressType{
+						Device:  util.Ptr(model.AddressDeviceType(remoteDeviceName)),
+						Entity:  []model.AddressEntityType{2},
+						Feature: util.Ptr(model.AddressFeatureType(1)),
+					},
+					FeatureType: util.Ptr(model.FeatureTypeTypeElectricalConnection),
+					Role:        util.Ptr(model.RoleTypeServer),
+				},
+			},
 		},
 	}
-	_, err := remote.AddEntityAndFeatures(true, detailedData)
+	_, err := remote.AddEntityAndFeatures(true, detailedData, entityAddress1)
 	assert.Nil(d.T(), err)
 
 	datagram := model.DatagramType{

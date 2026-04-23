@@ -42,7 +42,6 @@
                             {
                                 "description": {
                                     "entityAddress": {
-                                        "device": "TestDeviceAddress",
                                         "entity": [
                                             0
                                         ]
@@ -55,7 +54,6 @@
                             {
                                 "description": {
                                     "featureAddress": {
-                                        "device": "TestDeviceAddress",
                                         "entity": [
                                             0
                                         ],
@@ -116,7 +114,6 @@
                             {
                                 "description": {
                                     "featureAddress": {
-                                        "device": "TestDeviceAddress",
                                         "entity": [
                                             0
                                         ],

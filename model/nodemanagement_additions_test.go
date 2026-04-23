@@ -79,8 +79,10 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseActorTypeCEM,
-		UseCaseNameTypeEVChargingSummary,
+		UseCaseFilterType{
+			Actor:       UseCaseActorTypeCEM,
+			UseCaseName: UseCaseNameTypeEVChargingSummary,
+		},
 	)
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation))
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation[0].UseCaseSupport))
@@ -95,24 +97,24 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseActorTypeCEM,
-		UseCaseNameTypeControlOfBattery,
+		UseCaseFilterType{
+			Actor:       UseCaseActorTypeCEM,
+			UseCaseName: UseCaseNameTypeControlOfBattery,
+		},
 	)
 	assert.Equal(s.T(), 2, len(ucs.UseCaseInformation))
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation[0].UseCaseSupport))
 
 	ucs.RemoveUseCaseSupport(
 		address,
-		UseCaseActorTypeCEM,
-		UseCaseNameTypeEVSECommissioningAndConfiguration,
+		UseCaseFilterType{
+			Actor:       UseCaseActorTypeCEM,
+			UseCaseName: UseCaseNameTypeEVSECommissioningAndConfiguration,
+		},
 	)
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 
-	ucs.RemoveUseCaseSupport(
-		address,
-		"",
-		"",
-	)
+	ucs.RemoveUseCaseSupport(address, UseCaseFilterType{})
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 
 	invalidAddress := FeatureAddressType{
@@ -121,8 +123,10 @@ func (s *NodeManagementUseCaseDataTypeSuite) Test_AdditionsAndRemovals() {
 	}
 	ucs.RemoveUseCaseSupport(
 		invalidAddress,
-		UseCaseActorTypeCEM,
-		UseCaseNameTypeEVSECommissioningAndConfiguration,
+		UseCaseFilterType{
+			Actor:       UseCaseActorTypeCEM,
+			UseCaseName: UseCaseNameTypeEVSECommissioningAndConfiguration,
+		},
 	)
 	assert.Equal(s.T(), 1, len(ucs.UseCaseInformation))
 

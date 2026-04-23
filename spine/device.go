@@ -1,6 +1,10 @@
 package spine
 
-import "github.com/enbility/spine-go/model"
+import (
+	"encoding/json"
+
+	"github.com/enbility/spine-go/model"
+)
 
 type Device struct {
 	address    *model.AddressDeviceType
@@ -31,6 +35,26 @@ func NewDevice(address *model.AddressDeviceType, dType *model.DeviceTypeType, fe
 
 func (r *Device) Address() *model.AddressDeviceType {
 	return r.address
+}
+
+// Add support for JSON Marshalling
+//
+// Instances of EntityInterface are used as arguments and return values in various API calls,
+// therefor it is helpfull to be able to marshal them to JSON and thus make the API calls
+// usable with various communication interfaces
+func (r *Device) MarshalJSON() ([]byte, error) {
+	var tempAddress string
+
+	if r.address != nil {
+		tempAddress = string(*r.address)
+	}
+
+	bytes, err := json.Marshal(tempAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
 }
 
 func (r *Device) DeviceType() *model.DeviceTypeType {

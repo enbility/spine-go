@@ -11,8 +11,8 @@ const (
 )
 
 type AlarmDataType struct {
-	AlarmId          *AlarmIdType                `json:"alarmId,omitempty" eebus:"key"`
-	ThresholdId      *ThresholdIdType            `json:"thresholdId,omitempty"`
+	AlarmId          *AlarmIdType                `json:"alarmId,omitempty" eebus:"key,primarykey"`
+	ThresholdId      *ThresholdIdType            `json:"thresholdId,omitempty" eebus:"ref:ThresholdDescriptionDataType.ThresholdId"`
 	Timestamp        *AbsoluteOrRelativeTimeType `json:"timestamp,omitempty"`
 	AlarmType        *AlarmTypeType              `json:"alarmType,omitempty"`
 	MeasuredValue    *ScaledNumberType           `json:"measuredValue,omitempty"`
@@ -35,7 +35,7 @@ type AlarmDataElementsType struct {
 }
 
 type AlarmListDataType struct {
-	AlarmListData []AlarmDataType `json:"alarmListData,omitempty"`
+	AlarmData []AlarmDataType `json:"alarmData,omitempty"`
 }
 
 type AlarmListDataSelectorsType struct {

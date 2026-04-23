@@ -2,6 +2,7 @@ package model
 
 import (
 	"testing"
+	"time"
 
 	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ func TestMeasurementListDataType_Update_Add(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementData
@@ -77,7 +78,7 @@ func TestMeasurementListDataType_Update_Replace(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementData
@@ -95,16 +96,19 @@ func TestMeasurementListDataType_Update_Replace(t *testing.T) {
 }
 
 func TestMeasurementSeriesListDataType_Update(t *testing.T) {
+	now := time.Now()
 	sut := MeasurementSeriesListDataType{
 		MeasurementSeriesData: []MeasurementSeriesDataType{
 			{
 				MeasurementId: util.Ptr(MeasurementIdType(0)),
 				ValueType:     util.Ptr(MeasurementValueTypeTypeMinValue),
+				Timestamp:     NewAbsoluteOrRelativeTimeTypeFromTime(now),
 				Value:         NewScaledNumberType(1),
 			},
 			{
 				MeasurementId: util.Ptr(MeasurementIdType(1)),
 				ValueType:     util.Ptr(MeasurementValueTypeTypeMaxValue),
+				Timestamp:     NewAbsoluteOrRelativeTimeTypeFromTime(now),
 				Value:         NewScaledNumberType(10),
 			},
 		},
@@ -115,13 +119,14 @@ func TestMeasurementSeriesListDataType_Update(t *testing.T) {
 			{
 				MeasurementId: util.Ptr(MeasurementIdType(1)),
 				ValueType:     util.Ptr(MeasurementValueTypeTypeMaxValue),
+				Timestamp:     NewAbsoluteOrRelativeTimeTypeFromTime(now),
 				Value:         NewScaledNumberType(100),
 			},
 		},
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementSeriesData
@@ -160,7 +165,7 @@ func TestMeasurementConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementConstraintsData
@@ -199,7 +204,7 @@ func TestMeasurementDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementDescriptionData
@@ -238,7 +243,7 @@ func TestMeasurementThresholdRelationListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.MeasurementThresholdRelationData

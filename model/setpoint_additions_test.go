@@ -31,7 +31,7 @@ func TestSetpointListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.SetpointData
@@ -50,12 +50,16 @@ func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 	sut := SetpointDescriptionListDataType{
 		SetpointDescriptionData: []SetpointDescriptionDataType{
 			{
-				SetpointId:  util.Ptr(SetpointIdType(0)),
-				Description: util.Ptr(DescriptionType("old")),
+				SetpointId:    util.Ptr(SetpointIdType(0)),
+				MeasurementId: util.Ptr(MeasurementIdType(0)),
+				TimeTableId:   util.Ptr(TimeTableIdType(0)),
+				Description:   util.Ptr(DescriptionType("old")),
 			},
 			{
-				SetpointId:  util.Ptr(SetpointIdType(1)),
-				Description: util.Ptr(DescriptionType("old")),
+				SetpointId:    util.Ptr(SetpointIdType(1)),
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				TimeTableId:   util.Ptr(TimeTableIdType(1)),
+				Description:   util.Ptr(DescriptionType("old")),
 			},
 		},
 	}
@@ -63,14 +67,16 @@ func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 	newData := SetpointDescriptionListDataType{
 		SetpointDescriptionData: []SetpointDescriptionDataType{
 			{
-				SetpointId:  util.Ptr(SetpointIdType(1)),
-				Description: util.Ptr(DescriptionType("new")),
+				SetpointId:    util.Ptr(SetpointIdType(1)),
+				MeasurementId: util.Ptr(MeasurementIdType(1)),
+				TimeTableId:   util.Ptr(TimeTableIdType(1)),
+				Description:   util.Ptr(DescriptionType("new")),
 			},
 		},
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.SetpointDescriptionData

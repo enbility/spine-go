@@ -158,7 +158,7 @@ type ScaledNumberSetElementsType struct {
 
 type NumberType int64
 
-type ScaleType int8
+type ScaleType int16
 
 type ScaledNumberType struct {
 	Number *NumberType `json:"number,omitempty"`

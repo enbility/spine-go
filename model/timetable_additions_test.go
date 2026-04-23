@@ -12,12 +12,14 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 		TimeTableData: []TimeTableDataType{
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(0)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(0)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(1)),
 				},
 			},
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(1)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(1)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(1)),
 				},
@@ -29,6 +31,7 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 		TimeTableData: []TimeTableDataType{
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(1)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(1)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(10)),
 				},
@@ -37,7 +40,7 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.TimeTableData
@@ -76,7 +79,7 @@ func TestTimeTableConstraintsListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.TimeTableConstraintsData
@@ -115,7 +118,7 @@ func TestTimeTableDescriptionListDataType_Update(t *testing.T) {
 	}
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(t, success)
 
 	data := sut.TimeTableDescriptionData

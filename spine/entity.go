@@ -1,9 +1,9 @@
 package spine
 
 import (
+	"encoding/json"
 	"sync"
 
-	"github.com/ahmetb/go-linq/v3"
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
@@ -32,7 +32,7 @@ func NewEntity(eType model.EntityTypeType, deviceAddress *model.AddressDeviceTyp
 			Entity: entityAddress,
 		},
 	}
-	if entityAddress[0] == 0 {
+	if entityAddress != nil && entityAddress[0] == 0 {
 		// Entity 0 Feature addresses start with 0
 		entity.fIdGenerator = newFeatureIdGenerator(0)
 	} else {
@@ -45,6 +45,33 @@ func NewEntity(eType model.EntityTypeType, deviceAddress *model.AddressDeviceTyp
 
 func (r *Entity) Address() *model.EntityAddressType {
 	return r.address
+}
+
+// Add support for JSON Marshalling
+//
+// Instances of EntityInterface are used as arguments and return values in various API calls,
+// therefor it is helpfull to be able to marshal them to JSON and thus make the API calls
+// usable with various communication interfaces
+func (r *Entity) MarshalJSON() ([]byte, error) {
+	// we do not want to omit address fields, if they are nil
+	// and field names should not be lowercased
+	type tempAddressType struct {
+		Device model.AddressDeviceType
+		Entity []model.AddressEntityType
+	}
+	var tempAddress tempAddressType
+
+	if r.address.Device != nil {
+		tempAddress.Device = *r.address.Device
+	}
+	tempAddress.Entity = r.address.Entity
+
+	bytes, err := json.Marshal(tempAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
 }
 
 func (r *Entity) EntityType() model.EntityTypeType {
@@ -82,7 +109,9 @@ func NewEntityAddressType(deviceName string, entityIds []uint) *model.EntityAddr
 
 func NewAddressEntityType(entityIds []uint) []model.AddressEntityType {
 	var addressEntity []model.AddressEntityType
-	linq.From(entityIds).SelectT(func(i uint) model.AddressEntityType { return model.AddressEntityType(i) }).ToSlice(&addressEntity)
+	for _, item := range entityIds {
+		addressEntity = append(addressEntity, model.AddressEntityType(item))
+	}
 	return addressEntity
 }
 

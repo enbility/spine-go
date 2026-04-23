@@ -34,7 +34,7 @@ func (s *VersionSuite) Test_UpdateList() {
 	assert.Equal(s.T(), "1.0.0", string(item1))
 
 	// Act
-	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil)
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
 	assert.True(s.T(), success)
 
 	data = sut.SpecificationVersionData

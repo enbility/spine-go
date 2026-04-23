@@ -76,6 +76,11 @@ type DeviceLocalInterface interface {
 	// Send a notify message to remote device subscribing to a specific feature
 	NotifySubscribers(featureAddress *model.FeatureAddressType, cmd model.CmdType)
 
+	// Get the events manager for this device.
+	// Each device owns its own events manager for automatic isolation.
+	// Use this to subscribe to SPINE events for this device.
+	Events() EventsManagerInterface
+
 	// Get the SPINE data structure for NodeManagementDetailDiscoveryData messages for this device
 	Information() *model.NodeManagementDetailedDiscoveryDeviceInformationType
 }
@@ -115,7 +120,7 @@ type DeviceRemoteInterface interface {
 	UpdateDevice(description *model.NetworkManagementDeviceDescriptionDataType)
 
 	// Add entities and their features using provided NodeManagementDetailedDiscoveryData
-	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType) ([]EntityRemoteInterface, error)
+	AddEntityAndFeatures(initialData bool, data *model.NodeManagementDetailedDiscoveryDataType, entityAddressToAdd *model.EntityAddressType) ([]EntityRemoteInterface, error)
 
 	// Helper method for checking incoming NodeManagementDetailedDiscoveryEntityInformation data
 	CheckEntityInformation(initialData bool, entity model.NodeManagementDetailedDiscoveryEntityInformationType) error

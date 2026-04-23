@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 // TimePeriodType
@@ -64,6 +64,10 @@ func getTimePeriodTypeDuration(t *TimePeriodType) (time.Duration, error) {
 	now := time.Now().UTC()
 	duration := endTime.Sub(now)
 	duration = duration.Round(time.Second)
+
+	if duration < 0 {
+		return 0, nil
+	}
 
 	return duration, nil
 }
@@ -182,9 +186,75 @@ func (d *DateTimeType) GetTime() (time.Time, error) {
 
 // DurationType
 
+// IMPORTANT: Duration Parsing Limitations
+//
+// The period library used for parsing ISO 8601 durations (getTimeDurationFromString)
+// uses fixed approximations that introduce errors for month and year components:
+//   - 1 year ≈ 365.2425 days (actual: 365 or 366)
+//   - 1 month ≈ 30.4369 days (actual: 28-31)
+//
+// Error Magnitude:
+//   - NO ERRORS: Durations using only weeks, days, hours, minutes, seconds
+//     Examples: P1W, P7D, PT24H, P1W2DT3H4M5S
+//   - SIGNIFICANT ERRORS: Durations using months or years
+//     Examples: P1M (error: 11-33 hours), P1Y (error: ~6 hours)
+//
+// For SPINE use cases (typically seconds to hours), this is not a concern.
+// However, for monthly/yearly scheduling, use calendar-based calculations instead.
+//
+// See: https://github.com/enbility/spine-go/issues/60
+
 func NewDurationType(duration time.Duration) *DurationType {
-	d, _ := period.NewOf(duration)
-	value := DurationType(d.String())
+	// Handle negative durations
+	if duration < 0 {
+		// For negative durations, we need to work backwards
+		positiveDuration := -duration
+		result := NewDurationType(positiveDuration)
+		negativeResult := "-" + string(*result)
+		value := DurationType(negativeResult)
+		return &value
+	}
+
+	// Use pure arithmetic decomposition into days/hours/minutes/seconds only.
+	// Months and years are avoided because they have variable lengths, causing
+	// lossy round-trips when parsed back via fixed averages (e.g. P1M ≈ 30.44 days).
+	totalSeconds := int64(duration.Seconds())
+
+	days := totalSeconds / 86400
+	totalSeconds %= 86400
+
+	hours := totalSeconds / 3600
+	totalSeconds %= 3600
+
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
+
+	// Build ISO 8601 duration string
+	var result strings.Builder
+	result.WriteString("P")
+
+	if days > 0 {
+		fmt.Fprintf(&result, "%dD", days)
+	}
+
+	if hours > 0 || minutes > 0 || seconds > 0 {
+		result.WriteString("T")
+		if hours > 0 {
+			fmt.Fprintf(&result, "%dH", hours)
+		}
+		if minutes > 0 {
+			fmt.Fprintf(&result, "%dM", minutes)
+		}
+		if seconds > 0 {
+			fmt.Fprintf(&result, "%dS", seconds)
+		}
+	}
+
+	if result.String() == "P" {
+		result.WriteString("0D")
+	}
+
+	value := DurationType(result.String())
 	return &value
 }
 
@@ -193,6 +263,16 @@ func (d *DurationType) GetTimeDuration() (time.Duration, error) {
 }
 
 // helper for DurationType and AbsoluteOrRelativeTimeType
+//
+// WARNING: This function uses period.DurationApprox() which has limitations:
+//   - EXACT for: weeks, days, hours, minutes, seconds (P1W, P7D, PT1H)
+//   - APPROXIMATE for: years, months (P1Y ≈ 365.2425 days, P1M ≈ 30.4369 days)
+//
+// The approximation errors for month/year durations can be significant:
+//   - P1M: 11-33 hours error depending on actual month
+//   - P1Y: ~6 hours error
+//
+// For precise calendar operations with months/years, use time.AddDate() instead.
 func getTimeDurationFromString(s string) (time.Duration, error) {
 	p, err := period.Parse(string(s))
 	if err != nil {
@@ -293,10 +373,9 @@ func NewScaledNumberType(value float64) *ScaledNumberType {
 	m.Number = &numberValue
 
 	var scaleValue ScaleType
-	if numberValue != 0 {
-		scaleValue = ScaleType(-numberOfDecimals)
-	} else {
-		scaleValue = ScaleType(0)
+	scaleValue = ScaleType(0)
+	if numberValue != 0 && -numberOfDecimals >= math.MinInt8 && -numberOfDecimals <= math.MaxInt8 {
+		scaleValue = ScaleType(int8(-numberOfDecimals))
 	}
 	m.Scale = &scaleValue
 

@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -16,22 +17,22 @@ func TestTimePeriodType(t *testing.T) {
 	assert.Equal(t, time.Duration(0), duration)
 
 	tc = &TimePeriodType{
-		EndTime: NewAbsoluteOrRelativeTimeTypeFromDuration(time.Minute * 1),
+		EndTime: NewAbsoluteOrRelativeTimeTypeFromDuration(time.Second * 3),
 	}
 	duration, err = tc.GetDuration()
 	assert.Nil(t, err)
-	assert.Equal(t, time.Minute*1, duration)
+	assert.Equal(t, time.Second*3, duration)
 
-	tc = NewTimePeriodTypeWithRelativeEndTime(time.Minute * 1)
+	tc = NewTimePeriodTypeWithRelativeEndTime(time.Second * 3)
 
 	duration, err = tc.GetDuration()
 	assert.Nil(t, err)
-	assert.Equal(t, time.Minute*1, duration)
+	assert.Equal(t, time.Second*3, duration)
 
 	data, err := json.Marshal(tc)
 	assert.Nil(t, err)
 	assert.NotNil(t, data)
-	assert.Equal(t, "{\"endTime\":\"PT1M\"}", string(data))
+	assert.Equal(t, "{\"endTime\":\"PT3S\"}", string(data))
 
 	var tp1 TimePeriodType
 	err = json.Unmarshal(data, &tp1)
@@ -42,12 +43,23 @@ func TestTimePeriodType(t *testing.T) {
 
 	duration, err = tc.GetDuration()
 	assert.Nil(t, err)
-	assert.Equal(t, time.Second*59, duration)
+	assert.Equal(t, time.Second*2, duration)
 
 	data, err = json.Marshal(tc)
 	assert.Nil(t, err)
 	assert.NotNil(t, data)
-	assert.Equal(t, "{\"endTime\":\"PT59S\"}", string(data))
+	assert.Equal(t, "{\"endTime\":\"PT2S\"}", string(data))
+
+	time.Sleep(time.Second * 3)
+
+	duration, err = tc.GetDuration()
+	assert.Nil(t, err)
+	assert.Equal(t, time.Second*0, duration)
+
+	data, err = json.Marshal(tc)
+	assert.Nil(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, "{\"endTime\":\"P0D\"}", string(data))
 }
 
 func TestTimeType(t *testing.T) {
@@ -379,5 +391,404 @@ func TestFeatureAddressTypeString(t *testing.T) {
 		if got != tc.out {
 			t.Errorf("TestFeatureAddressTypeString(), got %s, expects %s", got, tc.out)
 		}
+	}
+}
+
+// TestDurationTypeIssue60 validates the fix for issue #60
+// Ensures complex durations are formatted with preserved structure instead of seconds-only
+func TestDurationTypeIssue60(t *testing.T) {
+	// Test case from issue #60: complex duration should preserve structure
+	duration := time.Duration(4357512417) * time.Second // Parsed P138Y1MT6H28M15S
+
+	result := NewDurationType(duration)
+	resultStr := string(*result)
+
+	// Should NOT be "PT4357512417S" (old behavior)
+	// Should use days: "P50434DT4H6M57S" (exact round-trip, no calendar dependency)
+	assert.NotEqual(t, "PT4357512417S", resultStr, "Should not output seconds-only format")
+	assert.Contains(t, resultStr, "D", "Should contain day component")
+
+	// Verify it's still a valid duration that can be parsed back exactly
+	parsedBack, err := result.GetTimeDuration()
+	assert.NoError(t, err, "Result should be parseable")
+	assert.Equal(t, duration, parsedBack, "Round-trip should be exact when using days")
+}
+
+// TestNewDurationTypeEdgeCases tests edge cases for the calendar-aware duration formatting
+func TestNewDurationTypeEdgeCases(t *testing.T) {
+	tests := []struct {
+		name          string
+		duration      time.Duration
+		expectedRegex string
+		description   string
+	}{
+		{
+			name:          "zero duration",
+			duration:      0,
+			expectedRegex: "^P0D$",
+			description:   "Zero duration should be P0D",
+		},
+		{
+			name:          "exactly one second",
+			duration:      1 * time.Second,
+			expectedRegex: "^PT1S$",
+			description:   "Should format single second",
+		},
+		{
+			name:          "exactly one minute",
+			duration:      1 * time.Minute,
+			expectedRegex: "^PT1M$",
+			description:   "Should format single minute",
+		},
+		{
+			name:          "exactly one hour",
+			duration:      1 * time.Hour,
+			expectedRegex: "^PT1H$",
+			description:   "Should format single hour",
+		},
+		{
+			name:          "exactly 24 hours",
+			duration:      24 * time.Hour,
+			expectedRegex: "^P1D$",
+			description:   "24 hours should become 1 day",
+		},
+		{
+			name:          "just under 24 hours",
+			duration:      23*time.Hour + 59*time.Minute + 59*time.Second,
+			expectedRegex: "^PT23H59M59S$",
+			description:   "Should not round up to days",
+		},
+		{
+			name:          "exactly 7 days",
+			duration:      7 * 24 * time.Hour,
+			expectedRegex: "^P7D$",
+			description:   "Should format as days, not weeks (calendar-aware)",
+		},
+		{
+			name:          "complex time only",
+			duration:      2*time.Hour + 30*time.Minute + 45*time.Second,
+			expectedRegex: "^PT2H30M45S$",
+			description:   "Should handle complex time components",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := NewDurationType(tt.duration)
+			resultStr := string(*result)
+
+			assert.Regexp(t, tt.expectedRegex, resultStr, tt.description)
+
+			// All durations should round-trip exactly (days-based, no calendar approximation)
+			parsedBack, err := result.GetTimeDuration()
+			assert.NoError(t, err, "Result should be parseable")
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
+		})
+	}
+}
+
+// TestNewDurationTypeNegative tests negative duration handling
+func TestNewDurationTypeNegative(t *testing.T) {
+	tests := []struct {
+		name         string
+		duration     time.Duration
+		expectedSign string
+	}{
+		{
+			name:         "negative 1 hour",
+			duration:     -1 * time.Hour,
+			expectedSign: "-PT1H",
+		},
+		{
+			name:         "negative 1 day",
+			duration:     -24 * time.Hour,
+			expectedSign: "-P1D",
+		},
+		{
+			name:         "negative complex",
+			duration:     -(2*time.Hour + 30*time.Minute),
+			expectedSign: "-PT2H30M",
+		},
+		{
+			name:         "negative zero",
+			duration:     0,
+			expectedSign: "P0D", // Zero is not negative
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := NewDurationType(tt.duration)
+			resultStr := string(*result)
+
+			assert.Equal(t, tt.expectedSign, resultStr)
+
+			// Verify parsing back gives the same duration
+			parsedBack, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+			assert.Equal(t, tt.duration, parsedBack)
+		})
+	}
+}
+
+// TestNewDurationTypeLargeDayBoundaries tests large day-based durations
+func TestNewDurationTypeLargeDayBoundaries(t *testing.T) {
+	tests := []struct {
+		name     string
+		duration time.Duration
+	}{
+		{
+			name:     "365 days",
+			duration: 365 * 24 * time.Hour,
+		},
+		{
+			name:     "730 days",
+			duration: 2 * 365 * 24 * time.Hour,
+		},
+		{
+			name:     "30 days",
+			duration: 30 * 24 * time.Hour,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := NewDurationType(tt.duration)
+			resultStr := string(*result)
+
+			// Should use days, not seconds-only format
+			assert.Contains(t, resultStr, "D", "Should contain day component")
+			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Should not be seconds-only format")
+
+			// Should round-trip exactly
+			parsedBack, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
+		})
+	}
+}
+
+// TestNewDurationTypeMonthBoundaries tests durations around month-length boundaries
+func TestNewDurationTypeMonthBoundaries(t *testing.T) {
+	monthLengths := []int{28, 29, 30, 31}
+
+	for _, days := range monthLengths {
+		t.Run(fmt.Sprintf("%d days", days), func(t *testing.T) {
+			duration := time.Duration(days) * 24 * time.Hour
+			result := NewDurationType(duration)
+			resultStr := string(*result)
+
+			// Should use days format (e.g. P28D, P30D)
+			assert.Regexp(t, "^P\\d+D$", resultStr, "Should be days-only format")
+
+			// Should round-trip exactly
+			parsedBack, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+			assert.Equal(t, duration, parsedBack, "Round-trip should be exact for day-based durations")
+		})
+	}
+}
+
+// TestNewDurationTypeLargeValues tests handling of large durations
+func TestNewDurationTypeLargeValues(t *testing.T) {
+	tests := []struct {
+		name     string
+		duration time.Duration
+	}{
+		{
+			name:     "10 years in days",
+			duration: 10 * 365 * 24 * time.Hour,
+		},
+		{
+			name:     "100 years in days",
+			duration: 100 * 365 * 24 * time.Hour,
+		},
+		{
+			name:     "close to overflow",
+			duration: 250 * 365 * 24 * time.Hour,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.duration < 0 {
+				t.Skip("Duration overflows time.Duration")
+				return
+			}
+
+			result := NewDurationType(tt.duration)
+			resultStr := string(*result)
+
+			// Should use days, not seconds-only
+			assert.Contains(t, resultStr, "D", "Should contain day component")
+			assert.NotRegexp(t, "^PT\\d+S$", resultStr, "Large durations should not be seconds-only")
+
+			// Should round-trip exactly
+			parsedBack, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+			assert.Equal(t, tt.duration, parsedBack, "Round-trip should be exact")
+		})
+	}
+}
+
+// TestNewDurationTypeRoundTrip tests round-trip consistency
+func TestNewDurationTypeRoundTrip(t *testing.T) {
+	// Test durations that should round-trip with high accuracy
+	exactDurations := []time.Duration{
+		1 * time.Second,
+		30 * time.Second,
+		5 * time.Minute,
+		2 * time.Hour,
+		6 * time.Hour,
+		12 * time.Hour,
+		1 * 24 * time.Hour,  // 1 day
+		3 * 24 * time.Hour,  // 3 days
+		7 * 24 * time.Hour,  // 1 week (in days)
+		14 * 24 * time.Hour, // 2 weeks
+		28 * 24 * time.Hour, // 4 weeks (close to month)
+	}
+
+	for _, original := range exactDurations {
+		t.Run(fmt.Sprintf("round_trip_%v", original), func(t *testing.T) {
+			// Format to ISO 8601
+			durType := NewDurationType(original)
+			isoStr := string(*durType)
+
+			// Parse back
+			parsed, err := durType.GetTimeDuration()
+			assert.NoError(t, err)
+
+			// All durations should round-trip exactly (only days/hours/minutes/seconds used)
+			assert.Equal(t, original, parsed,
+				"Round-trip should be exact for duration %v, got %v (iso: %s)",
+				original, parsed, isoStr)
+		})
+	}
+}
+
+// TestNewDurationTypeStructurePreservation tests that structure is preserved vs old behavior
+func TestNewDurationTypeStructurePreservation(t *testing.T) {
+	// Test cases that would have been "PT...S" in the old implementation
+	testCases := []struct {
+		name           string
+		inputSeconds   int64
+		mustContain    []string
+		mustNotContain []string
+	}{
+		{
+			name:           "1 year in seconds",
+			inputSeconds:   31556952, // ~1 year
+			mustContain:    []string{"D"},
+			mustNotContain: []string{"PT31556952S"},
+		},
+		{
+			name:           "1 month in seconds",
+			inputSeconds:   2629746, // ~1 month
+			mustContain:    []string{"D"},
+			mustNotContain: []string{"PT2629746S"},
+		},
+		{
+			name:           "issue 60 duration",
+			inputSeconds:   4357512417,
+			mustContain:    []string{"D"},
+			mustNotContain: []string{"PT4357512417S"},
+		},
+		{
+			name:           "6 months in seconds",
+			inputSeconds:   15778476, // ~6 months
+			mustContain:    []string{"D"},
+			mustNotContain: []string{"PT15778476S"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			duration := time.Duration(tc.inputSeconds) * time.Second
+			result := NewDurationType(duration)
+			resultStr := string(*result)
+
+			for _, mustHave := range tc.mustContain {
+				assert.Contains(t, resultStr, mustHave,
+					"Result should contain %s: %s", mustHave, resultStr)
+			}
+
+			for _, mustNotHave := range tc.mustNotContain {
+				assert.NotEqual(t, mustNotHave, resultStr,
+					"Result should not be the old seconds-only format")
+			}
+
+			// Verify it's valid ISO 8601
+			assert.Regexp(t, "^-?P", resultStr, "Should start with P (or -P)")
+
+			// Verify it can be parsed
+			parsed, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+			assert.NotZero(t, parsed)
+		})
+	}
+}
+
+// TestNewDurationTypeSPINERealistic tests realistic SPINE protocol durations
+func TestNewDurationTypeSPINERealistic(t *testing.T) {
+	// Real-world SPINE durations from actual usage
+	spineUseCases := []struct {
+		name     string
+		duration time.Duration
+		context  string
+	}{
+		{
+			name:     "heartbeat timeout",
+			duration: 4 * time.Second,
+			context:  "Device heartbeat interval",
+		},
+		{
+			name:     "response timeout",
+			duration: 30 * time.Second,
+			context:  "Maximum response delay",
+		},
+		{
+			name:     "measurement interval",
+			duration: 5 * time.Minute,
+			context:  "Measurement reporting interval",
+		},
+		{
+			name:     "charging session",
+			duration: 4 * time.Hour,
+			context:  "EV charging duration",
+		},
+		{
+			name:     "daily schedule",
+			duration: 24 * time.Hour,
+			context:  "Daily energy schedule",
+		},
+		{
+			name:     "weekly pattern",
+			duration: 7 * 24 * time.Hour,
+			context:  "Weekly load pattern",
+		},
+		{
+			name:     "maintenance window",
+			duration: 30 * 24 * time.Hour,
+			context:  "Monthly maintenance",
+		},
+	}
+
+	for _, tc := range spineUseCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := NewDurationType(tc.duration)
+			resultStr := string(*result)
+
+			// Should produce human-readable format
+			assert.NotRegexp(t, "^PT\\d{4,}S$", resultStr,
+				"SPINE durations should not be large second counts")
+
+			// Should be parseable with high accuracy (SPINE needs precision)
+			parsed, err := result.GetTimeDuration()
+			assert.NoError(t, err)
+
+			// All SPINE durations should round-trip exactly (days-based, no calendar approximation)
+			assert.Equal(t, tc.duration, parsed,
+				"SPINE duration %s should round-trip exactly", tc.context)
+		})
 	}
 }

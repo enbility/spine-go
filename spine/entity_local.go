@@ -149,7 +149,7 @@ func (r *EntityLocal) AddUseCaseSupport(
 }
 
 // Check if a use case is already added
-func (r *EntityLocal) HasUseCaseSupport(actor model.UseCaseActorType, useCaseName model.UseCaseNameType) bool {
+func (r *EntityLocal) HasUseCaseSupport(uc model.UseCaseFilterType) bool {
 	nodeMgmt := r.device.NodeManagement()
 
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
@@ -162,14 +162,13 @@ func (r *EntityLocal) HasUseCaseSupport(actor model.UseCaseActorType, useCaseNam
 		Entity: r.address.Entity,
 	}
 
-	return data.HasUseCaseSupport(address, actor, useCaseName)
+	return data.HasUseCaseSupport(address, uc.Actor, uc.UseCaseName)
 }
 
 // Set the availability of a usecase. This may only be used for usescases
 // that act as a client within the usecase!
 func (r *EntityLocal) SetUseCaseAvailability(
-	actor model.UseCaseActorType,
-	useCaseName model.UseCaseNameType,
+	uc model.UseCaseFilterType,
 	available bool) {
 	nodeMgmt := r.device.NodeManagement()
 
@@ -183,16 +182,17 @@ func (r *EntityLocal) SetUseCaseAvailability(
 		Entity: r.address.Entity,
 	}
 
-	data.SetAvailability(address, actor, useCaseName, available)
+	data.SetAvailability(address, uc.Actor, uc.UseCaseName, available)
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
-// Remove a usecase with a given actor ans usecase name
-func (r *EntityLocal) RemoveUseCaseSupport(
-	actor model.UseCaseActorType,
-	useCaseName model.UseCaseNameType,
-) {
+// Remove a usecase with a list of given actor and usecase name
+func (r *EntityLocal) RemoveUseCaseSupports(filters []model.UseCaseFilterType) {
+	if len(filters) == 0 {
+		return
+	}
+
 	nodeMgmt := r.device.NodeManagement()
 
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
@@ -205,7 +205,9 @@ func (r *EntityLocal) RemoveUseCaseSupport(
 		Entity: r.address.Entity,
 	}
 
-	data.RemoveUseCaseSupport(address, actor, useCaseName)
+	for _, item := range filters {
+		data.RemoveUseCaseSupport(address, item)
+	}
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
@@ -229,27 +231,7 @@ func (r *EntityLocal) RemoveAllUseCaseSupports() {
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementUseCaseData, data)
 }
 
-// Remove all subscriptions
-func (r *EntityLocal) RemoveAllSubscriptions() {
-	for _, item := range r.features {
-		item.RemoveAllRemoteSubscriptions()
-	}
-}
-
-// Remove all bindings
-func (r *EntityLocal) RemoveAllBindings() {
-	for _, item := range r.features {
-		item.RemoveAllRemoteBindings()
-	}
-}
-
 func (r *EntityLocal) Information() *model.NodeManagementDetailedDiscoveryEntityInformationType {
-	res := &model.NodeManagementDetailedDiscoveryEntityInformationType{
-		Description: &model.NetworkManagementEntityDescriptionDataType{
-			EntityAddress: r.Address(),
-			EntityType:    &r.eType,
-		},
-	}
-
-	return res
+	// Use XSD-compliant factory function to ensure Device field is omitted
+	return model.NewEntityInformationForNodeManagement(r.address.Entity, r.eType)
 }

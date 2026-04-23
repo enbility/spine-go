@@ -18,7 +18,7 @@ const (
 )
 
 type ThresholdDataType struct {
-	ThresholdId    *ThresholdIdType  `json:"thresholdId,omitempty" eebus:"key"`
+	ThresholdId    *ThresholdIdType  `json:"thresholdId,omitempty" eebus:"key,primarykey,ref:ThresholdDescriptionDataType.ThresholdId"`
 	ThresholdValue *ScaledNumberType `json:"thresholdValue,omitempty"`
 }
 
@@ -36,7 +36,7 @@ type ThresholdListDataSelectorsType struct {
 }
 
 type ThresholdConstraintsDataType struct {
-	ThresholdId       *ThresholdIdType  `json:"thresholdId,omitempty" eebus:"key"`
+	ThresholdId       *ThresholdIdType  `json:"thresholdId,omitempty" eebus:"key,primarykey,ref:ThresholdDescriptionDataType.ThresholdId"`
 	ThresholdRangeMin *ScaledNumberType `json:"thresholdRangeMin,omitempty"`
 	ThresholdRangeMax *ScaledNumberType `json:"thresholdRangeMax,omitempty"`
 	ThresholdStepSize *ScaledNumberType `json:"thresholdStepSize,omitempty"`
@@ -58,7 +58,7 @@ type ThresholdConstraintsListDataSelectorsType struct {
 }
 
 type ThresholdDescriptionDataType struct {
-	ThresholdId   *ThresholdIdType       `json:"thresholdId,omitempty" eebus:"key"`
+	ThresholdId   *ThresholdIdType       `json:"thresholdId,omitempty" eebus:"key,primarykey"`
 	ThresholdType *ThresholdTypeType     `json:"thresholdType,omitempty"`
 	Unit          *UnitOfMeasurementType `json:"unit,omitempty"`
 	ScopeType     *ScopeTypeType         `json:"scopeType,omitempty"`

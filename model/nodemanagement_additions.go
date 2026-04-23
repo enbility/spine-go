@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -13,19 +14,25 @@ var nmMux sync.Mutex
 
 var _ Updater = (*NodeManagementDestinationListDataType)(nil)
 
-func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType) (any, bool) {
+func (r *NodeManagementDestinationListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
 	var newData []NodeManagementDestinationDataType
 	if newList != nil {
 		newData = newList.(*NodeManagementDestinationListDataType).NodeManagementDestinationData
 	}
 
-	data, success := UpdateList(remoteWrite, r.NodeManagementDestinationData, newData, filterPartial, filterDelete)
+	data, success := UpdateList(remoteWrite, r.NodeManagementDestinationData, newData, filterPartial, filterDelete, cmdFunction)
 
 	if success && persist {
 		r.NodeManagementDestinationData = data
 	}
 
 	return data, success
+}
+
+// helper type for easier filtering a specific UseCase element
+type UseCaseFilterType struct {
+	Actor       UseCaseActorType
+	UseCaseName UseCaseNameType
 }
 
 // NodeManagementUseCaseDataType
@@ -153,14 +160,13 @@ func (n *NodeManagementUseCaseDataType) SetAvailability(
 // a provided FeatureAddressType, UseCaseActorType and UseCaseNameType
 func (n *NodeManagementUseCaseDataType) RemoveUseCaseSupport(
 	address FeatureAddressType,
-	actor UseCaseActorType,
-	useCaseName UseCaseNameType,
+	filter UseCaseFilterType,
 ) {
 	nmMux.Lock()
 	defer nmMux.Unlock()
 
 	// is there an entry for the entity address, actor and usecase name
-	usecaseIndex, ok := n.useCaseInformationIndex(address, actor, useCaseName)
+	usecaseIndex, ok := n.useCaseInformationIndex(address, filter.Actor, filter.UseCaseName)
 	if !ok {
 		return
 	}
@@ -173,7 +179,7 @@ func (n *NodeManagementUseCaseDataType) RemoveUseCaseSupport(
 			continue
 		}
 
-		item.Remove(useCaseName)
+		item.Remove(filter.UseCaseName)
 
 		// only add the item if there are any usecases left
 		if len(item.UseCaseSupport) == 0 {
@@ -201,4 +207,68 @@ func (n *NodeManagementUseCaseDataType) RemoveUseCaseDataForAddress(address Feat
 	}
 
 	n.UseCaseInformation = usecaseInfo
+}
+
+// XSD Compliance Factory Functions and Validation
+
+// NewEntityInformationForNodeManagement creates XSD-compliant NodeManagementDetailedDiscoveryEntityInformationType
+// Per XSD specification, EntityAddress in this context should only contain the 'entity' field (device field omitted)
+func NewEntityInformationForNodeManagement(
+	entityAddr []AddressEntityType,
+	entityType EntityTypeType,
+) *NodeManagementDetailedDiscoveryEntityInformationType {
+	return &NodeManagementDetailedDiscoveryEntityInformationType{
+		Description: &NetworkManagementEntityDescriptionDataType{
+			EntityAddress: &EntityAddressType{
+				// Device field intentionally omitted for XSD compliance
+				Entity: entityAddr,
+			},
+			EntityType: &entityType,
+		},
+	}
+}
+
+// ValidateXSD validates that the NodeManagementDetailedDiscoveryEntityInformationType complies with XSD restrictions
+func (e *NodeManagementDetailedDiscoveryEntityInformationType) ValidateXSD() error {
+	if e.Description != nil &&
+		e.Description.EntityAddress != nil &&
+		e.Description.EntityAddress.Device != nil {
+		return fmt.Errorf("XSD violation: Device field not allowed in NodeManagementDetailedDiscovery context")
+	}
+	return nil
+}
+
+// NewFeatureInformationForNodeManagement creates XSD-compliant NodeManagementDetailedDiscoveryFeatureInformationType
+// Per XSD specification, FeatureAddress in this context should only contain the 'entity' and 'feature' fields (device field omitted)
+func NewFeatureInformationForNodeManagement(
+	entityAddr []AddressEntityType,
+	featureAddr *AddressFeatureType,
+	featureType *FeatureTypeType,
+	role *RoleType,
+	description *DescriptionType,
+	supportedFunction []FunctionPropertyType,
+) *NodeManagementDetailedDiscoveryFeatureInformationType {
+	return &NodeManagementDetailedDiscoveryFeatureInformationType{
+		Description: &NetworkManagementFeatureDescriptionDataType{
+			FeatureAddress: &FeatureAddressType{
+				// Device field intentionally omitted for XSD compliance
+				Entity:  entityAddr,
+				Feature: featureAddr,
+			},
+			FeatureType:       featureType,
+			Role:              role,
+			SupportedFunction: supportedFunction,
+			Description:       description,
+		},
+	}
+}
+
+// ValidateXSD validates that the NodeManagementDetailedDiscoveryFeatureInformationType complies with XSD restrictions
+func (e *NodeManagementDetailedDiscoveryFeatureInformationType) ValidateXSD() error {
+	if e.Description != nil &&
+		e.Description.FeatureAddress != nil &&
+		e.Description.FeatureAddress.Device != nil {
+		return fmt.Errorf("XSD violation: Device field not allowed in NodeManagementDetailedDiscovery context")
+	}
+	return nil
 }

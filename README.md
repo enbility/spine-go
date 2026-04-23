@@ -1,10 +1,11 @@
 # spine-go
 
-[![Build Status](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=main)](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=main)
+[![Build Status](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=dev)](https://github.com/enbility/spine-go/actions/workflows/default.yml/badge.svg?branch=dev)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-5272B4)](https://godoc.org/github.com/enbility/spine-go)
-[![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=main)](https://coveralls.io/github/enbility/spine-go?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/enbility/spine-go/badge.svg?branch=dev)](https://coveralls.io/github/enbility/spine-go?branch=dev)
 [![Go report](https://goreportcard.com/badge/github.com/enbility/spine-go)](https://goreportcard.com/report/github.com/enbility/spine-go)
 [![CodeFactor](https://www.codefactor.io/repository/github/enbility/spine-go/badge)](https://www.codefactor.io/repository/github/enbility/spine-go)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/enbility/spine-go)
 
 ## Introduction
 
@@ -15,6 +16,26 @@ Basic understanding of the EEBUS concepts SHIP and SPINE to use this library is 
 This repository was started as part of the [eebus-go](https://github.com/enbility/eebus-go) before it was moved into its own repository and this separate go package.
 
 __Important:__ In contrast to the EEBUS recommendation to use a "Generic" client feature, this library does not support this for the local device! Instead one should create a feature type with the client role for every required feature.
+
+## Documentation
+
+### Technical Analysis
+
+The `analysis-docs/` directory contains comprehensive technical analysis of the SPINE-go implementation:
+
+- **[Start Here](analysis-docs/README_START_HERE.md)** - Navigation guide for different audiences
+- **[Executive Summary](analysis-docs/EXECUTIVE_SUMMARY.md)** - High-level overview for business stakeholders
+- **Detailed Analysis** - In-depth technical documentation covering:
+  - SPINE specification analysis and critical issues
+  - Implementation quality assessment
+  - Specification deviations and undefined behaviors
+  - Improvement roadmap with prioritized recommendations
+- **Specific Issues** - Focused analysis of key implementation topics:
+  - Binding and orchestration patterns
+  - Version management architecture
+  - Identifier validation and update semantics
+
+This documentation provides essential insights for production deployments, multi-vendor compatibility considerations, and understanding the safety features built into spine-go.
 
 ## Packages
 

@@ -8,7 +8,7 @@ import (
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 const defaultMaxResponseDelay = time.Duration(time.Second * 10)
@@ -70,10 +70,10 @@ func (r *FeatureRemote) UpdateData(persist bool, function model.FunctionType, da
 
 	fd := r.functionData(function)
 	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
-	return fd.UpdateDataAny(false, persist, data, filterPartial, filterDelete)
+	return fd.UpdateDataAny(false, persist, data, filterPartial, filterDelete, &function)
 }
 
 func (r *FeatureRemote) SetOperations(functions []model.FunctionPropertyType) {

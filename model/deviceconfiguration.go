@@ -87,7 +87,7 @@ type DeviceConfigurationKeyValueValueElementsType struct {
 }
 
 type DeviceConfigurationKeyValueDataType struct {
-	KeyId             *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key"`
+	KeyId             *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key,primarykey,ref:DeviceConfigurationKeyValueDescriptionDataType.KeyId"`
 	Value             *DeviceConfigurationKeyValueValueType `json:"value,omitempty"`
 	IsValueChangeable *bool                                 `json:"isValueChangeable,omitempty" eebus:"writecheck"`
 }
@@ -107,7 +107,7 @@ type DeviceConfigurationKeyValueListDataSelectorsType struct {
 }
 
 type DeviceConfigurationKeyValueDescriptionDataType struct {
-	KeyId       *DeviceConfigurationKeyIdType        `json:"keyId,omitempty" eebus:"key"`
+	KeyId       *DeviceConfigurationKeyIdType        `json:"keyId,omitempty" eebus:"key,primarykey"`
 	KeyName     *DeviceConfigurationKeyNameType      `json:"keyName,omitempty"`
 	ValueType   *DeviceConfigurationKeyValueTypeType `json:"valueType,omitempty"`
 	Unit        *UnitOfMeasurementType               `json:"unit,omitempty"`
@@ -134,7 +134,7 @@ type DeviceConfigurationKeyValueDescriptionListDataSelectorsType struct {
 }
 
 type DeviceConfigurationKeyValueConstraintsDataType struct {
-	KeyId         *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key"`
+	KeyId         *DeviceConfigurationKeyIdType         `json:"keyId,omitempty" eebus:"key,primarykey,ref:DeviceConfigurationKeyValueDescriptionDataType.KeyId"`
 	ValueRangeMin *DeviceConfigurationKeyValueValueType `json:"valueRangeMin,omitempty"`
 	ValueRangeMax *DeviceConfigurationKeyValueValueType `json:"valueRangeMax,omitempty"`
 	ValueStepSize *DeviceConfigurationKeyValueValueType `json:"valueStepSize,omitempty"`

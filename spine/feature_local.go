@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"sync"
 	"time"
 
@@ -27,9 +28,6 @@ type FeatureLocal struct {
 	muxWriteReceived       sync.Mutex
 	writeApprovalReceived  map[string]map[model.MsgCounterType]int
 	pendingWriteApprovals  map[string]map[model.MsgCounterType]*time.Timer
-
-	bindings      []*model.FeatureAddressType // bindings to remote features
-	subscriptions []*model.FeatureAddressType // subscriptions to remote features
 
 	mux sync.Mutex
 }
@@ -83,7 +81,11 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 			writePartial = fctData.SupportsPartialWrite()
 		}
 	}
-	// partial reads are currently not supported!
+	// Partial reads are intentionally not supported (spec-compliant design decision)
+	// SPINE specification section 5.3.4.5 states: "A server MAY ignore unsupported cmdOption 
+	// combinations and then replies with more than the requested parts instead."
+	// By setting readPartial to false, we ensure all read requests return full data,
+	// which provides the safest interoperability behavior for multi-vendor scenarios.
 	r.operations[function] = NewOperations(read, false, write, writePartial)
 
 	if r.role == model.RoleTypeServer &&
@@ -106,7 +108,7 @@ func (r *FeatureLocal) Functions() []model.FunctionType {
 
 // Add a callback function to be invoked when SPINE message comes in with a given msgCounterReference value
 //
-// Returns an error if there is already a callback for the msgCounter set
+// Returns an error if the provided callback function for the msgCounter is already set
 func (r *FeatureLocal) AddResponseCallback(msgCounterReference model.MsgCounterType, function func(msg api.ResponseMessage)) error {
 	r.muxResponseCB.Lock()
 	defer r.muxResponseCB.Unlock()
@@ -277,30 +279,9 @@ func (r *FeatureLocal) CleanRemoteDeviceCaches(remoteAddress *model.DeviceAddres
 		return
 	}
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	var subscriptions []*model.FeatureAddressType
-
-	for _, item := range r.subscriptions {
-		if item.Device == nil ||
-			*item.Device != *remoteAddress.Device {
-			subscriptions = append(subscriptions, item)
-		}
-	}
-
-	r.subscriptions = subscriptions
-
-	var bindings []*model.FeatureAddressType
-
-	for _, item := range r.bindings {
-		if item.Device == nil ||
-			*item.Device != *remoteAddress.Device {
-			bindings = append(bindings, item)
-		}
-	}
-
-	r.bindings = bindings
+	remoteDevice := r.Device().RemoteDeviceForAddress(*remoteAddress.Device)
+	r.Device().BindingManager().RemoveBindingsForRemoteDevice(remoteDevice)
+	r.Device().SubscriptionManager().RemoveSubscriptionsForRemoteDevice(remoteDevice)
 }
 
 // Remove subscriptions and bindings from local cache for a remote entity
@@ -312,32 +293,16 @@ func (r *FeatureLocal) CleanRemoteEntityCaches(remoteAddress *model.EntityAddres
 		return
 	}
 
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	var subscriptions []*model.FeatureAddressType
-
-	for _, item := range r.subscriptions {
-		if item.Device == nil || item.Entity == nil ||
-			*item.Device != *remoteAddress.Device ||
-			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
-			subscriptions = append(subscriptions, item)
-		}
+	remoteDevice := r.Device().RemoteDeviceForAddress(*remoteAddress.Device)
+	if remoteDevice == nil {
+		return
 	}
-
-	r.subscriptions = subscriptions
-
-	var bindings []*model.FeatureAddressType
-
-	for _, item := range r.bindings {
-		if item.Device == nil || item.Entity == nil ||
-			*item.Device != *remoteAddress.Device ||
-			!reflect.DeepEqual(item.Entity, remoteAddress.Entity) {
-			bindings = append(bindings, item)
-		}
+	remoteEntity := remoteDevice.Entity(remoteAddress.Entity)
+	if remoteEntity == nil {
+		return
 	}
-
-	r.bindings = bindings
+	r.Device().BindingManager().RemoveBindingsForRemoteEntity(remoteEntity)
+	r.Device().SubscriptionManager().RemoveSubscriptionsForRemoteEntity(remoteEntity)
 }
 
 func (r *FeatureLocal) DataCopy(function model.FunctionType) any {
@@ -360,7 +325,21 @@ func (r *FeatureLocal) SetData(function model.FunctionType, data any) {
 	}
 
 	if fctData != nil && err == nil {
-		r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+		// do not notify subscribers for the following data functions:
+		// - FunctionTypeNodeManagementBindingData
+		// - FunctionTypeNodeManagementSubscriptionData
+		// because the send out data would have to be filtered for the recipient,
+		// partial data for the models aren't supported and filtering on top of this
+		// is also not supported. Also no other implementations uses this data or
+		// provides it.
+		ignoreNotify := []model.FunctionType{
+			model.FunctionTypeNodeManagementBindingData,
+			model.FunctionTypeNodeManagementSubscriptionData,
+		}
+
+		if !slices.Contains(ignoreNotify, function) {
+			r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
+		}
 	}
 }
 
@@ -374,8 +353,9 @@ func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterP
 	if fctData != nil && err == nil {
 		var deleteSelector, deleteElements, partialSelector any
 
+		cmdFunction := util.Ptr(function)
 		if filterDelete != nil {
-			if fDelete, err := filterDelete.Data(); err == nil {
+			if fDelete, err := filterDelete.Data(cmdFunction); err == nil {
 				if fDelete.Selector != nil {
 					deleteSelector = fDelete.Selector
 				}
@@ -386,7 +366,7 @@ func (r *FeatureLocal) UpdateData(function model.FunctionType, data any, filterP
 		}
 
 		if filterPartial != nil {
-			if fPartial, err := filterPartial.Data(); err == nil && fPartial.Selector != nil {
+			if fPartial, err := filterPartial.Data(cmdFunction); err == nil && fPartial.Selector != nil {
 				partialSelector = fPartial.Selector
 			}
 		}
@@ -403,10 +383,12 @@ func (r *FeatureLocal) updateData(remoteWrite bool, function model.FunctionType,
 
 	fctData := r.functionData(function)
 	if fctData == nil {
-		return nil, model.NewErrorTypeFromString("data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "data not found")
 	}
 
-	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete)
+	// Pass the function type to UpdateDataAny for filter context
+	cmdFunction := util.Ptr(function)
+	_, err := fctData.UpdateDataAny(remoteWrite, true, data, filterPartial, filterDelete, cmdFunction)
 
 	return fctData, err
 }
@@ -418,7 +400,7 @@ func (r *FeatureLocal) RequestRemoteData(
 	destination api.FeatureRemoteInterface) (*model.MsgCounterType, *model.ErrorType) {
 	fd := r.functionData(function)
 	if fd == nil {
-		return nil, model.NewErrorTypeFromString("function data not found")
+		return nil, model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
 	cmd := fd.ReadCmdType(selector, elements)
@@ -432,6 +414,8 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 	deviceSki string,
 	destinationAddress *model.FeatureAddressType,
 	maxDelay time.Duration) (*model.MsgCounterType, *model.ErrorType) {
+	// Note: maxDelay parameter is informational only and not used for timeout detection
+	// Read request timeouts are not implemented in spine-go (per SPINE spec MAY requirement)
 	msgCounter, err := sender.Request(model.CmdClassifierTypeRead, r.Address(), destinationAddress, false, []model.CmdType{cmd})
 	if err == nil {
 		return msgCounter, nil
@@ -442,19 +426,18 @@ func (r *FeatureLocal) RequestRemoteDataBySenderAddress(
 
 // check if there already is a subscription to a remote feature
 func (r *FeatureLocal) HasSubscriptionToRemote(remoteAddress *model.FeatureAddressType) bool {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.subscriptions {
-		if reflect.DeepEqual(*remoteAddress, *item) {
-			return true
-		}
-	}
-
-	return false
+	// subscriptions are also valid on NodeManagement, which has role Special
+	// so to cover all cases, any of the combinations of client/server roles should be checked
+	asClient := r.Device().SubscriptionManager().HasSubscription(r.Address(), remoteAddress)
+	asServer := r.Device().SubscriptionManager().HasSubscription(remoteAddress, r.Address())
+	return asClient || asServer
 }
 
 // SubscribeToRemote to a remote feature
+//
+// Returns:
+// - msgCounter: the message counter reference for the request, nil if the subscription already exists or an error occurred
+// - error: an error if creating the subscription request failed or sending failed, or nil if the subscription already exists or sending the request was possible
 func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -468,16 +451,60 @@ func (r *FeatureLocal) SubscribeToRemote(remoteAddress *model.FeatureAddressType
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a subscription", r.Feature.String()))
 	}
 
-	msgCounter, err := remoteDevice.Sender().Subscribe(r.Address(), remoteAddress, r.ftype)
+	// check if we already have this subscription
+	if r.HasSubscriptionToRemote(remoteAddress) {
+		return nil, nil
+	}
+
+	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		// FeatureByAddress returns nil when the remote device advertises
+		// an address that is not yet materialized locally (e.g. racy
+		// EEBUS handshake before the remote LoadControl feature has
+		// been published). Previously the next line panicked and the
+		// goroutine — spawned by events.Publish — could not be
+		// recovered from, exiting the entire process.
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature for address %s not found", remoteAddress))
+	}
+	remoteFeatureType := remoteFeature.Type()
+	if remoteFeature.Role() == model.RoleTypeClient {
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
+	}
+
+	msgCounter, err := remoteDevice.Sender().Subscribe(r.Address(), remoteAddress, remoteFeatureType)
 	if err != nil {
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	r.mux.Lock()
-	r.subscriptions = append(r.subscriptions, remoteAddress)
-	r.mux.Unlock()
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.subscribeResponseCallback(remoteDevice, remoteAddress, remoteFeatureType, msg)
+	})
 
 	return msgCounter, nil
+}
+
+func (r *FeatureLocal) subscribeResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	fType model.FeatureTypeType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only add the subscription if it was successful
+	if *resultData.ErrorNumber == 0 {
+		data := model.SubscriptionManagementRequestCallType{
+			ClientAddress:     r.Address(),
+			ServerAddress:     remoteAddress,
+			ServerFeatureType: &fType,
+		}
+
+		if err := r.Device().SubscriptionManager().AddSubscription(remoteDevice, data); err != nil {
+			logging.Log().Debug("Adding accepted remote subscription failed", err)
+		}
+	}
 }
 
 // Remove a subscriptions to a remote feature
@@ -495,46 +522,54 @@ func (r *FeatureLocal) RemoveRemoteSubscription(remoteAddress *model.FeatureAddr
 		return nil, model.NewErrorTypeFromString("device not found")
 	}
 
-	var subscriptions []*model.FeatureAddressType
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.subscriptions {
-		if reflect.DeepEqual(item, remoteAddress) {
-			continue
-		}
-
-		subscriptions = append(subscriptions, item)
-	}
-
-	r.subscriptions = subscriptions
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.unsubscribeResponseCallback(remoteDevice, remoteAddress, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllRemoteSubscriptions() {
-	for _, item := range r.subscriptions {
-		_, _ = r.RemoveRemoteSubscription(item)
+func (r *FeatureLocal) unsubscribeResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only remove the subscription if the removal was successful
+	if *resultData.ErrorNumber == 0 {
+		var data model.SubscriptionManagementDeleteCallType
+
+		if r.role == model.RoleTypeServer {
+			data.ClientAddress = remoteAddress
+			data.ServerAddress = r.Address()
+		} else {
+			data.ClientAddress = r.Address()
+			data.ServerAddress = remoteAddress
+		}
+
+		if err := r.Device().SubscriptionManager().RemoveSubscription(remoteDevice, data); err != nil {
+			logging.Log().Debug("Removing binding to remote feature failed", err)
+		}
 	}
 }
 
 // check if there already is a binding to a remote feature
 func (r *FeatureLocal) HasBindingToRemote(remoteAddress *model.FeatureAddressType) bool {
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.bindings {
-		if reflect.DeepEqual(*remoteAddress, *item) {
-			return true
-		}
+	if r.role == model.RoleTypeClient {
+		return r.Device().BindingManager().HasBinding(r.Address(), remoteAddress)
 	}
 
-	return false
+	return r.Device().BindingManager().HasBinding(remoteAddress, r.Address())
 }
 
-// BindToRemote to a remote feature
+// Request a binding to a remote feature
+//
+// Returns:
+// - msgCounter: the message counter reference for the request, nil if the binding already exists or an error occurred
+// - error: an error if creating the binding request failed or sending failed, or nil if the binding already exists or sending the request was possible
 func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -548,19 +583,59 @@ func (r *FeatureLocal) BindToRemote(remoteAddress *model.FeatureAddressType) (*m
 		return nil, model.NewErrorTypeFromString(fmt.Sprintf("the server feature '%s' cannot request a binding", r.Feature.String()))
 	}
 
-	msgCounter, err := remoteDevice.Sender().Bind(r.Address(), remoteAddress, r.ftype)
+	// check if we already have this binding
+	if r.HasBindingToRemote(remoteAddress) {
+		return nil, nil
+	}
+
+	remoteFeature := remoteDevice.FeatureByAddress(remoteAddress)
+	if remoteFeature == nil {
+		// Mirrors SubscribeToRemote's guard: FeatureByAddress returns
+		// nil when the remote address has not been materialized yet.
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature for address %s not found", remoteAddress))
+	}
+	remoteFeatureType := remoteFeature.Type()
+	if remoteFeature.Role() == model.RoleTypeClient {
+		return nil, model.NewErrorTypeFromString(fmt.Sprintf("remote feature '%s' is not a server", remoteFeature.String()))
+	}
+
+	msgCounter, err := remoteDevice.Sender().Bind(r.Address(), remoteAddress, remoteFeatureType)
 	if err != nil {
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	r.mux.Lock()
-	r.bindings = append(r.bindings, remoteAddress)
-	r.mux.Unlock()
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.bindResponseCallback(remoteDevice, remoteAddress, remoteFeatureType, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove a binding to a remote feature
+func (r *FeatureLocal) bindResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	fType model.FeatureTypeType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only add the binding if it was successful
+	if *resultData.ErrorNumber == 0 {
+		data := model.BindingManagementRequestCallType{
+			ClientAddress:     r.Address(),
+			ServerAddress:     remoteAddress,
+			ServerFeatureType: &fType,
+		}
+
+		if err := r.Device().BindingManager().AddBinding(remoteDevice, data); err != nil {
+			logging.Log().Debug("Adding accepted remote binding failed", err)
+		}
+	}
+}
+
+// Send a request to remove a binding with a remote feature
 func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressType) (*model.MsgCounterType, *model.ErrorType) {
 	if remoteAddress.Device == nil {
 		return nil, model.NewErrorTypeFromString("device not found")
@@ -575,28 +650,37 @@ func (r *FeatureLocal) RemoveRemoteBinding(remoteAddress *model.FeatureAddressTy
 		return nil, model.NewErrorTypeFromString(err.Error())
 	}
 
-	var bindings []*model.FeatureAddressType
-
-	r.mux.Lock()
-	defer r.mux.Unlock()
-
-	for _, item := range r.bindings {
-		if reflect.DeepEqual(item, remoteAddress) {
-			continue
-		}
-
-		bindings = append(bindings, item)
-	}
-
-	r.bindings = bindings
+	_ = r.AddResponseCallback(*msgCounter, func(msg api.ResponseMessage) {
+		r.unbindResponseCallback(remoteDevice, remoteAddress, msg)
+	})
 
 	return msgCounter, nil
 }
 
-// Remove all subscriptions to remote features
-func (r *FeatureLocal) RemoveAllRemoteBindings() {
-	for _, item := range r.bindings {
-		_, _ = r.RemoveRemoteBinding(item)
+func (r *FeatureLocal) unbindResponseCallback(
+	remoteDevice api.DeviceRemoteInterface,
+	remoteAddress *model.FeatureAddressType,
+	msg api.ResponseMessage) {
+	resultData, ok := msg.Data.(*model.ResultDataType)
+	if !ok || resultData.ErrorNumber == nil {
+		return
+	}
+
+	// only remove the binding if the removal was successful
+	if *resultData.ErrorNumber == 0 {
+		var data model.BindingManagementDeleteCallType
+
+		if r.Role() == model.RoleTypeServer {
+			data.ClientAddress = remoteAddress
+			data.ServerAddress = r.Address()
+		} else {
+			data.ClientAddress = r.Address()
+			data.ServerAddress = remoteAddress
+		}
+
+		if err := r.Device().BindingManager().RemoveBinding(remoteDevice, data); err != nil {
+			logging.Log().Debug("Removing binding to remote feature failed", err)
+		}
 	}
 }
 
@@ -687,10 +771,23 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 
 	fd := r.functionData(function)
 	if fd == nil {
-		return model.NewErrorTypeFromString("function data not found")
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function data not found")
 	}
 
-	cmd := fd.ReplyCmdType(false)
+	// SPEC-COMPLIANT BEHAVIOR: Partial filters are intentionally ignored
+	// 
+	// The incoming message may contain FilterPartial with element selectors,
+	// selectors, or other cmdOptions, but we always reply with full data.
+	// This implements SPINE specification section 5.3.4.5:
+	// "A server MAY ignore unsupported cmdOption combinations and then replies 
+	// with more than the requested parts instead."
+	//
+	// Benefits of this approach:
+	// 1. Ensures interoperability - no partial read implementation variations
+	// 2. Prevents data inconsistency in multi-vendor scenarios
+	// 3. Provides predictable behavior for clients
+	// 4. Complies with spec requirement for unsupported cmdOptions
+	cmd := fd.ReplyCmdType(false) // false = full data, ignore any partial filters
 	if err := featureRemote.Device().Sender().Reply(requestHeader, r.Address(), cmd); err != nil {
 		return model.NewErrorTypeFromString(err.Error())
 	}
@@ -722,7 +819,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeReply),
 		Data:          cmdData.Value,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	// we don't need to populate this message if there is no MsgCounterReference
 	if message.RequestHeader == nil || message.RequestHeader.MsgCounterReference == nil {
@@ -760,7 +857,7 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeNotify),
 		Data:          data,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	return nil
 }
@@ -789,7 +886,7 @@ func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
 	if err1 != nil {
 		return err1
 	} else if fctData == nil {
-		return model.NewErrorTypeFromString("function not found")
+		return model.NewErrorType(model.ErrorNumberTypeCommandNotSupported, "function not found")
 	}
 
 	r.Device().NotifySubscribers(r.Address(), fctData.NotifyOrWriteCmdType(nil, nil, false, nil))
@@ -806,7 +903,7 @@ func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
 		Data:          cmdData.Value,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	return nil
 }
@@ -832,15 +929,5 @@ func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatu
 		funs = append(funs, sf)
 	}
 
-	res := model.NodeManagementDetailedDiscoveryFeatureInformationType{
-		Description: &model.NetworkManagementFeatureDescriptionDataType{
-			FeatureAddress:    r.Address(),
-			FeatureType:       &r.ftype,
-			Role:              &r.role,
-			Description:       r.description,
-			SupportedFunction: funs,
-		},
-	}
-
-	return &res
+	return model.NewFeatureInformationForNodeManagement(r.address.Entity, r.address.Feature, &r.ftype, &r.role, r.description, funs)
 }

@@ -13,7 +13,9 @@ const (
 	EEBusTagFunction   EEBusTag = "fct"
 	EEBusTagType       EEBusTag = "typ"
 	EEBusTagKey        EEBusTag = "key"
+	EEBusTagPrimaryKey EEBusTag = "primarykey"
 	EEBusTagWriteCheck EEBusTag = "writecheck"
+	EEBusTagRef        EEBusTag = "ref" // Foreign key reference: "ref:TargetType.TargetField"
 )
 
 type EEBusTagTypeType string

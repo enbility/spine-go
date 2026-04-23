@@ -53,13 +53,17 @@ func (r *NodeManagement) processReadDetailedDiscoveryData(deviceRemote api.Devic
 func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) error {
 	remoteDevice := message.DeviceRemote
 
+	if data.DeviceInformation == nil {
+		return errors.New("nodemanagement.replyDetailedDiscoveryData: invalid DeviceInformation")
+	}
 	deviceDescription := data.DeviceInformation.Description
 	if deviceDescription == nil {
 		return errors.New("nodemanagement.replyDetailedDiscoveryData: invalid DeviceInformation.Description")
 	}
 
 	remoteDevice.UpdateDevice(deviceDescription)
-	entities, err := remoteDevice.AddEntityAndFeatures(true, data)
+	// add all entities from the dataset
+	entities, err := remoteDevice.AddEntityAndFeatures(true, data, nil)
 	if err != nil {
 		return err
 	}
@@ -70,10 +74,9 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 		EventType:  api.EventTypeDeviceChange,
 		ChangeType: api.ElementChangeAdd,
 		Device:     remoteDevice,
-		Feature:    message.FeatureRemote,
 		Data:       data,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	// publish event for each added remote entity
 	for _, entity := range entities {
@@ -85,7 +88,7 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 			Entity:     entity,
 			Data:       data,
 		}
-		Events.Publish(payload)
+		r.Device().Events().Publish(payload)
 	}
 
 	return nil
@@ -105,7 +108,7 @@ func (r *NodeManagement) addressEntityListContainsAddressEntity(list [][]model.A
 // process incoming detailed discovery notify with full data
 // and return the data diff
 func (r *NodeManagement) provideDetailedDiscoveryDiffForFullNotify(message *api.Message, data *model.NodeManagementDetailedDiscoveryDataType) *model.NodeManagementDetailedDiscoveryDataType {
-	remoteDevice := message.FeatureRemote.Device()
+	remoteDevice := message.DeviceRemote
 
 	var existingEntities, addedEntities [][]model.AddressEntityType
 
@@ -192,7 +195,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 		}
 
 		lastStateChange := *entity.Description.LastStateChange
-		remoteDevice := message.FeatureRemote.Device()
+		remoteDevice := message.DeviceRemote
 
 		// addition example:
 		// {"data":[{"header":[{"protocolId":"ee1.0"}]},{"payload":{"datagram":[{"header":[{"specificationVersion":"1.1.1"},{"addressSource":[{"device":"d:_i:19667_PorscheEVSE-00016544"},{"entity":[0]},{"feature":0}]},{"addressDestination":[{"device":"EVCC_HEMS"},{"entity":[0]},{"feature":0}]},{"msgCounter":926685},{"cmdClassifier":"notify"}]},{"payload":[{"cmd":[[{"function":"nodeManagementDetailedDiscoveryData"},{"filter":[[{"cmdControl":[{"partial":[]}]}]]},{"nodeManagementDetailedDiscoveryData":[{"deviceInformation":[{"description":[{"deviceAddress":[{"device":"d:_i:19667_PorscheEVSE-00016544"}]}]}]},{"entityInformation":[[{"description":[{"entityAddress":[{"entity":[1,1]}]},{"entityType":"EV"},{"lastStateChange":"added"},{"description":"Electric Vehicle"}]}]]},{"featureInformation":[[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":1}]},{"featureType":"LoadControl"},{"role":"server"},{"supportedFunction":[[{"function":"loadControlLimitDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"loadControlLimitListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Load Control"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":2}]},{"featureType":"ElectricalConnection"},{"role":"server"},{"supportedFunction":[[{"function":"electricalConnectionParameterDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"electricalConnectionPermittedValueSetListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Electrical Connection"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":3}]},{"featureType":"Measurement"},{"specificUsage":["Electrical"]},{"role":"server"},{"supportedFunction":[[{"function":"measurementListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"measurementDescriptionListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Measurements"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":5}]},{"featureType":"DeviceConfiguration"},{"role":"server"},{"supportedFunction":[[{"function":"deviceConfigurationKeyValueDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"deviceConfigurationKeyValueListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Configuration EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":6}]},{"featureType":"DeviceClassification"},{"role":"server"},{"supportedFunction":[[{"function":"deviceClassificationManufacturerData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Classification for EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":7}]},{"featureType":"TimeSeries"},{"role":"server"},{"supportedFunction":[[{"function":"timeSeriesConstraintsListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesDescriptionListData"},{"possibleOperations":[{"read":[]}]}],[{"function":"timeSeriesListData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Time Series"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":8}]},{"featureType":"IncentiveTable"},{"role":"server"},{"supportedFunction":[[{"function":"incentiveTableConstraintsData"},{"possibleOperations":[{"read":[]}]}],[{"function":"incentiveTableData"},{"possibleOperations":[{"read":[]},{"write":[]}]}],[{"function":"incentiveTableDescriptionData"},{"possibleOperations":[{"read":[]},{"write":[]}]}]]},{"description":"Incentive Table"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":9}]},{"featureType":"DeviceDiagnosis"},{"role":"server"},{"supportedFunction":[[{"function":"deviceDiagnosisStateData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Device Diagnosis EV"}]}],[{"description":[{"featureAddress":[{"entity":[1,1]},{"feature":10}]},{"featureType":"Identification"},{"role":"server"},{"supportedFunction":[[{"function":"identificationListData"},{"possibleOperations":[{"read":[]}]}]]},{"description":"Identification for EV"}]}]]}]}]]}]}]}}]}
@@ -225,7 +228,8 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 
 		// is this addition?
 		if lastStateChange == model.NetworkManagementStateChangeTypeAdded {
-			entities, err := remoteDevice.AddEntityAndFeatures(false, data)
+			// only add a specific entity
+			entities, err := remoteDevice.AddEntityAndFeatures(false, data, entity.Description.EntityAddress)
 			if err != nil {
 				return err
 			}
@@ -240,7 +244,7 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 					Entity:     entity,
 					Data:       data,
 				}
-				Events.Publish(payload)
+				r.Device().Events().Publish(payload)
 			}
 		}
 
@@ -282,15 +286,15 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 					Entity:     removedEntity,
 					Data:       data,
 				}
-				Events.Publish(payload)
+				r.Device().Events().Publish(payload)
 
 				// remove all subscriptions for this entity
 				subscriptionMgr := r.Device().SubscriptionManager()
-				subscriptionMgr.RemoveSubscriptionsForEntity(removedEntity)
+				subscriptionMgr.RemoveSubscriptionsForRemoteEntity(removedEntity)
 
 				// remove all bindings for this entity
 				bindingMgr := r.Device().BindingManager()
-				bindingMgr.RemoveBindingsForEntity(removedEntity)
+				bindingMgr.RemoveBindingsForRemoteEntity(removedEntity)
 
 				// remove all feature caches for this entity
 				r.Device().CleanRemoteEntityCaches(removedEntity.Address())

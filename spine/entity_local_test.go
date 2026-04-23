@@ -57,8 +57,10 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 	entity.RemoveAllUseCaseSupports()
 
 	hasUC := entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		model.UseCaseFilterType{
+			Actor:       model.UseCaseActorTypeCEM,
+			UseCaseName: model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		},
 	)
 	assert.Equal(suite.T(), false, hasUC)
 
@@ -77,10 +79,11 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 	_, err = LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](device.NodeManagement(), model.FunctionTypeNodeManagementUseCaseData)
 	assert.Nil(suite.T(), err)
 
-	hasUC = entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	cemEvseUCFilter := model.UseCaseFilterType{
+		Actor:       model.UseCaseActorTypeCEM,
+		UseCaseName: model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	}
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), true, hasUC)
 
 	entity.AddUseCaseSupport(
@@ -92,27 +95,20 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 		[]model.UseCaseScenarioSupportType{1, 2},
 	)
 
-	hasUC = entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), true, hasUC)
 
 	entity.SetUseCaseAvailability(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+		cemEvseUCFilter,
 		false,
 	)
 
-	entity.RemoveUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	entity.RemoveUseCaseSupports([]model.UseCaseFilterType{})
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
+	assert.Equal(suite.T(), true, hasUC)
 
-	hasUC = entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	entity.RemoveUseCaseSupports([]model.UseCaseFilterType{cemEvseUCFilter})
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), false, hasUC)
 
 	entity.AddUseCaseSupport(
@@ -124,20 +120,11 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 		[]model.UseCaseScenarioSupportType{1, 2},
 	)
 
-	hasUC = entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), true, hasUC)
 
 	entity.RemoveAllUseCaseSupports()
 
-	hasUC = entity.HasUseCaseSupport(
-		model.UseCaseActorTypeCEM,
-		model.UseCaseNameTypeEVSECommissioningAndConfiguration,
-	)
+	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), false, hasUC)
-
-	entity.RemoveAllBindings()
-	entity.RemoveAllSubscriptions()
 }

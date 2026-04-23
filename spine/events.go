@@ -6,7 +6,15 @@ import (
 	"github.com/enbility/spine-go/api"
 )
 
-var Events events
+// newEvents creates a new events manager instance.
+// Each DeviceLocal creates its own events manager automatically.
+// Access it via device.Events() to subscribe to events for that device.
+func newEvents() *events {
+	return &events{}
+}
+
+// Verify that *events implements EventsManagerInterface at compile time
+var _ api.EventsManagerInterface = (*events)(nil)
 
 type eventHandlerItem struct {
 	Level   api.EventHandlerLevel
@@ -74,8 +82,8 @@ func (r *events) Unsubscribe(handler api.EventHandlerInterface) error {
 // Publish an event to all subscribers
 func (r *events) Publish(payload api.EventPayload) {
 	r.mu.Lock()
-	var handler []eventHandlerItem
-	copy(r.handlers, handler)
+	handler := make([]eventHandlerItem, len(r.handlers))
+	copy(handler, r.handlers)
 	r.mu.Unlock()
 
 	// Use different locks, so unpublish is possible in the event handlers
@@ -87,7 +95,7 @@ func (r *events) Publish(payload api.EventPayload) {
 	}
 
 	for _, level := range handlerLevels {
-		for _, item := range r.handlers {
+		for _, item := range handler {
 			if item.Level != level {
 				continue
 			}

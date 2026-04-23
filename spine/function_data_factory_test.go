@@ -39,10 +39,10 @@ func TestFunctionDataFactory_FunctionData(t *testing.T) {
 
 	result = CreateFunctionData[api.FunctionDataInterface](model.FeatureTypeTypeHvac)
 	assert.Equal(t, 8, len(result))
-	assert.IsType(t, &FunctionData[model.HvacOperationModeDescriptionDataType]{}, result[0])
+	assert.IsType(t, &FunctionData[model.HvacOperationModeDescriptionListDataType]{}, result[0])
 	assert.IsType(t, &FunctionData[model.HvacOverrunDescriptionListDataType]{}, result[1])
 	assert.IsType(t, &FunctionData[model.HvacOverrunListDataType]{}, result[2])
-	assert.IsType(t, &FunctionData[model.HvacSystemFunctionDescriptionDataType]{}, result[3])
+	assert.IsType(t, &FunctionData[model.HvacSystemFunctionDescriptionListDataType]{}, result[3])
 	assert.IsType(t, &FunctionData[model.HvacSystemFunctionListDataType]{}, result[4])
 
 	result = CreateFunctionData[api.FunctionDataInterface](model.FeatureTypeTypeIdentification)
@@ -88,7 +88,7 @@ func TestFunctionDataFactory_FunctionDataCmd(t *testing.T) {
 
 func TestFunctionDataFactory_NodeMgmtFeatureType(t *testing.T) {
 	result := CreateFunctionData[api.FunctionDataCmdInterface](model.FeatureTypeTypeNodeManagement)
-	assert.Equal(t, 3, len(result))
+	assert.Equal(t, 5, len(result))
 }
 
 func TestFunctionDataFactory_unknownFunctionDataType(t *testing.T) {

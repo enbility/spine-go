@@ -86,9 +86,9 @@ const (
 )
 
 type ElectricalConnectionParameterDescriptionDataType struct {
-	ElectricalConnectionId  *ElectricalConnectionIdType                `json:"electricalConnectionId,omitempty" eebus:"key"`
+	ElectricalConnectionId  *ElectricalConnectionIdType                `json:"electricalConnectionId,omitempty" eebus:"key,primarykey,ref:ElectricalConnectionDescriptionDataType.ElectricalConnectionId"`
 	ParameterId             *ElectricalConnectionParameterIdType       `json:"parameterId,omitempty" eebus:"key"`
-	MeasurementId           *MeasurementIdType                         `json:"measurementId,omitempty"`
+	MeasurementId           *MeasurementIdType                         `json:"measurementId,omitempty" eebus:"ref:MeasurementDescriptionDataType.MeasurementId"`
 	VoltageType             *ElectricalConnectionVoltageTypeType       `json:"voltageType,omitempty"`
 	AcMeasuredPhases        *ElectricalConnectionPhaseNameType         `json:"acMeasuredPhases,omitempty"`
 	AcMeasuredInReferenceTo *ElectricalConnectionPhaseNameType         `json:"acMeasuredInReferenceTo,omitempty"`
@@ -127,8 +127,8 @@ type ElectricalConnectionParameterDescriptionListDataSelectorsType struct {
 }
 
 type ElectricalConnectionPermittedValueSetDataType struct {
-	ElectricalConnectionId *ElectricalConnectionIdType          `json:"electricalConnectionId,omitempty" eebus:"key"`
-	ParameterId            *ElectricalConnectionParameterIdType `json:"parameterId,omitempty" eebus:"key"`
+	ElectricalConnectionId *ElectricalConnectionIdType          `json:"electricalConnectionId,omitempty" eebus:"key,primarykey,ref:ElectricalConnectionDescriptionDataType.ElectricalConnectionId"`
+	ParameterId            *ElectricalConnectionParameterIdType `json:"parameterId,omitempty" eebus:"key,ref:ElectricalConnectionParameterDescriptionDataType.ParameterId"`
 	PermittedValueSet      []ScaledNumberSetType                `json:"permittedValueSet,omitempty"`
 }
 
@@ -148,7 +148,7 @@ type ElectricalConnectionPermittedValueSetListDataSelectorsType struct {
 }
 
 type ElectricalConnectionStateDataType struct {
-	ElectricalConnectionId *ElectricalConnectionIdType `json:"electricalConnectionId,omitempty" eebus:"key"`
+	ElectricalConnectionId *ElectricalConnectionIdType `json:"electricalConnectionId,omitempty" eebus:"key,ref:ElectricalConnectionDescriptionDataType.ElectricalConnectionId"`
 	Timestamp              *AbsoluteOrRelativeTimeType `json:"timestamp,omitempty"`
 	CurrentEnergyMode      *EnergyModeType             `json:"currentEnergyMode,omitempty"`
 	ConsumptionTime        *DurationType               `json:"consumptionTime,omitempty"`
@@ -207,8 +207,8 @@ type ElectricalConnectionDescriptionListDataSelectorsType struct {
 }
 
 type ElectricalConnectionCharacteristicDataType struct {
-	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty" eebus:"key"`
-	ParameterId            *ElectricalConnectionParameterIdType           `json:"parameterId,omitempty" eebus:"key"`
+	ElectricalConnectionId *ElectricalConnectionIdType                    `json:"electricalConnectionId,omitempty" eebus:"key,primarykey,ref:ElectricalConnectionParameterDescriptionDataType.ElectricalConnectionId"`
+	ParameterId            *ElectricalConnectionParameterIdType           `json:"parameterId,omitempty" eebus:"key,ref:ElectricalConnectionParameterDescriptionDataType.ParameterId"`
 	CharacteristicId       *ElectricalConnectionCharacteristicIdType      `json:"characteristicId,omitempty" eebus:"key"`
 	CharacteristicContext  *ElectricalConnectionCharacteristicContextType `json:"characteristicContext,omitempty"`
 	CharacteristicType     *ElectricalConnectionCharacteristicTypeType    `json:"characteristicType,omitempty"`

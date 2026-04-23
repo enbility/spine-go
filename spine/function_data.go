@@ -52,7 +52,7 @@ func (r *FunctionData[T]) DataCopy() *T {
 	return &copiedData
 }
 
-func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
+func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filterPartial *model.FilterType, filterDelete *model.FilterType, cmdFunction *model.FunctionType) (any, *model.ErrorType) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -71,7 +71,7 @@ func (r *FunctionData[T]) UpdateData(remoteWrite, persist bool, newData *T, filt
 	}
 
 	updater := any(r.data).(model.Updater)
-	data, success := updater.UpdateList(remoteWrite, persist, newData, filterPartial, filterDelete)
+	data, success := updater.UpdateList(remoteWrite, persist, newData, filterPartial, filterDelete, cmdFunction)
 	if !success {
 		return nil, model.NewErrorTypeFromString("update failed, likely not allowed to write")
 	}
@@ -83,8 +83,8 @@ func (r *FunctionData[T]) DataCopyAny() any {
 	return r.DataCopy()
 }
 
-func (r *FunctionData[T]) UpdateDataAny(remoteWrite, persist bool, newData any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
-	data, err := r.UpdateData(remoteWrite, persist, newData.(*T), filterPartial, filterDelete)
+func (r *FunctionData[T]) UpdateDataAny(remoteWrite, persist bool, newData any, filterPartial *model.FilterType, filterDelete *model.FilterType, cmdFunction *model.FunctionType) (any, *model.ErrorType) {
+	data, err := r.UpdateData(remoteWrite, persist, newData.(*T), filterPartial, filterDelete, cmdFunction)
 	if err != nil {
 		logging.Log().Debug(err.String())
 	}
