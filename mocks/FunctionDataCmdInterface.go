@@ -348,8 +348,8 @@ func (_c *FunctionDataCmdInterface_SupportsPartialWrite_Call) RunAndReturn(run f
 }
 
 // UpdateDataAny provides a mock function for the type FunctionDataCmdInterface
-func (_mock *FunctionDataCmdInterface) UpdateDataAny(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType) {
-	ret := _mock.Called(remoteWrite, persist, data, filterPartial, filterDelete)
+func (_mock *FunctionDataCmdInterface) UpdateDataAny(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, cmdFunction *model.FunctionType) (any, *model.ErrorType) {
+	ret := _mock.Called(remoteWrite, persist, data, filterPartial, filterDelete, cmdFunction)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDataAny")
@@ -357,18 +357,18 @@ func (_mock *FunctionDataCmdInterface) UpdateDataAny(remoteWrite bool, persist b
 
 	var r0 any
 	var r1 *model.ErrorType
-	if returnFunc, ok := ret.Get(0).(func(bool, bool, any, *model.FilterType, *model.FilterType) (any, *model.ErrorType)); ok {
-		return returnFunc(remoteWrite, persist, data, filterPartial, filterDelete)
+	if returnFunc, ok := ret.Get(0).(func(bool, bool, any, *model.FilterType, *model.FilterType, *model.FunctionType) (any, *model.ErrorType)); ok {
+		return returnFunc(remoteWrite, persist, data, filterPartial, filterDelete, cmdFunction)
 	}
-	if returnFunc, ok := ret.Get(0).(func(bool, bool, any, *model.FilterType, *model.FilterType) any); ok {
-		r0 = returnFunc(remoteWrite, persist, data, filterPartial, filterDelete)
+	if returnFunc, ok := ret.Get(0).(func(bool, bool, any, *model.FilterType, *model.FilterType, *model.FunctionType) any); ok {
+		r0 = returnFunc(remoteWrite, persist, data, filterPartial, filterDelete, cmdFunction)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(any)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(bool, bool, any, *model.FilterType, *model.FilterType) *model.ErrorType); ok {
-		r1 = returnFunc(remoteWrite, persist, data, filterPartial, filterDelete)
+	if returnFunc, ok := ret.Get(1).(func(bool, bool, any, *model.FilterType, *model.FilterType, *model.FunctionType) *model.ErrorType); ok {
+		r1 = returnFunc(remoteWrite, persist, data, filterPartial, filterDelete, cmdFunction)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.ErrorType)
@@ -388,11 +388,12 @@ type FunctionDataCmdInterface_UpdateDataAny_Call struct {
 //   - data any
 //   - filterPartial *model.FilterType
 //   - filterDelete *model.FilterType
-func (_e *FunctionDataCmdInterface_Expecter) UpdateDataAny(remoteWrite interface{}, persist interface{}, data interface{}, filterPartial interface{}, filterDelete interface{}) *FunctionDataCmdInterface_UpdateDataAny_Call {
-	return &FunctionDataCmdInterface_UpdateDataAny_Call{Call: _e.mock.On("UpdateDataAny", remoteWrite, persist, data, filterPartial, filterDelete)}
+//   - cmdFunction *model.FunctionType
+func (_e *FunctionDataCmdInterface_Expecter) UpdateDataAny(remoteWrite interface{}, persist interface{}, data interface{}, filterPartial interface{}, filterDelete interface{}, cmdFunction interface{}) *FunctionDataCmdInterface_UpdateDataAny_Call {
+	return &FunctionDataCmdInterface_UpdateDataAny_Call{Call: _e.mock.On("UpdateDataAny", remoteWrite, persist, data, filterPartial, filterDelete, cmdFunction)}
 }
 
-func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Run(run func(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
+func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Run(run func(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, cmdFunction *model.FunctionType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 bool
 		if args[0] != nil {
@@ -414,12 +415,17 @@ func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Run(run func(remoteWrite 
 		if args[4] != nil {
 			arg4 = args[4].(*model.FilterType)
 		}
+		var arg5 *model.FunctionType
+		if args[5] != nil {
+			arg5 = args[5].(*model.FunctionType)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -430,7 +436,7 @@ func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) Return(v any, errorType *
 	return _c
 }
 
-func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) RunAndReturn(run func(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType) (any, *model.ErrorType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
+func (_c *FunctionDataCmdInterface_UpdateDataAny_Call) RunAndReturn(run func(remoteWrite bool, persist bool, data any, filterPartial *model.FilterType, filterDelete *model.FilterType, cmdFunction *model.FunctionType) (any, *model.ErrorType)) *FunctionDataCmdInterface_UpdateDataAny_Call {
 	_c.Call.Return(run)
 	return _c
 }

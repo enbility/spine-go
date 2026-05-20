@@ -498,6 +498,52 @@ func (_c *DeviceLocalInterface_EntityForType_Call) RunAndReturn(run func(entityT
 	return _c
 }
 
+// Events provides a mock function for the type DeviceLocalInterface
+func (_mock *DeviceLocalInterface) Events() api.EventsManagerInterface {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Events")
+	}
+
+	var r0 api.EventsManagerInterface
+	if returnFunc, ok := ret.Get(0).(func() api.EventsManagerInterface); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(api.EventsManagerInterface)
+		}
+	}
+	return r0
+}
+
+// DeviceLocalInterface_Events_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Events'
+type DeviceLocalInterface_Events_Call struct {
+	*mock.Call
+}
+
+// Events is a helper method to define mock.On call
+func (_e *DeviceLocalInterface_Expecter) Events() *DeviceLocalInterface_Events_Call {
+	return &DeviceLocalInterface_Events_Call{Call: _e.mock.On("Events")}
+}
+
+func (_c *DeviceLocalInterface_Events_Call) Run(run func()) *DeviceLocalInterface_Events_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *DeviceLocalInterface_Events_Call) Return(eventsManagerInterface api.EventsManagerInterface) *DeviceLocalInterface_Events_Call {
+	_c.Call.Return(eventsManagerInterface)
+	return _c
+}
+
+func (_c *DeviceLocalInterface_Events_Call) RunAndReturn(run func() api.EventsManagerInterface) *DeviceLocalInterface_Events_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FeatureByAddress provides a mock function for the type DeviceLocalInterface
 func (_mock *DeviceLocalInterface) FeatureByAddress(address *model.FeatureAddressType) api.FeatureLocalInterface {
 	ret := _mock.Called(address)
