@@ -71,18 +71,22 @@ func (r *FeatureLocal) AddFunctionType(function model.FunctionType, read, write 
 	if r.role != model.RoleTypeServer && r.role != model.RoleTypeSpecial {
 		return
 	}
-	if r.operations[function] != nil {
-		return
-	}
+
 	writePartial := false
+	if existing := r.operations[function]; existing != nil {
+		read = existing.Read() || read
+		write = existing.Write() || write
+		writePartial = existing.WritePartial()
+	}
+
 	if write {
 		// partials are not supported on all features and functions, so check if this function supports it
 		if fctData := r.functionData(function); fctData != nil {
-			writePartial = fctData.SupportsPartialWrite()
+			writePartial = writePartial || fctData.SupportsPartialWrite()
 		}
 	}
 	// Partial reads are intentionally not supported (spec-compliant design decision)
-	// SPINE specification section 5.3.4.5 states: "A server MAY ignore unsupported cmdOption 
+	// SPINE specification section 5.3.4.5 states: "A server MAY ignore unsupported cmdOption
 	// combinations and then replies with more than the requested parts instead."
 	// By setting readPartial to false, we ensure all read requests return full data,
 	// which provides the safest interoperability behavior for multi-vendor scenarios.
@@ -761,11 +765,11 @@ func (r *FeatureLocal) processRead(function model.FunctionType, requestHeader *m
 	}
 
 	// SPEC-COMPLIANT BEHAVIOR: Partial filters are intentionally ignored
-	// 
+	//
 	// The incoming message may contain FilterPartial with element selectors,
 	// selectors, or other cmdOptions, but we always reply with full data.
 	// This implements SPINE specification section 5.3.4.5:
-	// "A server MAY ignore unsupported cmdOption combinations and then replies 
+	// "A server MAY ignore unsupported cmdOption combinations and then replies
 	// with more than the requested parts instead."
 	//
 	// Benefits of this approach:
