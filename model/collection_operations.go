@@ -153,12 +153,15 @@ func Merge[T any](remoteWrite bool, s1 []T, s2 []T) ([]T, bool) {
 	for _, s1Item := range s1 {
 		s1ItemHash := hashKey(s1Item)
 		s2Item, exist := m2[s1ItemHash]
-		writeAllowed := writeAllowed(s1Item)
-		if !writeAllowed && remoteWrite {
-			success = false
-		}
-		// if exists and overwriting is allowed
-		if exist && (!remoteWrite || writeAllowed) {
+
+		if exist {
+			if remoteWrite && !writeAllowed(s1Item) {
+				success = false
+				result = append(result, s1Item)
+				m1[s1ItemHash] = s1Item
+				continue
+			}
+
 			// add values from s1Item that don't exist in s2Item or shouldn't be
 			// set in s2Item
 			updateFields(remoteWrite, s1Item, &s2Item)
@@ -179,6 +182,8 @@ func Merge[T any](remoteWrite bool, s1 []T, s2 []T) ([]T, bool) {
 		if !exist && !remoteWrite {
 			// only local updates can append data
 			result = append(result, s2Item)
+		} else if !exist {
+			success = false
 		}
 	}
 
