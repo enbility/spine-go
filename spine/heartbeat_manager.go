@@ -125,12 +125,19 @@ func (c *HeartbeatManager) updateHeartbeatData(stopC chan struct{}, d time.Durat
 	if d > 2*time.Second {
 		d -= 2 * time.Second
 	}
+
+	// send the first heartbeat immediately
+	c.mux.Lock()
+	heartbeatData := c.heartbeatData(time.Now().UTC(), c.heartBeatCounter())
+	c.localFeature.SetData(model.FunctionTypeDeviceDiagnosisHeartbeatData, heartbeatData)
+	c.mux.Unlock()
+
 	ticker := time.NewTicker(d)
 	for {
 		select {
 		case <-ticker.C:
 
-			heartbeatData := c.heartbeatData(time.Now().UTC(), c.heartBeatCounter())
+			heartbeatData = c.heartbeatData(time.Now().UTC(), c.heartBeatCounter())
 
 			c.mux.Lock()
 			// updating the data will automatically notify all subscribed remote features
