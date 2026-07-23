@@ -36,6 +36,14 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		return err
 	}
 
+	// TC_SPINE_BIND_001 / [SPINE-TS-BIND-01]: a binding request targeting the
+	// local primary NodeManagement feature (entity 0 / feature 0) must be
+	// rejected. NodeManagement uses RoleTypeSpecial; only reject when it is the
+	// local server (i.e. the binding target).
+	if localRole == model.RoleTypeServer && localFeature.Type() == model.FeatureTypeTypeNodeManagement {
+		return errors.New("bindings to the NodeManagement feature are not allowed")
+	}
+
 	// the server feature type is optional, only validate it if it is set
 	if data.ServerFeatureType != nil {
 		if err := c.checkRoleAndType(localFeature, localRole, *data.ServerFeatureType); err != nil {

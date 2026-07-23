@@ -286,3 +286,34 @@ func (s *BindingManagerSuite) Test_Bindings() {
 	subs = bindingMgr.BindingsForRemoteDevice(s.remoteDevice)
 	assert.Equal(s.T(), 0, len(subs))
 }
+
+// TC_SPINE_BIND_001 / [SPINE-TS-BIND-01]: a binding request targeting the local
+// primary NodeManagement feature (entity 0 / feature 0) must be rejected, and no
+// binding entry may be created for it.
+func (s *BindingManagerSuite) Test_Bindings_RejectNodeManagement() {
+	remoteDeviceAddress := model.AddressDeviceType("remoteDevice")
+	s.remoteDevice.UpdateDevice(
+		&model.NetworkManagementDeviceDescriptionDataType{
+			DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress},
+		},
+	)
+
+	remoteEntity := NewEntityRemote(s.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
+	remoteClientFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	remoteClientFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+	remoteEntity.AddFeature(remoteClientFeature)
+	s.remoteDevice.AddEntity(remoteEntity)
+
+	bindingMgr := s.localDevice.BindingManager()
+
+	bindingRequest := model.BindingManagementRequestCallType{
+		ClientAddress: remoteClientFeature.Address(),
+		ServerAddress: NodeManagementAddress(s.localDevice.Address()),
+	}
+
+	err := bindingMgr.AddBinding(s.remoteDevice, bindingRequest)
+	assert.NotNil(s.T(), err)
+
+	bindings := bindingMgr.BindingsForRemoteDevice(s.remoteDevice)
+	assert.Equal(s.T(), 0, len(bindings))
+}
