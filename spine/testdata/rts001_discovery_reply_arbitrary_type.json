@@ -1,0 +1,118 @@
+{
+    "datagram": {
+        "header": {
+            "specificationVersion": "1.3.0",
+            "addressSource": {
+                "device": "EnergyGuard",
+                "entity": [0],
+                "feature": 0
+            },
+            "addressDestination": {
+                "device": "HEMS",
+                "entity": [0],
+                "feature": 0
+            },
+            "msgCounter": 2,
+            "msgCounterReference": 1,
+            "cmdClassifier": "reply"
+        },
+        "payload": {
+            "cmd": [
+                {
+                    "nodeManagementDetailedDiscoveryData": {
+                        "specificationVersionList": {
+                            "specificationVersion": ["1.3.0"]
+                        },
+                        "deviceInformation": {
+                            "description": {
+                                "deviceAddress": {
+                                    "device": "EnergyGuard"
+                                },
+                                "deviceType": "EnergyManagementSystem",
+                                "networkFeatureSet": "smart"
+                            }
+                        },
+                        "entityInformation": [
+                            {
+                                "description": {
+                                    "entityAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [0]
+                                    },
+                                    "entityType": "DeviceInformation"
+                                }
+                            },
+                            {
+                                "description": {
+                                    "entityAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [1]
+                                    },
+                                    "entityType": "EnergyManagementSystem"
+                                }
+                            }
+                        ],
+                        "featureInformation": [
+                            {
+                                "description": {
+                                    "featureAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [0],
+                                        "feature": 0
+                                    },
+                                    "featureType": "NodeManagement",
+                                    "role": "special",
+                                    "supportedFunction": [
+                                        {"function": "nodeManagementDetailedDiscoveryData", "possibleOperations": {"read": {}}},
+                                        {"function": "nodeManagementSubscriptionRequestCall", "possibleOperations": {}},
+                                        {"function": "nodeManagementSubscriptionDeleteCall", "possibleOperations": {}},
+                                        {"function": "nodeManagementSubscriptionData", "possibleOperations": {"read": {}}},
+                                        {"function": "nodeManagementBindingRequestCall", "possibleOperations": {}},
+                                        {"function": "nodeManagementBindingDeleteCall", "possibleOperations": {}},
+                                        {"function": "nodeManagementBindingData", "possibleOperations": {"read": {}}}
+                                    ]
+                                }
+                            },
+                            {
+                                "description": {
+                                    "featureAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [1],
+                                        "feature": 1
+                                    },
+                                    "featureType": "DeviceClassification",
+                                    "role": "client"
+                                }
+                            },
+                            {
+                                "description": {
+                                    "featureAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [1],
+                                        "feature": 2
+                                    },
+                                    "featureType": "DeviceDiagnosis",
+                                    "role": "server",
+                                    "supportedFunction": [
+                                        {"function": "deviceDiagnosisHeartbeatData", "possibleOperations": {"notify": {}}}
+                                    ]
+                                }
+                            },
+                            {
+                                "description": {
+                                    "featureAddress": {
+                                        "device": "EnergyGuard",
+                                        "entity": [1],
+                                        "feature": 3
+                                    },
+                                    "featureType": "DeviceDiagnosis",
+                                    "role": "client"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
