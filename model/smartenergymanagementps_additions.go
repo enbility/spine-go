@@ -53,7 +53,7 @@ func (s *SmartEnergyManagementPsDataType) UpdateList(remoteWrite, persist bool, 
 	// the payload contains no identifiers — just fields to apply.
 	if filterData, err := filterPartial.Data(cmdFunction); err == nil && filterData.Selector != nil {
 		if sel, ok := filterData.Selector.(*SmartEnergyManagementPsDataSelectorsType); ok {
-			return s.applyWithSelectors(persist, newData, sel)
+			return s.applyWithSelectors(remoteWrite, persist, newData, sel)
 		}
 	}
 
@@ -82,7 +82,7 @@ func (s *SmartEnergyManagementPsDataType) UpdateList(remoteWrite, persist bool, 
 // applyWithSelectors implements explicit RFE (§5.3.4.2 with <SELECTORS>).
 // Selectors narrow which entries are targeted; the payload has no identifiers.
 func (s *SmartEnergyManagementPsDataType) applyWithSelectors(
-	persist bool,
+	remoteWrite, persist bool,
 	newData *SmartEnergyManagementPsDataType,
 	sel *SmartEnergyManagementPsDataSelectorsType,
 ) (any, bool) {
@@ -123,7 +123,7 @@ func (s *SmartEnergyManagementPsDataType) applyWithSelectors(
 				if !s.slotMatchesSel(slot, sel) {
 					continue
 				}
-				s.mergeTimeSlotFieldsWithValueSel(slot, slotPayload, sel.PowerTimeSlotValue)
+				s.mergeTimeSlotFieldsWithValueSel(slot, slotPayload, sel.PowerTimeSlotValue, remoteWrite)
 			}
 		}
 	}
@@ -331,7 +331,7 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternativeFields(target, newAlte
 				// Strict positional matching: only update if position exists
 				if i < len(target.PowerSequence) {
 					// Use existing sequence at this position
-					s.mergeSequenceFields(&target.PowerSequence[i], &newSequence)
+					s.mergeSequenceFields(&target.PowerSequence[i], &newSequence, remoteWrite)
 				}
 				// If position doesn't exist, ignore this sequence (don't fall back to key-based)
 			}
@@ -358,7 +358,7 @@ func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartE
 		if s.hasSequenceContent(newSequence) {
 			// Apply update to ALL sequences in this alternative (true "update all" semantics)
 			for i := range alternative.PowerSequence {
-				s.mergeSequenceFields(&alternative.PowerSequence[i], newSequence)
+				s.mergeSequenceFields(&alternative.PowerSequence[i], newSequence, remoteWrite)
 			}
 		}
 		// If no meaningful content, ignore this sequence (positional placeholder)
@@ -379,14 +379,14 @@ func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartE
 	}
 
 	// Merge fields from new sequence to target
-	s.mergeSequenceFields(targetSequence, newSequence)
+	s.mergeSequenceFields(targetSequence, newSequence, remoteWrite)
 }
 
 // mergeSequenceFields merges fields from newSequence to target
-func (s *SmartEnergyManagementPsDataType) mergeSequenceFields(target, newSequence *SmartEnergyManagementPsPowerSequenceType) {
+func (s *SmartEnergyManagementPsDataType) mergeSequenceFields(target, newSequence *SmartEnergyManagementPsPowerSequenceType, remoteWrite bool) {
 	s.mergeSequenceTopLevelFields(target, newSequence)
 	for _, newTimeSlot := range newSequence.PowerTimeSlot {
-		s.mergePowerTimeSlot(target, &newTimeSlot)
+		s.mergePowerTimeSlot(target, &newTimeSlot, remoteWrite)
 	}
 }
 
@@ -442,7 +442,7 @@ func (s *SmartEnergyManagementPsDataType) mergeScheduleFields(target, newSchedul
 }
 
 // mergePowerTimeSlot merges a power time slot using composite key matching
-func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEnergyManagementPsPowerSequenceType, newTimeSlot *SmartEnergyManagementPsPowerTimeSlotType) {
+func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEnergyManagementPsPowerSequenceType, newTimeSlot *SmartEnergyManagementPsPowerTimeSlotType, remoteWrite bool) {
 	// Get slotNumber for key-based matching
 	var slotNumber *PowerTimeSlotNumberType
 	if newTimeSlot.Schedule != nil {
@@ -453,7 +453,7 @@ func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEner
 	if slotNumber == nil {
 		// Apply update to ALL time slots in this sequence
 		for i := range sequence.PowerTimeSlot {
-			s.mergeTimeSlotFields(&sequence.PowerTimeSlot[i], newTimeSlot)
+			s.mergeTimeSlotFields(&sequence.PowerTimeSlot[i], newTimeSlot, remoteWrite)
 		}
 		return
 	}
@@ -461,17 +461,23 @@ func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEner
 	// Key-based matching: find target time slot
 	targetTimeSlot := s.findTimeSlotByKey(sequence, slotNumber)
 	if targetTimeSlot == nil {
-		// Time slot not found - could create new one, but for OHPCF we expect it to exist
+		// Unknown key: the server announces a new time slot, add it. A remote
+		// client may only update existing entries, so its payload is ignored.
+		if !remoteWrite {
+			var added SmartEnergyManagementPsPowerTimeSlotType
+			util.DeepCopy(newTimeSlot, &added)
+			sequence.PowerTimeSlot = append(sequence.PowerTimeSlot, added)
+		}
 		return
 	}
 
 	// Merge fields from new time slot to target
-	s.mergeTimeSlotFields(targetTimeSlot, newTimeSlot)
+	s.mergeTimeSlotFields(targetTimeSlot, newTimeSlot, remoteWrite)
 }
 
 // mergeTimeSlotFields merges fields from newTimeSlot to target.
-func (s *SmartEnergyManagementPsDataType) mergeTimeSlotFields(target, newTimeSlot *SmartEnergyManagementPsPowerTimeSlotType) {
-	s.mergeTimeSlotFieldsWithValueSel(target, newTimeSlot, nil)
+func (s *SmartEnergyManagementPsDataType) mergeTimeSlotFields(target, newTimeSlot *SmartEnergyManagementPsPowerTimeSlotType, remoteWrite bool) {
+	s.mergeTimeSlotFieldsWithValueSel(target, newTimeSlot, nil, remoteWrite)
 }
 
 // mergeTimeSlotFieldsWithValueSel merges slot fields; when valueSel is set,
@@ -479,6 +485,7 @@ func (s *SmartEnergyManagementPsDataType) mergeTimeSlotFields(target, newTimeSlo
 func (s *SmartEnergyManagementPsDataType) mergeTimeSlotFieldsWithValueSel(
 	target, newTimeSlot *SmartEnergyManagementPsPowerTimeSlotType,
 	valueSel *PowerTimeSlotValueListDataSelectorsType,
+	remoteWrite bool,
 ) {
 	if newTimeSlot.Schedule != nil {
 		if target.Schedule == nil {
@@ -508,7 +515,7 @@ func (s *SmartEnergyManagementPsDataType) mergeTimeSlotFieldsWithValueSel(
 				}
 			}
 		} else {
-			s.mergeTimeSlotValue(target, nv)
+			s.mergeTimeSlotValue(target, nv, remoteWrite)
 		}
 	}
 }
@@ -560,7 +567,7 @@ func (s *SmartEnergyManagementPsDataType) mergeSlotScheduleConstraintsFields(tar
 }
 
 // mergeTimeSlotValue merges a time slot value using composite key matching (valueType)
-func (s *SmartEnergyManagementPsDataType) mergeTimeSlotValue(timeSlot *SmartEnergyManagementPsPowerTimeSlotType, newValue *PowerTimeSlotValueDataType) {
+func (s *SmartEnergyManagementPsDataType) mergeTimeSlotValue(timeSlot *SmartEnergyManagementPsPowerTimeSlotType, newValue *PowerTimeSlotValueDataType, remoteWrite bool) {
 	// Get slotNumber from timeSlot and valueType for composite key matching
 	var slotNumber *PowerTimeSlotNumberType
 	if timeSlot.Schedule != nil {
@@ -581,7 +588,13 @@ func (s *SmartEnergyManagementPsDataType) mergeTimeSlotValue(timeSlot *SmartEner
 	// Composite key matching: find target value by valueType
 	targetValue := s.findTimeSlotValueByKey(timeSlot, slotNumber, valueType)
 	if targetValue == nil {
-		// Value not found - could create new one, but for OHPCF we expect it to exist
+		// Unknown key: the server announces a new value, add it. A remote
+		// client may only update existing entries, so its payload is ignored.
+		if !remoteWrite {
+			var added PowerTimeSlotValueDataType
+			util.DeepCopy(newValue, &added)
+			timeSlot.ValueList.Value = append(timeSlot.ValueList.Value, added)
+		}
 		return
 	}
 
