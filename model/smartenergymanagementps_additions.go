@@ -66,7 +66,7 @@ func (s *SmartEnergyManagementPsDataType) UpdateList(remoteWrite, persist bool, 
 	}
 
 	for _, newAlternative := range newData.Alternatives {
-		s.mergeAlternative(result, &newAlternative)
+		s.mergeAlternative(result, &newAlternative, remoteWrite)
 	}
 
 	if newData.NodeScheduleInformation != nil {
@@ -279,7 +279,7 @@ func (s *SmartEnergyManagementPsDataType) findTimeSlotByKey(sequence *SmartEnerg
 // Merge helper functions
 
 // mergeAlternative merges a new alternative into the result using key-based matching
-func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyManagementPsDataType, newAlternative *SmartEnergyManagementPsAlternativesType) {
+func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyManagementPsDataType, newAlternative *SmartEnergyManagementPsAlternativesType, remoteWrite bool) {
 	// Get alternativesId for key-based matching
 	var alternativesId *AlternativesIdType
 	if newAlternative.Relation != nil {
@@ -293,12 +293,12 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyMa
 			// For positional-style updates with missing keys, only update first alternative
 			// to maintain backward compatibility
 			if len(result.Alternatives) > 0 {
-				s.mergeAlternativeFields(&result.Alternatives[0], newAlternative)
+				s.mergeAlternativeFields(&result.Alternatives[0], newAlternative, remoteWrite)
 			}
 		} else {
 			// Apply update to ALL alternatives (true "update all" semantics)
 			for i := range result.Alternatives {
-				s.mergeAlternativeFields(&result.Alternatives[i], newAlternative)
+				s.mergeAlternativeFields(&result.Alternatives[i], newAlternative, remoteWrite)
 			}
 		}
 		return
@@ -307,16 +307,22 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyMa
 	// Key-based matching: find target alternative
 	targetAlternative := s.findAlternativeByKey(result, alternativesId)
 	if targetAlternative == nil {
-		// Alternative not found - could create new one, but for OHPCF we expect it to exist
+		// Unknown key: the server announces a new alternative, add it. A remote
+		// client may only update existing entries, so its payload is ignored.
+		if !remoteWrite {
+			var added SmartEnergyManagementPsAlternativesType
+			util.DeepCopy(newAlternative, &added)
+			result.Alternatives = append(result.Alternatives, added)
+		}
 		return
 	}
 
 	// Merge fields from new alternative to target
-	s.mergeAlternativeFields(targetAlternative, newAlternative)
+	s.mergeAlternativeFields(targetAlternative, newAlternative, remoteWrite)
 }
 
 // mergeAlternativeFields merges fields from newAlternative to target
-func (s *SmartEnergyManagementPsDataType) mergeAlternativeFields(target, newAlternative *SmartEnergyManagementPsAlternativesType) {
+func (s *SmartEnergyManagementPsDataType) mergeAlternativeFields(target, newAlternative *SmartEnergyManagementPsAlternativesType, remoteWrite bool) {
 	// Handle positional vs key-based sequence merging
 	if s.looksLikePositionalUpdate(newAlternative) {
 		// Positional-style update: only process sequences with content at valid positions
@@ -333,13 +339,13 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternativeFields(target, newAlte
 	} else {
 		// Semantic update: use key-based matching for all sequences
 		for _, newSequence := range newAlternative.PowerSequence {
-			s.mergePowerSequence(target, &newSequence)
+			s.mergePowerSequence(target, &newSequence, remoteWrite)
 		}
 	}
 }
 
 // mergePowerSequence merges a power sequence using key-based matching
-func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartEnergyManagementPsAlternativesType, newSequence *SmartEnergyManagementPsPowerSequenceType) {
+func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartEnergyManagementPsAlternativesType, newSequence *SmartEnergyManagementPsPowerSequenceType, remoteWrite bool) {
 	// Get sequenceId for key-based matching
 	var sequenceId *PowerSequenceIdType
 	if newSequence.Description != nil {
@@ -362,7 +368,13 @@ func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartE
 	// Key-based matching: find target sequence
 	targetSequence := s.findSequenceByKey(alternative, sequenceId)
 	if targetSequence == nil {
-		// Sequence not found - could create new one, but for OHPCF we expect it to exist
+		// Unknown key: the server announces a new sequence, add it. A remote
+		// client may only update existing entries, so its payload is ignored.
+		if !remoteWrite {
+			var added SmartEnergyManagementPsPowerSequenceType
+			util.DeepCopy(newSequence, &added)
+			alternative.PowerSequence = append(alternative.PowerSequence, added)
+		}
 		return
 	}
 

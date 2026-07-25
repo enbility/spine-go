@@ -5,6 +5,7 @@ import (
 
 	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSmartEnergyManagementPsDataType_UpdateList_BasicReplacement(t *testing.T) {
@@ -696,4 +697,118 @@ func createOHPCFStructure() *SmartEnergyManagementPsDataType {
 			}},
 		}},
 	}
+}
+
+// A keyed partial update must add the announced alternative when the local data
+// no longer holds it, e.g. after the server withdrew all alternatives and later
+// announces a new one.
+func TestSmartEnergyManagementPsDataType_UpdateList_AddsUnknownAlternative(t *testing.T) {
+	// Arrange - all alternatives withdrawn
+	existing := &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			NodeRemoteControllable: util.Ptr(true),
+			AlternativesCount:      util.Ptr(uint(0)),
+		},
+	}
+
+	// Server announces a new alternative including its keys
+	notification := &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			AlternativesCount: util.Ptr(uint(1)),
+		},
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeInactive),
+				},
+			}},
+		}},
+	}
+
+	// Act
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	assert.Equal(t, uint(1), *resultData.NodeScheduleInformation.AlternativesCount)
+	require.Equal(t, 1, len(resultData.Alternatives))
+	require.Equal(t, 1, len(resultData.Alternatives[0].PowerSequence))
+	assert.Equal(t, PowerSequenceStateTypeInactive, *resultData.Alternatives[0].PowerSequence[0].State.State)
+}
+
+// A keyed partial update must add an announced sequence to an existing alternative.
+func TestSmartEnergyManagementPsDataType_UpdateList_AddsUnknownSequence(t *testing.T) {
+	// Arrange - alternative with sequence id 1
+	existing := createOHPCFStructure()
+
+	// Server announces an additional sequence id 2
+	notification := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(1)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(2)),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeRunning),
+				},
+			}},
+		}},
+	}
+
+	// Act
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	require.Equal(t, 1, len(resultData.Alternatives))
+	require.Equal(t, 2, len(resultData.Alternatives[0].PowerSequence))
+	assert.Equal(t, PowerSequenceStateTypeRunning, *resultData.Alternatives[0].PowerSequence[1].State.State)
+}
+
+// A remote client may only update existing entries, never add new ones.
+func TestSmartEnergyManagementPsDataType_UpdateList_RemoteWriteDoesNotAddAlternative(t *testing.T) {
+	// Arrange - all alternatives withdrawn
+	existing := &SmartEnergyManagementPsDataType{
+		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
+			NodeRemoteControllable: util.Ptr(true),
+		},
+	}
+
+	write := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeRunning),
+				},
+			}},
+		}},
+	}
+
+	// Act
+	result, success := existing.UpdateList(true, true, write, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	assert.Equal(t, 0, len(resultData.Alternatives))
 }
