@@ -404,6 +404,25 @@ func (s *SmartEnergyManagementPsDataType) mergeSequenceTopLevelFields(target, ne
 		}
 		s.mergeScheduleFields(target.Schedule, newSequence.Schedule)
 	}
+
+	// remaining containers hold plain fields only, merge them non-nil field-wise
+	mergeContainer(&target.Description, newSequence.Description)
+	mergeContainer(&target.ScheduleConstraints, newSequence.ScheduleConstraints)
+	mergeContainer(&target.SchedulePreference, newSequence.SchedulePreference)
+	mergeContainer(&target.OperatingConstraintsInterrupt, newSequence.OperatingConstraintsInterrupt)
+	mergeContainer(&target.OperatingConstraintsDuration, newSequence.OperatingConstraintsDuration)
+	mergeContainer(&target.OperatingConstraintsResumeImplication, newSequence.OperatingConstraintsResumeImplication)
+}
+
+// mergeContainer copies non-nil fields from newContainer into target, creating it when absent
+func mergeContainer[T any](target **T, newContainer *T) {
+	if newContainer == nil {
+		return
+	}
+	if *target == nil {
+		*target = new(T)
+	}
+	CopyNonNilDataFromItemToItem(newContainer, *target)
 }
 
 // mergeStateFields merges non-nil fields from newState to target

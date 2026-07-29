@@ -2,6 +2,7 @@ package model
 
 import (
 	"testing"
+	"time"
 
 	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
@@ -896,4 +897,122 @@ func TestSmartEnergyManagementPsDataType_UpdateList_AddsUnknownTimeSlotValue(t *
 	require.Equal(t, 2, len(values))
 	assert.Equal(t, PowerTimeSlotValueTypeTypePowerMax, *values[1].ValueType)
 	assert.Equal(t, NumberType(3850), *values[1].Value.Number)
+}
+
+// A keyed partial update must merge the sequence level containers, not just state
+// and schedule, so a re-announced sequence regains its operating constraints.
+func TestSmartEnergyManagementPsDataType_UpdateList_MergesSequenceConstraints(t *testing.T) {
+	// Arrange - sequence known by key only, e.g. added by a state-only partial update
+	existing := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeInvalid),
+				},
+			}},
+		}},
+	}
+
+	// Server re-announces the full sequence
+	notification := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+					PowerUnit:  util.Ptr(UnitOfMeasurementTypeW),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeInactive),
+				},
+				ScheduleConstraints: &PowerSequenceScheduleConstraintsDataType{
+					EarliestStartTime: NewAbsoluteOrRelativeTimeType("PT0S"),
+				},
+				OperatingConstraintsInterrupt: &OperatingConstraintsInterruptDataType{
+					IsPausable:  util.Ptr(false),
+					IsStoppable: util.Ptr(true),
+				},
+				OperatingConstraintsDuration: &OperatingConstraintsDurationDataType{
+					ActiveDurationMin: NewDurationType(3 * time.Minute),
+				},
+			}},
+		}},
+	}
+
+	// Act
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	require.Equal(t, 1, len(resultData.Alternatives))
+	require.Equal(t, 1, len(resultData.Alternatives[0].PowerSequence))
+
+	sequence := resultData.Alternatives[0].PowerSequence[0]
+	assert.Equal(t, PowerSequenceStateTypeInactive, *sequence.State.State)
+	require.NotNil(t, sequence.Description.PowerUnit)
+	require.NotNil(t, sequence.ScheduleConstraints)
+	require.NotNil(t, sequence.OperatingConstraintsDuration)
+	require.NotNil(t, sequence.OperatingConstraintsInterrupt)
+	assert.Equal(t, UnitOfMeasurementTypeW, *sequence.Description.PowerUnit)
+	assert.False(t, *sequence.OperatingConstraintsInterrupt.IsPausable)
+	assert.True(t, *sequence.OperatingConstraintsInterrupt.IsStoppable)
+}
+
+// A partial update must not clear constraints it does not carry.
+func TestSmartEnergyManagementPsDataType_UpdateList_KeepsSequenceConstraints(t *testing.T) {
+	// Arrange
+	existing := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+				},
+				OperatingConstraintsInterrupt: &OperatingConstraintsInterruptDataType{
+					IsPausable:  util.Ptr(false),
+					IsStoppable: util.Ptr(true),
+				},
+			}},
+		}},
+	}
+
+	// Server reports a state change only
+	notification := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(0)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(0)),
+				},
+				State: &PowerSequenceStateDataType{
+					State: util.Ptr(PowerSequenceStateTypeRunning),
+				},
+			}},
+		}},
+	}
+
+	// Act
+	result, success := existing.UpdateList(false, true, notification, NewFilterTypePartial(), nil, nil)
+
+	// Assert
+	assert.True(t, success)
+
+	sequence := result.(*SmartEnergyManagementPsDataType).Alternatives[0].PowerSequence[0]
+	assert.Equal(t, PowerSequenceStateTypeRunning, *sequence.State.State)
+	require.NotNil(t, sequence.OperatingConstraintsInterrupt)
+	assert.True(t, *sequence.OperatingConstraintsInterrupt.IsStoppable)
 }
