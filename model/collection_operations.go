@@ -102,16 +102,24 @@ func updateFields[T any](remoteWrite bool, source T, destination *T) {
 		return
 	}
 
-	writeCheckFields := fieldNamesWithEEBusTag(EEBusTagWriteCheck, source)
-
 	sV := reflect.ValueOf(source)
-	sT := reflect.TypeOf(source)
 	dV := reflect.ValueOf(destination).Elem()
 
+	updateFieldsValue(remoteWrite, sV, dV)
+}
+
+// updateFieldsValue does the actual field-by-field merge on plain reflect.Values.
+// Using reflect.Value instead of the generic T allows recursing into nested
+// pointer-to-struct fields (e.g. Value *ScaledNumberType) without running into
+// generic type-inference issues.
+func updateFieldsValue(remoteWrite bool, sV reflect.Value, dV reflect.Value) {
 	// if the fields don't match, don't do anything
-	if sV.Kind() != reflect.Struct || sV.NumField() != dV.NumField() {
+	if sV.Kind() != reflect.Struct || dV.Kind() != reflect.Struct || sV.NumField() != dV.NumField() {
 		return
 	}
+
+	writeCheckFields := fieldNamesWithEEBusTag(EEBusTagWriteCheck, sV.Interface())
+	sT := sV.Type()
 
 	for i := 0; i < sV.NumField(); i++ {
 		value := sV.Field(i)
@@ -128,6 +136,15 @@ func updateFields[T any](remoteWrite bool, source T, destination *T) {
 		if f.IsNil() ||
 			(remoteWrite && len(writeCheckFields) > 0 && slices.Contains(writeCheckFields, fieldName)) {
 			f.Set(value)
+			continue
+		}
+
+		// both sides carry a non-nil pointer-to-struct -> recurse and merge the
+		// inner fields (e.g. Scale inside ScaledNumberType) instead of leaving
+		// the destination's nested struct untouched.
+		if value.Kind() == reflect.Ptr && !value.IsNil() &&
+			f.Kind() == reflect.Ptr && f.Elem().Kind() == reflect.Struct {
+			updateFieldsValue(remoteWrite, value.Elem(), f.Elem())
 		}
 	}
 }
