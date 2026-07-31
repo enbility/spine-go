@@ -14,7 +14,7 @@ func (d *DatagramType) PrintMessageOverview(send bool, localFeature, remoteFeatu
 	}
 	if !send {
 		transmission = "Recv"
-		if d.Header.AddressSource.Device != nil {
+		if d.Header.AddressSource != nil && d.Header.AddressSource.Device != nil {
 			device = string(*d.Header.AddressSource.Device)
 		}
 		device = fmt.Sprintf("%s:%s to %s", device, remoteFeature, localFeature)
@@ -37,11 +37,20 @@ func (d *DatagramType) PrintMessageOverview(send bool, localFeature, remoteFeatu
 	case CmdClassifierTypeRead:
 		result = fmt.Sprintf("%s: %s %s %d %s", transmission, device, cmdClassifier, msgCounter, cmd.DataName())
 	case CmdClassifierTypeReply:
-		msgCounterRef := *d.Header.MsgCounterReference
+		msgCounterRef := MsgCounterType(0)
+		if d.Header.MsgCounterReference != nil {
+			msgCounterRef = *d.Header.MsgCounterReference
+		}
 		result = fmt.Sprintf("%s: %s %s %d %d %s", transmission, device, cmdClassifier, msgCounter, msgCounterRef, cmd.DataName())
 	case CmdClassifierTypeResult:
-		msgCounterRef := *d.Header.MsgCounterReference
-		errorNumber := *d.Payload.Cmd[0].ResultData.ErrorNumber
+		msgCounterRef := MsgCounterType(0)
+		if d.Header.MsgCounterReference != nil {
+			msgCounterRef = *d.Header.MsgCounterReference
+		}
+		errorNumber := ErrorNumberType(0)
+		if len(d.Payload.Cmd) > 0 && d.Payload.Cmd[0].ResultData != nil && d.Payload.Cmd[0].ResultData.ErrorNumber != nil {
+			errorNumber = *d.Payload.Cmd[0].ResultData.ErrorNumber
+		}
 		result = fmt.Sprintf("%s: %s %s %d %d %s %d", transmission, device, cmdClassifier, msgCounter, msgCounterRef, cmd.DataName(), errorNumber)
 	default:
 		result = fmt.Sprintf("%s: %s %s %d %s", transmission, device, cmdClassifier, msgCounter, cmd.DataName())

@@ -43,7 +43,7 @@ type TaskManagementDirectControlRelatedType struct{}
 type TaskManagementDirectControlRelatedElementsType struct{}
 
 type TaskManagementHvacRelatedType struct {
-	OverrunId *HvacOverrunIdType `json:"overrunId,omitempty"`
+	OverrunId *HvacOverrunIdType `json:"overrunId,omitempty" eebus:"ref:HvacOverrunDescriptionDataType.OverrunId"`
 }
 
 type TaskManagementHvacRelatedElementsType struct {
@@ -51,7 +51,7 @@ type TaskManagementHvacRelatedElementsType struct {
 }
 
 type TaskManagementLoadControlReleatedType struct {
-	EventId *LoadControlEventIdType `json:"eventId,omitempty"`
+	EventId *LoadControlEventIdType `json:"eventId,omitempty" eebus:"ref:LoadControlEventDataType.EventId"`
 }
 
 type TaskManagementLoadControlReleatedElementsType struct {
@@ -59,7 +59,7 @@ type TaskManagementLoadControlReleatedElementsType struct {
 }
 
 type TaskManagementPowerSequencesRelatedType struct {
-	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"ref:PowerSequenceDescriptionDataType.SequenceId"`
 }
 
 type TaskManagementPowerSequencesRelatedElementsType struct {
@@ -67,7 +67,7 @@ type TaskManagementPowerSequencesRelatedElementsType struct {
 }
 
 type TaskManagementSmartEnergyManagementPsRelatedType struct {
-	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"ref:PowerSequenceDescriptionDataType.SequenceId"`
 }
 
 type TaskManagementSmartEnergyManagementPsRelatedElementsType struct {

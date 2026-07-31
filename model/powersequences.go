@@ -45,7 +45,7 @@ const (
 )
 
 type PowerTimeSlotScheduleDataType struct {
-	SequenceId          *PowerSequenceIdType     `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId          *PowerSequenceIdType     `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	SlotNumber          *PowerTimeSlotNumberType `json:"slotNumber,omitempty"`
 	TimePeriod          *TimePeriodType          `json:"timePeriod,omitempty"`
 	DefaultDuration     *DurationType            `json:"defaultDuration,omitempty"`
@@ -74,7 +74,7 @@ type PowerTimeSlotScheduleListDataSelectorsType struct {
 }
 
 type PowerTimeSlotValueDataType struct {
-	SequenceId *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	SlotNumber *PowerTimeSlotNumberType    `json:"slotNumber,omitempty"`
 	ValueType  *PowerTimeSlotValueTypeType `json:"valueType,omitempty"`
 	Value      *ScaledNumberType           `json:"value,omitempty"`
@@ -88,7 +88,7 @@ type PowerTimeSlotValueDataElementsType struct {
 }
 
 type PowerTimeSlotValueListDataType struct {
-	PowerTimeSlotValueData []PowerTimeSlotValueDataType `json:"powerTimeSlotValueListData,omitempty"`
+	PowerTimeSlotValueData []PowerTimeSlotValueDataType `json:"powerTimeSlotValueData,omitempty"`
 }
 
 type PowerTimeSlotValueListDataSelectorsType struct {
@@ -98,7 +98,7 @@ type PowerTimeSlotValueListDataSelectorsType struct {
 }
 
 type PowerTimeSlotScheduleConstraintsDataType struct {
-	SequenceId        *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId        *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	SlotNumber        *PowerTimeSlotNumberType    `json:"slotNumber,omitempty"`
 	EarliestStartTime *AbsoluteOrRelativeTimeType `json:"earliestStartTime,omitempty"`
 	LatestEndTime     *AbsoluteOrRelativeTimeType `json:"latestEndTime,omitempty"`
@@ -141,8 +141,8 @@ type PowerSequenceAlternativesRelationListDataType struct {
 }
 
 type PowerSequenceAlternativesRelationListDataSelectorsType struct {
-	AlternativesId *AlternativesIdType   `json:"alternativesId,omitempty"`
-	SequenceId     []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	AlternativesId *AlternativesIdType  `json:"alternativesId,omitempty"`
+	SequenceId     *PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceDescriptionDataType struct {
@@ -174,11 +174,11 @@ type PowerSequenceDescriptionListDataType struct {
 }
 
 type PowerSequenceDescriptionListDataSelectorsType struct {
-	SequenceId []PowerSequenceIdType `json:"sequenceId,omitempty"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty"`
 }
 
 type PowerSequenceStateDataType struct {
-	SequenceId                 *PowerSequenceIdType     `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId                 *PowerSequenceIdType     `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	State                      *PowerSequenceStateType  `json:"state,omitempty"`
 	ActiveSlotNumber           *PowerTimeSlotNumberType `json:"activeSlotNumber,omitempty"`
 	ElapsedSlotTime            *DurationType            `json:"elapsedSlotTime,omitempty"`
@@ -208,7 +208,7 @@ type PowerSequenceStateListDataSelectorsType struct {
 }
 
 type PowerSequenceScheduleDataType struct {
-	SequenceId *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	StartTime  *AbsoluteOrRelativeTimeType `json:"startTime,omitempty"`
 	EndTime    *AbsoluteOrRelativeTimeType `json:"endTime,omitempty"`
 }
@@ -228,7 +228,7 @@ type PowerSequenceScheduleListDataSelectorsType struct {
 }
 
 type PowerSequenceScheduleConstraintsDataType struct {
-	SequenceId        *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId        *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	EarliestStartTime *AbsoluteOrRelativeTimeType `json:"earliestStartTime,omitempty"`
 	LatestStartTime   *AbsoluteOrRelativeTimeType `json:"latestStartTime,omitempty"`
 	EarliestEndTime   *AbsoluteOrRelativeTimeType `json:"earliestEndTime,omitempty"`
@@ -254,7 +254,7 @@ type PowerSequenceScheduleConstraintsListDataSelectorsType struct {
 }
 
 type PowerSequencePriceDataType struct {
-	SequenceId         *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId         *PowerSequenceIdType        `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	PotentialStartTime *AbsoluteOrRelativeTimeType `json:"potentialStartTime,omitempty"`
 	Price              *ScaledNumberType           `json:"price,omitempty"`
 	Currency           *CurrencyType               `json:"currency,omitempty"`
@@ -277,7 +277,7 @@ type PowerSequencePriceListDataSelectorsType struct {
 }
 
 type PowerSequenceSchedulePreferenceDataType struct {
-	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey"`
+	SequenceId *PowerSequenceIdType `json:"sequenceId,omitempty" eebus:"key,primarykey,ref:PowerSequenceDescriptionDataType.SequenceId"`
 	Greenest   *bool                `json:"greenest,omitempty"`
 	Cheapest   *bool                `json:"cheapest,omitempty"`
 }

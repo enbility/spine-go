@@ -12,12 +12,14 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 		TimeTableData: []TimeTableDataType{
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(0)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(0)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(1)),
 				},
 			},
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(1)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(1)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(1)),
 				},
@@ -29,6 +31,7 @@ func TestTimeTableListDataType_Update(t *testing.T) {
 		TimeTableData: []TimeTableDataType{
 			{
 				TimeTableId: util.Ptr(TimeTableIdType(1)),
+				TimeSlotId:  util.Ptr(TimeSlotIdType(1)),
 				RecurrenceInformation: &RecurrenceInformationType{
 					ExecutionCount: util.Ptr(uint(10)),
 				},

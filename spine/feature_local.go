@@ -805,7 +805,7 @@ func (r *FeatureLocal) processReply(message *api.Message) *model.ErrorType {
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeReply),
 		Data:          cmdData.Value,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	// we don't need to populate this message if there is no MsgCounterReference
 	if message.RequestHeader == nil || message.RequestHeader.MsgCounterReference == nil {
@@ -843,7 +843,7 @@ func (r *FeatureLocal) processNotify(function model.FunctionType, data any, filt
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeNotify),
 		Data:          data,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	return nil
 }
@@ -889,7 +889,7 @@ func (r *FeatureLocal) executeWrite(msg *api.Message) *model.ErrorType {
 		CmdClassifier: util.Ptr(model.CmdClassifierTypeWrite),
 		Data:          cmdData.Value,
 	}
-	Events.Publish(payload)
+	r.Device().Events().Publish(payload)
 
 	return nil
 }
@@ -915,15 +915,5 @@ func (r *FeatureLocal) Information() *model.NodeManagementDetailedDiscoveryFeatu
 		funs = append(funs, sf)
 	}
 
-	res := model.NodeManagementDetailedDiscoveryFeatureInformationType{
-		Description: &model.NetworkManagementFeatureDescriptionDataType{
-			FeatureAddress:    r.Address(),
-			FeatureType:       &r.ftype,
-			Role:              &r.role,
-			Description:       r.description,
-			SupportedFunction: funs,
-		},
-	}
-
-	return &res
+	return model.NewFeatureInformationForNodeManagement(r.address.Entity, r.address.Feature, &r.ftype, &r.role, r.description, funs)
 }

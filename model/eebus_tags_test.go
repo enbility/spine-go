@@ -9,37 +9,37 @@ import (
 
 // Test structs for tag testing
 type TestTagStruct struct {
-	SimpleKey        *string `eebus:"key"`
-	PrimaryKey       *uint   `eebus:"key,primarykey"`
-	WriteCheckField  *bool   `eebus:"writecheck"`
-	FunctionField    *string `eebus:"fct"`
-	TypeField        *string `eebus:"typ"`
-	NoEEBusTag       *string
-	EmptyEEBusTag    *string `eebus:""`
-	MultipleFlags    *string `eebus:"key,writecheck"`
-	ValuePairTag     *string `eebus:"fct:measurement"`
-	MalformedTag     *string `eebus:"bad:tag:format:too:many"`
-	ComplexTag       *string `eebus:"key,fct:test,writecheck"`
+	SimpleKey       *string `eebus:"key"`
+	PrimaryKey      *uint   `eebus:"key,primarykey"`
+	WriteCheckField *bool   `eebus:"writecheck"`
+	FunctionField   *string `eebus:"fct"`
+	TypeField       *string `eebus:"typ"`
+	NoEEBusTag      *string
+	EmptyEEBusTag   *string `eebus:""`
+	MultipleFlags   *string `eebus:"key,writecheck"`
+	ValuePairTag    *string `eebus:"fct:measurement"`
+	MalformedTag    *string `eebus:"bad:tag:format:too:many"`
+	ComplexTag      *string `eebus:"key,fct:test,writecheck"`
 }
 
 func TestEEBusTags_EmptyTag(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(5) // NoEEBusTag
 	result := EEBusTags(field)
-	
+
 	assert.Empty(t, result)
 }
 
 func TestEEBusTags_EmptyEEBusTag(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(6) // EmptyEEBusTag
 	result := EEBusTags(field)
-	
+
 	assert.Empty(t, result)
 }
 
 func TestEEBusTags_SimpleKey(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(0) // SimpleKey
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagKey: "true",
 	}
@@ -49,7 +49,7 @@ func TestEEBusTags_SimpleKey(t *testing.T) {
 func TestEEBusTags_PrimaryKey(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(1) // PrimaryKey
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagKey:        "true",
 		EEBusTagPrimaryKey: "true",
@@ -60,7 +60,7 @@ func TestEEBusTags_PrimaryKey(t *testing.T) {
 func TestEEBusTags_WriteCheck(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(2) // WriteCheckField
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagWriteCheck: "true",
 	}
@@ -70,7 +70,7 @@ func TestEEBusTags_WriteCheck(t *testing.T) {
 func TestEEBusTags_Function(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(3) // FunctionField
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagFunction: "true",
 	}
@@ -80,7 +80,7 @@ func TestEEBusTags_Function(t *testing.T) {
 func TestEEBusTags_Type(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(4) // TypeField
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagType: "true",
 	}
@@ -90,7 +90,7 @@ func TestEEBusTags_Type(t *testing.T) {
 func TestEEBusTags_MultipleFlags(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(7) // MultipleFlags
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagKey:        "true",
 		EEBusTagWriteCheck: "true",
@@ -101,7 +101,7 @@ func TestEEBusTags_MultipleFlags(t *testing.T) {
 func TestEEBusTags_ValuePair(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(8) // ValuePairTag
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagFunction: "measurement",
 	}
@@ -111,7 +111,7 @@ func TestEEBusTags_ValuePair(t *testing.T) {
 func TestEEBusTags_MalformedTag(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(9) // MalformedTag
 	result := EEBusTags(field)
-	
+
 	// Should still process the valid parts and ignore malformed parts
 	// The function logs an error but doesn't fail
 	assert.Empty(t, result) // Malformed tag is ignored
@@ -120,7 +120,7 @@ func TestEEBusTags_MalformedTag(t *testing.T) {
 func TestEEBusTags_ComplexTag(t *testing.T) {
 	field := reflect.TypeOf(TestTagStruct{}).Field(10) // ComplexTag
 	result := EEBusTags(field)
-	
+
 	expected := map[EEBusTag]string{
 		EEBusTagKey:        "true",
 		EEBusTagFunction:   "test",
@@ -178,7 +178,7 @@ func TestEEBusTags_AllTags(t *testing.T) {
 				},
 			})
 			field := structType.Field(0)
-			
+
 			result := EEBusTags(field)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -192,9 +192,9 @@ func TestEEBusTagConstants(t *testing.T) {
 	assert.Equal(t, EEBusTag("key"), EEBusTagKey)
 	assert.Equal(t, EEBusTag("primarykey"), EEBusTagPrimaryKey)
 	assert.Equal(t, EEBusTag("writecheck"), EEBusTagWriteCheck)
-	
+
 	assert.Equal(t, "eebus", EEBusTagName)
-	
+
 	assert.Equal(t, EEBusTagTypeType("selector"), EEBusTagTypeTypeSelector)
 	assert.Equal(t, EEBusTagTypeType("elements"), EEbusTagTypeTypeElements)
 }
@@ -206,23 +206,23 @@ func TestEEBusTags_EdgeCases(t *testing.T) {
 		expected map[EEBusTag]string
 	}{
 		{
-			name:     "whitespace in tags",
-			tag:      `eebus:" key , primarykey "`,
+			name: "whitespace in tags",
+			tag:  `eebus:" key , primarykey "`,
 			expected: map[EEBusTag]string{
-				EEBusTag(" key "): "true",
+				EEBusTag(" key "):        "true",
 				EEBusTag(" primarykey "): "true",
 			},
 		},
 		{
-			name:     "empty value pair",
-			tag:      `eebus:"fct:"`,
+			name: "empty value pair",
+			tag:  `eebus:"fct:"`,
 			expected: map[EEBusTag]string{
 				EEBusTagFunction: "",
 			},
 		},
 		{
-			name:     "colon but no value",
-			tag:      `eebus:"key,fct:,primarykey"`,
+			name: "colon but no value",
+			tag:  `eebus:"key,fct:,primarykey"`,
 			expected: map[EEBusTag]string{
 				EEBusTagKey:        "true",
 				EEBusTagFunction:   "",
@@ -230,8 +230,8 @@ func TestEEBusTags_EdgeCases(t *testing.T) {
 			},
 		},
 		{
-			name:     "duplicate tags",
-			tag:      `eebus:"key,key,primarykey"`,
+			name: "duplicate tags",
+			tag:  `eebus:"key,key,primarykey"`,
 			expected: map[EEBusTag]string{
 				EEBusTagKey:        "true", // Last one wins
 				EEBusTagPrimaryKey: "true",
@@ -249,7 +249,7 @@ func TestEEBusTags_EdgeCases(t *testing.T) {
 				},
 			})
 			field := structType.Field(0)
-			
+
 			result := EEBusTags(field)
 			assert.Equal(t, tt.expected, result)
 		})

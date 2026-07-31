@@ -39,3 +39,15 @@ type EventPayload struct {
 	CmdClassifier *model.CmdClassifierType // optional, used together with EventType EventTypeDataChange
 	Data          any
 }
+
+// EventsManagerInterface defines the interface for managing event subscriptions and publishing.
+// This interface allows for dependency injection of the events manager, enabling
+// test isolation when multiple DeviceLocal instances exist in the same process.
+type EventsManagerInterface interface {
+	// Subscribe registers an event handler to receive events at the application level.
+	Subscribe(handler EventHandlerInterface) error
+	// Unsubscribe removes an event handler from receiving events.
+	Unsubscribe(handler EventHandlerInterface) error
+	// Publish sends an event to all registered handlers.
+	Publish(payload EventPayload)
+}
