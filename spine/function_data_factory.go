@@ -302,7 +302,9 @@ func CreateFunctionData[F any](featureType model.FeatureTypeType) []F {
 	}
 
 	if len(result) == 0 {
-		panic(fmt.Errorf("unknown featureType '%s'", featureType))
+		// Unknown featureType from a future SPINE version — store with no function data.
+		// Per forward-compatibility rules the DUT MUST NOT reject or crash (TC_SPINE_RTS_002).
+		return result // empty slice; caller must tolerate nil/empty function data
 	}
 
 	return result
