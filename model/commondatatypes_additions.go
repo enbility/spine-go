@@ -349,11 +349,6 @@ func (a *AbsoluteOrRelativeTimeType) GetTimeDuration() (time.Duration, error) {
 func (n *NumberType) UnmarshalJSON(data []byte) error {
 	s := strings.TrimSpace(string(data))
 
-	// by convention, unmarshaling null is a no-op
-	if s == "null" {
-		return nil
-	}
-
 	if value, err := strconv.ParseInt(s, 10, 64); err == nil {
 		*n = NumberType(value)
 		return nil

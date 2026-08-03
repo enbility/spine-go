@@ -334,12 +334,6 @@ func TestScaledNumberTypeUnmarshalInvalid(t *testing.T) {
 	}
 }
 
-func TestScaledNumberTypeUnmarshalNull(t *testing.T) {
-	var got ScaledNumberType
-	assert.NoError(t, json.Unmarshal([]byte(`{"number":null}`), &got))
-	assert.Nil(t, got.Number)
-}
-
 func TestNewScaledNumberType(t *testing.T) {
 	tc := []struct {
 		in     float64
