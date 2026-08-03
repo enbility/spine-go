@@ -279,6 +279,67 @@ func TestAbsoluteOrRelativeTimeTypeRelative(t *testing.T) {
 	}
 }
 
+func TestScaledNumberTypeUnmarshal(t *testing.T) {
+	tc := []struct {
+		json   string
+		number int64
+		scale  int16
+	}{
+		{`{"number":42}`, 42, 0},
+		{`{"number":42,"scale":-2}`, 42, -2},
+		{`{"number":-9007199254740990}`, -9007199254740990, 0},
+		{`{"number":9007199254740990}`, 9007199254740990, 0},
+		// sender encodes the number in scientific notation (float-like)
+		{`{"number":9.00719925474099e+15}`, 9007199254740990, 0},
+		{`{"number":-9.00719925474099e+15}`, -9007199254740990, 0},
+		{`{"number":1E3}`, 1000, 0},
+		{`{"number":1.5e1}`, 15, 0},
+		{`{"number":42.0}`, 42, 0},
+	}
+
+	for _, tc := range tc {
+		var got ScaledNumberType
+		err := json.Unmarshal([]byte(tc.json), &got)
+		assert.NoError(t, err, "input: %s", tc.json)
+		if err != nil {
+			continue
+		}
+		assert.Equal(t, NumberType(tc.number), *got.Number, "input: %s", tc.json)
+		wantScale := ScaleType(tc.scale)
+		if tc.scale == 0 {
+			// scale is omitted when zero; accept both nil and explicit zero
+			if got.Scale != nil {
+				assert.Equal(t, wantScale, *got.Scale, "input: %s", tc.json)
+			}
+		} else {
+			assert.Equal(t, wantScale, *got.Scale, "input: %s", tc.json)
+		}
+	}
+}
+
+func TestScaledNumberTypeUnmarshalInvalid(t *testing.T) {
+	// only values decoding cleanly into an integer are accepted
+	tc := []string{
+		`{"number":1.5}`,
+		`{"number":1.55e1}`,
+		`{"number":9223372036854775808}`,
+		`{"number":1e19}`,
+		`{"number":"42"}`,
+		`{"number":true}`,
+	}
+
+	for _, in := range tc {
+		var got ScaledNumberType
+		assert.Error(t, json.Unmarshal([]byte(in), &got), "input: %s", in)
+	}
+}
+
+func TestScaledNumberTypeUnmarshalNull(t *testing.T) {
+	var got ScaledNumberType
+	assert.NoError(t, json.Unmarshal([]byte(`{"number":null}`), &got))
+	assert.Nil(t, got.Number)
+}
+
 func TestNewScaledNumberType(t *testing.T) {
 	tc := []struct {
 		in     float64
