@@ -15,15 +15,15 @@
                 ],
                 "feature": 0
             },
-            "msgCounter": 5,
+            "msgCounter": 6,
             "cmdClassifier": "call",
             "ackRequest": true
         },
         "payload": {
             "cmd": [
                 {
-                    "nodeManagementSubscriptionRequestCall": {
-                        "subscriptionRequest": {
+                    "nodeManagementBindingRequestCall": {
+                        "bindingRequest": {
                             "clientAddress": {
                                 "device": "Wallbox",
                                 "entity": [

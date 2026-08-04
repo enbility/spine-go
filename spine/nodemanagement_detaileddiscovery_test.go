@@ -17,6 +17,7 @@ const (
 	nm_detaileddiscoverydata_recv_read_ack_file_path = "./testdata/nm_detaileddiscoverydata_recv_read_ack.json"
 	nm_subscriptionRequestCall_recv_call_file_path   = "./testdata/nm_subscriptionRequestCall_recv_call.json"
 	nm_subscriptionRequestCall_recv_call_early_path  = "./testdata/nm_subscriptionRequestCall_recv_call_early.json"
+	nm_bindingRequestCall_recv_call_early_path       = "./testdata/nm_bindingRequestCall_recv_call_early.json"
 	nm_destinationListData_recv_read_file_path       = "./testdata/nm_destinationListData_recv_read.json"
 	nm_destinationListData_send_reply_file_prefix    = "./testdata/nm_destinationListData_send_reply"
 )
@@ -241,9 +242,22 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_SendReplyWithAcknowledge() {
 	// on successful reply, no result should be sent
 }
 
+// add a local DeviceDiagnosis server at entity [1] feature 1, the target of the
+// early subscription and binding request test data
+func (s *NodeManagementSuite) addDeviceDiagnosisServer() api.FeatureLocalInterface {
+	entity := NewEntityLocal(s.sut, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
+	feature := NewFeatureLocal(entity.NextFeatureId(), entity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	entity.AddFeature(feature)
+	s.sut.AddEntity(entity)
+
+	return feature
+}
+
 // a subscription request arriving before the detailed discovery reply is deferred
 // and processed once the remote device address and features are known
 func (s *NodeManagementSuite) TestSubscriptionRequestCall_BeforeDetailedDiscovery() {
+	server := s.addDeviceDiagnosisServer()
+
 	// Act
 	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_subscriptionRequestCall_recv_call_early_path))
 
@@ -261,8 +275,33 @@ func (s *NodeManagementSuite) TestSubscriptionRequestCall_BeforeDetailedDiscover
 
 	subscriptionsForDevice := s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)
 	assert.Equal(s.T(), 1, len(subscriptionsForDevice))
-	subscriptionsOnFeature := s.sut.SubscriptionManager().SubscriptionsForFeatureAddress(*NodeManagementAddress(s.sut.Address()))
+	subscriptionsOnFeature := s.sut.SubscriptionManager().SubscriptionsForFeatureAddress(*server.Address())
 	assert.Equal(s.T(), 1, len(subscriptionsOnFeature))
+}
+
+// a binding request arriving before the detailed discovery reply is deferred alike
+func (s *NodeManagementSuite) TestBindingRequestCall_BeforeDetailedDiscovery() {
+	server := s.addDeviceDiagnosisServer()
+
+	// Act
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_bindingRequestCall_recv_call_early_path))
+
+	// Assert: neither answered nor rejected yet
+	assert.Nil(s.T(), s.writeHandler.ResultWithReference(msgCounter))
+
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.Equal(s.T(), 0, len(s.sut.BindingManager().BindingsForRemoteDevice(remoteDevice)))
+
+	// Act
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
+
+	// Assert: processed and acknowledged with the delayed result
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	bindingsForDevice := s.sut.BindingManager().BindingsForRemoteDevice(remoteDevice)
+	assert.Equal(s.T(), 1, len(bindingsForDevice))
+	bindingsOnFeature := s.sut.BindingManager().BindingsForFeatureAddress(*server.Address())
+	assert.Equal(s.T(), 1, len(bindingsOnFeature))
 }
 
 // a deferred subscription request is answered with a timeout error if the detailed
