@@ -181,6 +181,8 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
+	r.nodeManagement.removeDeferredRequests(ski)
+
 	remoteDevice := r.RemoteDeviceForSki(ski)
 	if remoteDevice == nil {
 		return
@@ -458,6 +460,11 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 		}
 
 		return errors.New(err.String())
+	}
+
+	if message.Deferred {
+		// the result is sent when the deferred processing takes place
+		return nil
 	}
 
 	ackRequest := message.RequestHeader.AckRequest

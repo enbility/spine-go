@@ -52,6 +52,11 @@ func (r *NodeManagement) handleMsgSubscriptionData(message *api.Message) error {
 func (r *NodeManagement) handleMsgSubscriptionRequestCall(message *api.Message, data *model.NodeManagementSubscriptionRequestCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
+		// the client addresses are only resolvable once the remote device is discovered
+		if r.deferRequest(message) {
+			return nil
+		}
+
 		subscriptionMgr := r.Device().SubscriptionManager()
 
 		readData := r.createSubscriptionAddMissingDeviceAddresses(message, data.SubscriptionRequest)

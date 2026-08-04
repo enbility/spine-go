@@ -172,6 +172,26 @@ func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHa
 	}
 }
 
+func resultErrorNumber(t *testing.T, msgCounterReference *model.MsgCounterType, writeHandler *WriteMessageHandler) model.ErrorNumberType {
+	var datagram model.Datagram
+
+	msg := writeHandler.ResultWithReference(msgCounterReference)
+	if msg == nil {
+		t.Fatal("result message was not sent!!")
+	}
+
+	if err := json.Unmarshal(msg, &datagram); err != nil {
+		t.Fatal(err)
+	}
+
+	result := datagram.Datagram.Payload.Cmd[0].ResultData
+	if result == nil || result.ErrorNumber == nil {
+		t.Fatal("result message has no error number")
+	}
+
+	return *result.ErrorNumber
+}
+
 func createLocalDeviceAndEntity(entityId uint) (*DeviceLocal, *EntityLocal) {
 	localDevice := NewDeviceLocal("Vendor", "DeviceName", "SerialNumber", "DeviceCode", "Address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	localDevice.address = util.Ptr(model.AddressDeviceType("Address"))

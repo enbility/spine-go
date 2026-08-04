@@ -68,6 +68,10 @@ func (r *NodeManagement) processReplyDetailedDiscoveryData(message *api.Message,
 		return err
 	}
 
+	// the device address and its features are now known, so requests which arrived
+	// before this reply can be processed
+	r.processDeferredRequests(remoteDevice)
+
 	// publish event for remote device added
 	payload := api.EventPayload{
 		Ski:        remoteDevice.Ski(),
