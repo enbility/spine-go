@@ -11,10 +11,6 @@ type Message struct {
 	FeatureRemote FeatureRemoteInterface
 	EntityRemote  EntityRemoteInterface
 	DeviceRemote  DeviceRemoteInterface
-
-	// set if processing of the message was deferred until the remote device
-	// is fully discovered, the result is then sent by the deferred processing
-	Deferred bool
 }
 
 type ResponseMessage struct {

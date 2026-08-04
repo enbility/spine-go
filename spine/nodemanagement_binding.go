@@ -53,11 +53,6 @@ func (r *NodeManagement) handleMsgBindingData(message *api.Message) error {
 func (r *NodeManagement) handleMsgBindingRequestCall(message *api.Message, data *model.NodeManagementBindingRequestCallType) error {
 	switch message.CmdClassifier {
 	case model.CmdClassifierTypeCall:
-		// the client addresses are only resolvable once the remote device is discovered
-		if r.deferRequest(message) {
-			return nil
-		}
-
 		bindingMgr := r.Device().BindingManager()
 
 		createData := r.createBindingAddMissingDeviceAddresses(message, data.BindingRequest)

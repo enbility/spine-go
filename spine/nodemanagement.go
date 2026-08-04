@@ -132,15 +132,22 @@ func (r *NodeManagement) HandleMessage(message *api.Message) *model.ErrorType {
 	return nil
 }
 
-// Queue a request which arrived before the sending remote device was discovered, as
-// neither its device address nor its features are known before the detailed discovery
-// reply is processed. SPINE 7.4.1 rule 8 permits subscription requests at any time and
-// 5.2.5.3 permits a delayed result, so the request is processed and answered once
-// discovery completed instead of being rejected. Binding requests are handled alike.
+// subscription and binding requests need the sending device's address and features,
+// which are both only known once its detailed discovery reply was processed
+func deferrableRequest(message *api.Message) bool {
+	return message.CmdClassifier == model.CmdClassifierTypeCall &&
+		(message.Cmd.NodeManagementSubscriptionRequestCall != nil ||
+			message.Cmd.NodeManagementBindingRequestCall != nil)
+}
+
+// Queue a request which arrived before the sending remote device was discovered.
+// SPINE 7.4.1 rule 8 permits subscription requests at any time and 5.2.5.3 permits a
+// delayed result, so the request is processed and answered once discovery completed
+// instead of being rejected. Binding requests are handled alike.
 //
 // Returns true if the request was deferred and must not be processed or answered now.
 func (r *NodeManagement) deferRequest(message *api.Message) bool {
-	if message.Deferred || message.DeviceRemote.Address() != nil {
+	if !deferrableRequest(message) || message.DeviceRemote.Address() != nil {
 		return false
 	}
 
@@ -158,7 +165,6 @@ func (r *NodeManagement) deferRequest(message *api.Message) bool {
 		r.timeoutDeferredRequest(ski, entry)
 	})
 
-	message.Deferred = true
 	r.deferred[ski] = append(r.deferred[ski], entry)
 
 	return true

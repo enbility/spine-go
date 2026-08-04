@@ -294,20 +294,22 @@ func (s *NodeManagementSuite) TestSubscriptionRequestCall_DeferredLimit() {
 	nodeManagement := s.sut.NodeManagement().(*NodeManagement)
 	defer nodeManagement.removeDeferredRequests(s.remoteSki)
 
-	for range maxDeferredRequests {
-		assert.True(s.T(), nodeManagement.deferRequest(&api.Message{
+	subscriptionRequest := func() *api.Message {
+		return &api.Message{
 			RequestHeader: &model.HeaderType{},
-			DeviceRemote:  s.remoteDevice,
-		}))
+			CmdClassifier: model.CmdClassifierTypeCall,
+			Cmd: model.CmdType{
+				NodeManagementSubscriptionRequestCall: &model.NodeManagementSubscriptionRequestCallType{},
+			},
+			DeviceRemote: s.remoteDevice,
+		}
 	}
 
-	message := &api.Message{
-		RequestHeader: &model.HeaderType{},
-		DeviceRemote:  s.remoteDevice,
+	for range maxDeferredRequests {
+		assert.True(s.T(), nodeManagement.deferRequest(subscriptionRequest()))
 	}
 
-	assert.False(s.T(), nodeManagement.deferRequest(message))
-	assert.False(s.T(), message.Deferred)
+	assert.False(s.T(), nodeManagement.deferRequest(subscriptionRequest()))
 }
 
 // a subscription request naming a client device address which is not the sending

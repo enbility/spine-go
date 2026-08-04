@@ -441,6 +441,12 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 		}
 	}
 
+	// a request for a remote device which is not discovered yet is processed and
+	// answered once its detailed discovery reply arrives
+	if localFeature == r.NodeManagement() && r.nodeManagement.deferRequest(message) {
+		return nil
+	}
+
 	err := localFeature.HandleMessage(message)
 	if err != nil {
 		// TODO: add error description in a useful format
@@ -460,11 +466,6 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 		}
 
 		return errors.New(err.String())
-	}
-
-	if message.Deferred {
-		// the result is sent when the deferred processing takes place
-		return nil
 	}
 
 	ackRequest := message.RequestHeader.AckRequest
