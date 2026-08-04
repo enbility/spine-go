@@ -289,6 +289,27 @@ func (s *NodeManagementSuite) TestSubscriptionRequestCall_DiscoveryTimeout() {
 	assert.Equal(s.T(), 0, len(s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)))
 }
 
+// requests beyond the deferred limit are processed and rejected right away
+func (s *NodeManagementSuite) TestSubscriptionRequestCall_DeferredLimit() {
+	nodeManagement := s.sut.NodeManagement().(*NodeManagement)
+	defer nodeManagement.removeDeferredRequests(s.remoteSki)
+
+	for range maxDeferredRequests {
+		assert.True(s.T(), nodeManagement.deferRequest(&api.Message{
+			RequestHeader: &model.HeaderType{},
+			DeviceRemote:  s.remoteDevice,
+		}))
+	}
+
+	message := &api.Message{
+		RequestHeader: &model.HeaderType{},
+		DeviceRemote:  s.remoteDevice,
+	}
+
+	assert.False(s.T(), nodeManagement.deferRequest(message))
+	assert.False(s.T(), message.Deferred)
+}
+
 // a subscription request naming a client device address which is not the sending
 // device is still rejected
 func (s *NodeManagementSuite) TestSubscriptionRequestCall_InvalidAddress() {

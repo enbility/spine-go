@@ -140,7 +140,7 @@ func (r *NodeManagement) HandleMessage(message *api.Message) *model.ErrorType {
 //
 // Returns true if the request was deferred and must not be processed or answered now.
 func (r *NodeManagement) deferRequest(message *api.Message) bool {
-	if message.Deferred || message.DeviceRemote == nil || message.DeviceRemote.Address() != nil {
+	if message.Deferred || message.DeviceRemote.Address() != nil {
 		return false
 	}
 

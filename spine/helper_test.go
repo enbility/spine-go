@@ -153,25 +153,12 @@ func saveJsonToFile(t *testing.T, data json.RawMessage, fileName string) {
 }
 
 func waitForAck(t *testing.T, msgCounterReference *model.MsgCounterType, writeHandler *WriteMessageHandler) {
-	var datagram model.Datagram
-
-	msg := writeHandler.ResultWithReference(msgCounterReference)
-	if msg == nil {
-		t.Fatal("acknowledge message was not sent!!")
-	}
-
-	if err := json.Unmarshal(msg, &datagram); err != nil {
-		t.Fatal(err)
-	}
-
-	cmd := datagram.Datagram.Payload.Cmd[0]
-	if cmd.ResultData != nil {
-		if cmd.ResultData.ErrorNumber != nil && uint(*cmd.ResultData.ErrorNumber) != uint(model.ErrorNumberTypeNoError) {
-			t.Fatal(fmt.Errorf("error '%d' result data received", uint(*cmd.ResultData.ErrorNumber)))
-		}
+	if errorNumber := resultErrorNumber(t, msgCounterReference, writeHandler); errorNumber != model.ErrorNumberTypeNoError {
+		t.Fatalf("error '%d' result data received", uint(errorNumber))
 	}
 }
 
+// return the error number of the result message answering the given message counter
 func resultErrorNumber(t *testing.T, msgCounterReference *model.MsgCounterType, writeHandler *WriteMessageHandler) model.ErrorNumberType {
 	var datagram model.Datagram
 
