@@ -1234,9 +1234,117 @@ func (s *LocalFeatureTestSuite) Test_Read_WithPartialFilter_NoErrors() {
 // Test that partial read capability is correctly reported as false
 func (s *LocalFeatureTestSuite) Test_Operations_NoPartialReadSupport() {
 	operations := s.localServerFeatureWrite.Operations()
-	
+
 	// Verify that partial read is not supported
 	operation, exists := operations[s.serverWriteFunction]
 	assert.True(s.T(), exists)
 	assert.False(s.T(), operation.ReadPartial())
+}
+
+// Step 3 — Issue 2: CleanWriteApprovalCaches must stop running timers.
+// After cleanup, no timer should fire and send messages on the dead connection.
+func (s *LocalFeatureTestSuite) Test_CleanWriteApprovalCaches_StopsTimers() {
+	writeHandler := &WriteMessageHandler{}
+	device, localEntity := createLocalDeviceAndEntity(1)
+	_, serverFeature := createLocalFeatures(localEntity, model.FeatureTypeTypeLoadControl, model.FunctionTypeLoadControlLimitListData)
+
+	serverFeature.AddWriteApprovalCallback(func(msg *api.Message) {
+		// Intentionally don't approve — let the timer expire.
+	})
+
+	ski := "timer-test"
+	sender := NewSender(writeHandler)
+	remoteDevice := createRemoteDevice(device, ski, sender)
+	device.AddRemoteDeviceForSki(ski, remoteDevice)
+	remoteFeature, _ := createRemoteEntityAndFeature(remoteDevice, 1,
+		model.FeatureTypeTypeLoadControl, model.FunctionTypeLoadControlLimitListData)
+
+	serverFeature.SetWriteApprovalTimeout(200 * time.Millisecond)
+
+	msgCounter := model.MsgCounterType(42)
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(msgCounter),
+			AddressSource: &model.FeatureAddressType{
+				Device:  remoteDevice.Address(),
+				Entity:  remoteDevice.Entity([]model.AddressEntityType{1}).Address().Entity,
+				Feature: remoteFeature.Address().Feature,
+			},
+			AddressDestination: serverFeature.Address(),
+		},
+		DeviceRemote:  remoteDevice,
+		EntityRemote:  remoteDevice.Entity([]model.AddressEntityType{1}),
+		FeatureRemote: remoteFeature,
+	}
+
+	sf := serverFeature.(*FeatureLocal)
+	sf.addPendingApproval(msg)
+
+	callsBefore := len(writeHandler.sentMessages)
+
+	// Cleanup should stop the timer
+	serverFeature.CleanWriteApprovalCaches(ski)
+
+	// Wait past the timer expiry
+	time.Sleep(400 * time.Millisecond)
+
+	callsAfter := len(writeHandler.sentMessages)
+	assert.Equal(s.T(), callsBefore, callsAfter,
+		"no messages should be sent after CleanWriteApprovalCaches stops timers")
+}
+
+// Step 4 — Issue 7: ApproveOrDenyWrite must not send double responses.
+// The timer and approval path must not both send a response for the same request.
+func (s *LocalFeatureTestSuite) Test_ApproveOrDenyWrite_NoDoubleResponse() {
+	writeHandler := &WriteMessageHandler{}
+	device, localEntity := createLocalDeviceAndEntity(1)
+	_, serverFeature := createLocalFeatures(localEntity, model.FeatureTypeTypeLoadControl, model.FunctionTypeLoadControlLimitListData)
+
+	serverFeature.AddWriteApprovalCallback(func(msg *api.Message) {
+		// Will be approved externally
+	})
+
+	ski := "toctou-test"
+	sender := NewSender(writeHandler)
+	remoteDevice := createRemoteDevice(device, ski, sender)
+	device.AddRemoteDeviceForSki(ski, remoteDevice)
+	remoteFeature, _ := createRemoteEntityAndFeature(remoteDevice, 1,
+		model.FeatureTypeTypeLoadControl, model.FunctionTypeLoadControlLimitListData)
+
+	// Very short timeout to make the race window likely
+	serverFeature.SetWriteApprovalTimeout(80 * time.Millisecond)
+
+	msgCounter := model.MsgCounterType(99)
+	msg := &api.Message{
+		RequestHeader: &model.HeaderType{
+			MsgCounter: util.Ptr(msgCounter),
+			AddressSource: &model.FeatureAddressType{
+				Device:  remoteDevice.Address(),
+				Entity:  remoteDevice.Entity([]model.AddressEntityType{1}).Address().Entity,
+				Feature: remoteFeature.Address().Feature,
+			},
+			AddressDestination: serverFeature.Address(),
+		},
+		DeviceRemote:  remoteDevice,
+		EntityRemote:  remoteDevice.Entity([]model.AddressEntityType{1}),
+		FeatureRemote: remoteFeature,
+	}
+
+	sf := serverFeature.(*FeatureLocal)
+	sf.addPendingApproval(msg)
+
+	// Wait close to timeout, then approve
+	time.Sleep(70 * time.Millisecond)
+	serverFeature.ApproveOrDenyWrite(msg, model.ErrorType{ErrorNumber: model.ErrorNumberType(0)})
+
+	// Wait for any timer to fire
+	time.Sleep(100 * time.Millisecond)
+
+	writeHandler.mux.Lock()
+	totalMessages := len(writeHandler.sentMessages)
+	writeHandler.mux.Unlock()
+
+	// At most 1 response should be sent (either success from approval or error from timeout, not both)
+	assert.LessOrEqual(s.T(), totalMessages, 1,
+		"at most 1 response should be sent, not both timer error and approval success")
 }

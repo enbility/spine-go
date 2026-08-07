@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"runtime"
 	"testing"
 	"time"
 
@@ -425,4 +426,96 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	f3.AddFunctionType(model.FunctionTypeElectricalConnectionParameterDescriptionListData, true, true)
 	err = sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)
+}
+
+// Step 6 — Issue 9: SetupRemoteDevice should clean up existing device for same SKI.
+func (d *DeviceLocalTestSuite) Test_SetupRemoteDevice_CleansUpExisting() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address",
+		model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	ski := "reconnect-ski"
+	_ = sut.SetupRemoteDevice(ski, d)
+	device1 := sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), device1)
+
+	// Second setup for the same SKI — should clean up the first
+	_ = sut.SetupRemoteDevice(ski, d)
+	device2 := sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), device2)
+
+	// The new device should be different from the old one
+	assert.NotEqual(d.T(), device1, device2)
+
+	// Only one device should exist for that SKI
+	remotes := sut.RemoteDevices()
+	skiCount := 0
+	for _, r := range remotes {
+		if r.Ski() == ski {
+			skiCount++
+		}
+	}
+	assert.Equal(d.T(), 1, skiCount)
+
+	sut.RemoveRemoteDeviceConnection(ski)
+}
+
+// Step 8 — Issue 1: Close() stops all goroutines and cleans up all state.
+func (d *DeviceLocalTestSuite) Test_Close_StopsAllGoroutines() {
+	runtime.GC()
+	time.Sleep(50 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address",
+		model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	// Create 3 entities with heartbeat
+	for i := uint(1); i <= 3; i++ {
+		entity := NewEntityLocal(sut, model.EntityTypeTypeCEM,
+			[]model.AddressEntityType{model.AddressEntityType(i)}, 4*time.Second)
+		sut.AddEntity(entity)
+
+		diagFeature := NewFeatureLocal(entity.NextFeatureId(), entity,
+			model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+		diagFeature.AddFunctionType(model.FunctionTypeDeviceDiagnosisHeartbeatData, true, false)
+		entity.AddFeature(diagFeature)
+	}
+
+	// Connect 2 remote devices
+	_ = sut.SetupRemoteDevice("remote-1", d)
+	_ = sut.SetupRemoteDevice("remote-2", d)
+
+	time.Sleep(50 * time.Millisecond)
+	running := runtime.NumGoroutine()
+	assert.Greater(d.T(), running, baseline, "heartbeat goroutines should be running")
+
+	// Close should clean up everything
+	sut.Close()
+
+	time.Sleep(50 * time.Millisecond)
+	after := runtime.NumGoroutine()
+	assert.LessOrEqual(d.T(), after, baseline+1,
+		"all goroutines should be stopped after Close()")
+
+	// All remote devices should be gone
+	assert.Empty(d.T(), sut.RemoteDevices())
+
+	// Only entity[0] should remain
+	entities := sut.Entities()
+	assert.Equal(d.T(), 1, len(entities))
+}
+
+// Step 8 — Close() is idempotent.
+func (d *DeviceLocalTestSuite) Test_Close_Idempotent() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address",
+		model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	entity := NewEntityLocal(sut, model.EntityTypeTypeCEM,
+		[]model.AddressEntityType{1}, 4*time.Second)
+	sut.AddEntity(entity)
+
+	_ = sut.SetupRemoteDevice("ski-1", d)
+
+	// Close twice — should not panic
+	sut.Close()
+	sut.Close()
 }

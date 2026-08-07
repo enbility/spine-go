@@ -97,3 +97,40 @@ func (s *EventsTestSuite) Test_Publish_Application() {
 	err = s.events.Unsubscribe(s)
 	assert.Nil(s.T(), err)
 }
+
+// Step 7 — Issue 6: drain() must wait for all dispatched handlers to complete.
+type slowTestHandler struct {
+	mu       sync.Mutex
+	finished bool
+}
+
+func (h *slowTestHandler) HandleEvent(event api.EventPayload) {
+	time.Sleep(200 * time.Millisecond)
+	h.mu.Lock()
+	h.finished = true
+	h.mu.Unlock()
+}
+
+func (h *slowTestHandler) isFinished() bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.finished
+}
+
+func (s *EventsTestSuite) Test_Drain_WaitsForHandlers() {
+	handler := &slowTestHandler{}
+	err := s.events.Subscribe(handler)
+	assert.Nil(s.T(), err)
+
+	s.events.Publish(api.EventPayload{})
+
+	// Handler is still running at this point
+	assert.False(s.T(), handler.isFinished())
+
+	// drain() should block until handler completes
+	s.events.drain()
+	assert.True(s.T(), handler.isFinished())
+
+	err = s.events.Unsubscribe(handler)
+	assert.Nil(s.T(), err)
+}

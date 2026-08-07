@@ -15,6 +15,7 @@ type HeartbeatManager struct {
 
 	heartBeatNum   uint64 // see https://github.com/golang/go/issues/11891
 	stopHeartbeatC chan struct{}
+	doneC          chan struct{} // closed when the goroutine exits
 	stopMux        sync.Mutex
 
 	heartBeatTimeout *model.DurationType
@@ -88,21 +89,38 @@ func (c *HeartbeatManager) StartHeartbeat() error {
 		return err
 	}
 
-	// stop an already running heartbeat
+	// stop an already running heartbeat and wait for its goroutine to exit
 	c.StopHeartbeat()
 
+	c.stopMux.Lock()
 	c.stopHeartbeatC = make(chan struct{})
+	c.doneC = make(chan struct{})
+	stopC := c.stopHeartbeatC
+	doneC := c.doneC
+	c.stopMux.Unlock()
 
-	go c.updateHeartbeatData(c.stopHeartbeatC, timeout)
+	go func() {
+		defer close(doneC)
+		c.updateHeartbeatData(stopC, timeout)
+	}()
 
 	return nil
 }
 
-// Stop updating heartbeat data
+// Stop updating heartbeat data and wait for the goroutine to exit.
 // Note: No active subscribers will get any further notifications!
 func (c *HeartbeatManager) StopHeartbeat() {
-	if c.IsHeartbeatRunning() {
+	c.stopMux.Lock()
+	needsStop := c.stopHeartbeatC != nil && !c.isHeartbeatClosed()
+	var doneC chan struct{}
+	if needsStop {
 		close(c.stopHeartbeatC)
+		doneC = c.doneC
+	}
+	c.stopMux.Unlock()
+
+	if doneC != nil {
+		<-doneC
 	}
 }
 
@@ -133,6 +151,7 @@ func (c *HeartbeatManager) updateHeartbeatData(stopC chan struct{}, d time.Durat
 	c.mux.Unlock()
 
 	ticker := time.NewTicker(d)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
