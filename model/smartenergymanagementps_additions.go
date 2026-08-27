@@ -307,11 +307,8 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyMa
 	// Key-based matching: find target alternative
 	targetAlternative := s.findAlternativeByKey(result, alternativesId)
 	if targetAlternative == nil {
-		// Unknown key: the server announces a new alternative, add it. Remote
-		// writes never reach this point, validateRemoteWritePayload rejects them.
-		var added SmartEnergyManagementPsAlternativesType
-		util.DeepCopy(newAlternative, &added)
-		result.Alternatives = append(result.Alternatives, added)
+		// unknown key: the server announces a new alternative, add it
+		result.Alternatives = appendCopy(result.Alternatives, newAlternative)
 		return
 	}
 
@@ -366,11 +363,8 @@ func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartE
 	// Key-based matching: find target sequence
 	targetSequence := s.findSequenceByKey(alternative, sequenceId)
 	if targetSequence == nil {
-		// Unknown key: the server announces a new sequence, add it. Remote
-		// writes never reach this point, validateRemoteWritePayload rejects them.
-		var added SmartEnergyManagementPsPowerSequenceType
-		util.DeepCopy(newSequence, &added)
-		alternative.PowerSequence = append(alternative.PowerSequence, added)
+		// unknown key: the server announces a new sequence, add it
+		alternative.PowerSequence = appendCopy(alternative.PowerSequence, newSequence)
 		return
 	}
 
@@ -408,6 +402,14 @@ func (s *SmartEnergyManagementPsDataType) mergeSequenceTopLevelFields(target, ne
 	mergeContainer(&target.OperatingConstraintsInterrupt, newSequence.OperatingConstraintsInterrupt)
 	mergeContainer(&target.OperatingConstraintsDuration, newSequence.OperatingConstraintsDuration)
 	mergeContainer(&target.OperatingConstraintsResumeImplication, newSequence.OperatingConstraintsResumeImplication)
+}
+
+// appendCopy appends an independent copy of item to list. Only local updates add
+// entries, a remote write announcing an unknown key is rejected before it gets here.
+func appendCopy[T any](list []T, item *T) []T {
+	var added T
+	util.DeepCopy(item, &added)
+	return append(list, added)
 }
 
 // mergeContainer copies non-nil fields from newContainer into target, creating it when absent
@@ -476,11 +478,8 @@ func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEner
 	// Key-based matching: find target time slot
 	targetTimeSlot := s.findTimeSlotByKey(sequence, slotNumber)
 	if targetTimeSlot == nil {
-		// Unknown key: the server announces a new time slot, add it. Remote
-		// writes never reach this point, validateRemoteWritePayload rejects them.
-		var added SmartEnergyManagementPsPowerTimeSlotType
-		util.DeepCopy(newTimeSlot, &added)
-		sequence.PowerTimeSlot = append(sequence.PowerTimeSlot, added)
+		// unknown key: the server announces a new time slot, add it
+		sequence.PowerTimeSlot = appendCopy(sequence.PowerTimeSlot, newTimeSlot)
 		return
 	}
 
@@ -600,11 +599,8 @@ func (s *SmartEnergyManagementPsDataType) mergeTimeSlotValue(timeSlot *SmartEner
 	// Composite key matching: find target value by valueType
 	targetValue := s.findTimeSlotValueByKey(timeSlot, slotNumber, valueType)
 	if targetValue == nil {
-		// Unknown key: the server announces a new value, add it. Remote writes
-		// never reach this point, a payload carrying a valueList is rejected.
-		var added PowerTimeSlotValueDataType
-		util.DeepCopy(newValue, &added)
-		timeSlot.ValueList.Value = append(timeSlot.ValueList.Value, added)
+		// unknown key: the server announces a new value, add it
+		timeSlot.ValueList.Value = appendCopy(timeSlot.ValueList.Value, newValue)
 		return
 	}
 
