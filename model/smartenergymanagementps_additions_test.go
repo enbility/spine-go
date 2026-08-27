@@ -779,8 +779,9 @@ func TestSmartEnergyManagementPsDataType_UpdateList_AddsUnknownSequence(t *testi
 	assert.Equal(t, PowerSequenceStateTypeRunning, *resultData.Alternatives[0].PowerSequence[1].State.State)
 }
 
-// A remote client may only update existing entries, never add new ones.
-func TestSmartEnergyManagementPsDataType_UpdateList_RemoteWriteDoesNotAddAlternative(t *testing.T) {
+// A remote client may only update existing entries, a write targeting an unknown
+// key is rejected so the client is NACKed instead of silently ignored.
+func TestSmartEnergyManagementPsDataType_UpdateList_RemoteWriteRejectsUnknownAlternative(t *testing.T) {
 	// Arrange - all alternatives withdrawn
 	existing := &SmartEnergyManagementPsDataType{
 		NodeScheduleInformation: &PowerSequenceNodeScheduleInformationDataType{
@@ -808,7 +809,7 @@ func TestSmartEnergyManagementPsDataType_UpdateList_RemoteWriteDoesNotAddAlterna
 	result, success := existing.UpdateList(true, true, write, NewFilterTypePartial(), nil, nil)
 
 	// Assert
-	assert.True(t, success)
+	assert.False(t, success)
 
 	resultData := result.(*SmartEnergyManagementPsDataType)
 	assert.Equal(t, 0, len(resultData.Alternatives))
