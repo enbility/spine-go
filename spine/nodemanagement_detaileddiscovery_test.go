@@ -2,6 +2,7 @@ package spine
 
 import (
 	"testing"
+	"time"
 
 	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
@@ -10,14 +11,15 @@ import (
 )
 
 const (
-	nm_detaileddiscoverydata_send_read_file_prefix     = "./testdata/nm_detaileddiscoverydata_send_read"
-	nm_detaileddiscoverydata_recv_read_file_path       = "./testdata/nm_detaileddiscoverydata_recv_read.json"
-	nm_detaileddiscoverydata_send_reply_file_prefix    = "./testdata/nm_detaileddiscoverydata_send_reply"
-	nm_detaileddiscoverydata_recv_read_ack_file_path   = "./testdata/nm_detaileddiscoverydata_recv_read_ack.json"
-	nm_subscriptionRequestCall_recv_call_file_path     = "./testdata/nm_subscriptionRequestCall_recv_call.json"
-	nm_subscriptionRequestCall_send_result_file_prefix = "./testdata/nm_subscriptionRequestCall_send_result"
-	nm_destinationListData_recv_read_file_path         = "./testdata/nm_destinationListData_recv_read.json"
-	nm_destinationListData_send_reply_file_prefix      = "./testdata/nm_destinationListData_send_reply"
+	nm_detaileddiscoverydata_send_read_file_prefix   = "./testdata/nm_detaileddiscoverydata_send_read"
+	nm_detaileddiscoverydata_recv_read_file_path     = "./testdata/nm_detaileddiscoverydata_recv_read.json"
+	nm_detaileddiscoverydata_send_reply_file_prefix  = "./testdata/nm_detaileddiscoverydata_send_reply"
+	nm_detaileddiscoverydata_recv_read_ack_file_path = "./testdata/nm_detaileddiscoverydata_recv_read_ack.json"
+	nm_subscriptionRequestCall_recv_call_file_path   = "./testdata/nm_subscriptionRequestCall_recv_call.json"
+	nm_subscriptionRequestCall_recv_call_early_path  = "./testdata/nm_subscriptionRequestCall_recv_call_early.json"
+	nm_bindingRequestCall_recv_call_early_path       = "./testdata/nm_bindingRequestCall_recv_call_early.json"
+	nm_destinationListData_recv_read_file_path       = "./testdata/nm_destinationListData_recv_read.json"
+	nm_destinationListData_send_reply_file_prefix    = "./testdata/nm_destinationListData_send_reply"
 )
 
 func TestNodeManagementSuite(t *testing.T) {
@@ -240,13 +242,125 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_SendReplyWithAcknowledge() {
 	// on successful reply, no result should be sent
 }
 
+// add a local DeviceDiagnosis server at entity [1] feature 1, the target of the
+// early subscription and binding request test data
+func (s *NodeManagementSuite) addDeviceDiagnosisServer() api.FeatureLocalInterface {
+	entity := NewEntityLocal(s.sut, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
+	feature := NewFeatureLocal(entity.NextFeatureId(), entity, model.FeatureTypeTypeDeviceDiagnosis, model.RoleTypeServer)
+	entity.AddFeature(feature)
+	s.sut.AddEntity(entity)
+
+	return feature
+}
+
+// a subscription request arriving before the detailed discovery reply is deferred
+// and processed once the remote device address and features are known
 func (s *NodeManagementSuite) TestSubscriptionRequestCall_BeforeDetailedDiscovery() {
+	server := s.addDeviceDiagnosisServer()
+
+	// Act
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_subscriptionRequestCall_recv_call_early_path))
+
+	// Assert: neither answered nor rejected yet
+	assert.Nil(s.T(), s.writeHandler.ResultWithReference(msgCounter))
+
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.Equal(s.T(), 0, len(s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)))
+
+	// Act
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
+
+	// Assert: processed and acknowledged with the delayed result
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	subscriptionsForDevice := s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)
+	assert.Equal(s.T(), 1, len(subscriptionsForDevice))
+	subscriptionsOnFeature := s.sut.SubscriptionManager().SubscriptionsForFeatureAddress(*server.Address())
+	assert.Equal(s.T(), 1, len(subscriptionsOnFeature))
+}
+
+// a binding request arriving before the detailed discovery reply is deferred alike
+func (s *NodeManagementSuite) TestBindingRequestCall_BeforeDetailedDiscovery() {
+	server := s.addDeviceDiagnosisServer()
+
+	// Act
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_bindingRequestCall_recv_call_early_path))
+
+	// Assert: neither answered nor rejected yet
+	assert.Nil(s.T(), s.writeHandler.ResultWithReference(msgCounter))
+
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.Equal(s.T(), 0, len(s.sut.BindingManager().BindingsForRemoteDevice(remoteDevice)))
+
+	// Act
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
+
+	// Assert: processed and acknowledged with the delayed result
+	waitForAck(s.T(), msgCounter, s.writeHandler)
+
+	bindingsForDevice := s.sut.BindingManager().BindingsForRemoteDevice(remoteDevice)
+	assert.Equal(s.T(), 1, len(bindingsForDevice))
+	bindingsOnFeature := s.sut.BindingManager().BindingsForFeatureAddress(*server.Address())
+	assert.Equal(s.T(), 1, len(bindingsOnFeature))
+}
+
+// a deferred subscription request is answered with a timeout error if the detailed
+// discovery does not complete within the maximum response delay
+func (s *NodeManagementSuite) TestSubscriptionRequestCall_DiscoveryTimeout() {
+	timeout := deferredRequestTimeout
+	deferredRequestTimeout = 10 * time.Millisecond
+	defer func() { deferredRequestTimeout = timeout }()
+
+	// Act
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_subscriptionRequestCall_recv_call_early_path))
+
+	assert.Eventually(s.T(), func() bool {
+		return s.writeHandler.ResultWithReference(msgCounter) != nil
+	}, time.Second, 10*time.Millisecond)
+
+	// Assert
+	assert.Equal(s.T(), model.ErrorNumberTypeTimeout, resultErrorNumber(s.T(), msgCounter, s.writeHandler))
+
+	// the late discovery reply does not process the request anymore
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
+
+	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
+	assert.Equal(s.T(), 0, len(s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)))
+}
+
+// requests beyond the deferred limit are processed and rejected right away
+func (s *NodeManagementSuite) TestSubscriptionRequestCall_DeferredLimit() {
+	nodeManagement := s.sut.NodeManagement().(*NodeManagement)
+	defer nodeManagement.removeDeferredRequests(s.remoteSki)
+
+	subscriptionRequest := func() *api.Message {
+		return &api.Message{
+			RequestHeader: &model.HeaderType{},
+			CmdClassifier: model.CmdClassifierTypeCall,
+			Cmd: model.CmdType{
+				NodeManagementSubscriptionRequestCall: &model.NodeManagementSubscriptionRequestCallType{},
+			},
+			DeviceRemote: s.remoteDevice,
+		}
+	}
+
+	for range maxDeferredRequests {
+		assert.True(s.T(), nodeManagement.deferRequest(subscriptionRequest()))
+	}
+
+	assert.False(s.T(), nodeManagement.deferRequest(subscriptionRequest()))
+}
+
+// a subscription request naming a client device address which is not the sending
+// device is still rejected
+func (s *NodeManagementSuite) TestSubscriptionRequestCall_InvalidAddress() {
+	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
+
 	// Act
 	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_subscriptionRequestCall_recv_call_file_path))
 
 	// Assert
-	sentResult := s.writeHandler.ResultWithReference(msgCounter)
-	checkSentData(s.T(), sentResult, nm_subscriptionRequestCall_send_result_file_prefix)
+	assert.Equal(s.T(), model.ErrorNumberTypeGeneralError, resultErrorNumber(s.T(), msgCounter, s.writeHandler))
 
 	remoteDevice := s.sut.RemoteDeviceForSki(s.remoteSki)
 	subscriptionsForDevice := s.sut.SubscriptionManager().SubscriptionsForRemoteDevice(remoteDevice)
