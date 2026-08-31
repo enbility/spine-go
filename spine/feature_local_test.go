@@ -1240,3 +1240,48 @@ func (s *LocalFeatureTestSuite) Test_Operations_NoPartialReadSupport() {
 	assert.True(s.T(), exists)
 	assert.False(s.T(), operation.ReadPartial())
 }
+
+// TestSubscribeToRemote_NilFeature verifies that SubscribeToRemote
+// returns a proper error when FeatureByAddress() returns nil for the
+// requested address, instead of panicking on a nil-pointer dereference.
+//
+// This protects callers (notably eebus-go's eg/lpc.connected() event
+// handler) from crashing in the Publish() goroutine when a remote
+// device advertises a feature address that is not yet materialized in
+// the local entity model.
+func (s *LocalFeatureTestSuite) TestSubscribeToRemote_NilFeature() {
+	s.localFeature.Device().AddRemoteDeviceForSki(s.remoteFeature.Device().Ski(), s.remoteFeature.Device())
+
+	// Build an address that targets the remote device but a non-existent
+	// (entity, feature) tuple. FeatureByAddress() will return nil for it.
+	bogusFeatureAddr := &model.FeatureAddressType{
+		Device:  s.remoteFeature.Address().Device,
+		Entity:  []model.AddressEntityType{99999},
+		Feature: util.Ptr(model.AddressFeatureType(99999)),
+	}
+
+	// Must not panic; must return a proper ErrorType.
+	assert.NotPanics(s.T(), func() {
+		msgCounter, err := s.localFeature.SubscribeToRemote(bogusFeatureAddr)
+		assert.Nil(s.T(), msgCounter)
+		assert.NotNil(s.T(), err)
+	})
+}
+
+// TestBindToRemote_NilFeature mirrors TestSubscribeToRemote_NilFeature
+// for the BindToRemote() code path.
+func (s *LocalFeatureTestSuite) TestBindToRemote_NilFeature() {
+	s.localFeature.Device().AddRemoteDeviceForSki(s.remoteFeature.Device().Ski(), s.remoteFeature.Device())
+
+	bogusFeatureAddr := &model.FeatureAddressType{
+		Device:  s.remoteFeature.Address().Device,
+		Entity:  []model.AddressEntityType{99999},
+		Feature: util.Ptr(model.AddressFeatureType(99999)),
+	}
+
+	assert.NotPanics(s.T(), func() {
+		msgCounter, err := s.localFeature.BindToRemote(bogusFeatureAddr)
+		assert.Nil(s.T(), msgCounter)
+		assert.NotNil(s.T(), err)
+	})
+}
