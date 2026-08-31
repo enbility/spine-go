@@ -307,7 +307,8 @@ func (s *SmartEnergyManagementPsDataType) mergeAlternative(result *SmartEnergyMa
 	// Key-based matching: find target alternative
 	targetAlternative := s.findAlternativeByKey(result, alternativesId)
 	if targetAlternative == nil {
-		// Alternative not found - could create new one, but for OHPCF we expect it to exist
+		// unknown key: the server announces a new alternative, add it
+		result.Alternatives = appendCopy(result.Alternatives, newAlternative)
 		return
 	}
 
@@ -362,7 +363,8 @@ func (s *SmartEnergyManagementPsDataType) mergePowerSequence(alternative *SmartE
 	// Key-based matching: find target sequence
 	targetSequence := s.findSequenceByKey(alternative, sequenceId)
 	if targetSequence == nil {
-		// Sequence not found - could create new one, but for OHPCF we expect it to exist
+		// unknown key: the server announces a new sequence, add it
+		alternative.PowerSequence = appendCopy(alternative.PowerSequence, newSequence)
 		return
 	}
 
@@ -392,6 +394,33 @@ func (s *SmartEnergyManagementPsDataType) mergeSequenceTopLevelFields(target, ne
 		}
 		s.mergeScheduleFields(target.Schedule, newSequence.Schedule)
 	}
+
+	// remaining containers hold plain fields only, merge them non-nil field-wise
+	mergeContainer(&target.Description, newSequence.Description)
+	mergeContainer(&target.ScheduleConstraints, newSequence.ScheduleConstraints)
+	mergeContainer(&target.SchedulePreference, newSequence.SchedulePreference)
+	mergeContainer(&target.OperatingConstraintsInterrupt, newSequence.OperatingConstraintsInterrupt)
+	mergeContainer(&target.OperatingConstraintsDuration, newSequence.OperatingConstraintsDuration)
+	mergeContainer(&target.OperatingConstraintsResumeImplication, newSequence.OperatingConstraintsResumeImplication)
+}
+
+// appendCopy appends an independent copy of item to list. Only local updates add
+// entries, a remote write announcing an unknown key is rejected before it gets here.
+func appendCopy[T any](list []T, item *T) []T {
+	var added T
+	util.DeepCopy(item, &added)
+	return append(list, added)
+}
+
+// mergeContainer copies non-nil fields from newContainer into target, creating it when absent
+func mergeContainer[T any](target **T, newContainer *T) {
+	if newContainer == nil {
+		return
+	}
+	if *target == nil {
+		*target = new(T)
+	}
+	CopyNonNilDataFromItemToItem(newContainer, *target)
 }
 
 // mergeStateFields merges non-nil fields from newState to target
@@ -449,7 +478,8 @@ func (s *SmartEnergyManagementPsDataType) mergePowerTimeSlot(sequence *SmartEner
 	// Key-based matching: find target time slot
 	targetTimeSlot := s.findTimeSlotByKey(sequence, slotNumber)
 	if targetTimeSlot == nil {
-		// Time slot not found - could create new one, but for OHPCF we expect it to exist
+		// unknown key: the server announces a new time slot, add it
+		sequence.PowerTimeSlot = appendCopy(sequence.PowerTimeSlot, newTimeSlot)
 		return
 	}
 
@@ -569,7 +599,8 @@ func (s *SmartEnergyManagementPsDataType) mergeTimeSlotValue(timeSlot *SmartEner
 	// Composite key matching: find target value by valueType
 	targetValue := s.findTimeSlotValueByKey(timeSlot, slotNumber, valueType)
 	if targetValue == nil {
-		// Value not found - could create new one, but for OHPCF we expect it to exist
+		// unknown key: the server announces a new value, add it
+		timeSlot.ValueList.Value = appendCopy(timeSlot.ValueList.Value, newValue)
 		return
 	}
 
@@ -651,6 +682,10 @@ func (s *SmartEnergyManagementPsDataType) validateRemoteWritePayload(newData *Sm
 	if newData.NodeScheduleInformation != nil {
 		return false
 	}
+	// A client may only update entries the server announced, never create them
+	if s.payloadAddsEntry(newData) {
+		return false
+	}
 	for _, newAlt := range newData.Alternatives {
 		for _, newSeq := range newAlt.PowerSequence {
 			// Description: only SequenceId is a key; label and powerUnit are server-owned
@@ -725,6 +760,82 @@ func (s *SmartEnergyManagementPsDataType) validateRemoteWritePayload(newData *Sm
 		}
 	}
 	return true
+}
+
+// payloadAddsEntry returns true when merging the payload would create an alternative,
+// sequence or time slot that does not exist locally. It mirrors the key matching of the
+// merge helpers: a missing key updates all entries of that level and never creates one.
+// Values need no check, a payload carrying a valueList is rejected as server Out only.
+func (s *SmartEnergyManagementPsDataType) payloadAddsEntry(newData *SmartEnergyManagementPsDataType) bool {
+	for i := range newData.Alternatives {
+		newAlt := &newData.Alternatives[i]
+		var alternativesId *AlternativesIdType
+		if newAlt.Relation != nil {
+			alternativesId = newAlt.Relation.AlternativesId
+		}
+		if alternativesId != nil {
+			existingAlt := s.findAlternativeByKey(s, alternativesId)
+			if existingAlt == nil || s.alternativeAddsEntry(existingAlt, newAlt) {
+				return true
+			}
+			continue
+		}
+		// no key: the update targets every known alternative
+		for j := range s.Alternatives {
+			if s.alternativeAddsEntry(&s.Alternatives[j], newAlt) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// alternativeAddsEntry returns true when merging newAlt into existingAlt would create a
+// sequence or time slot.
+func (s *SmartEnergyManagementPsDataType) alternativeAddsEntry(existingAlt, newAlt *SmartEnergyManagementPsAlternativesType) bool {
+	if s.looksLikePositionalUpdate(newAlt) {
+		// positional updates only touch sequences at existing positions
+		return false
+	}
+	for i := range newAlt.PowerSequence {
+		newSeq := &newAlt.PowerSequence[i]
+		var sequenceId *PowerSequenceIdType
+		if newSeq.Description != nil {
+			sequenceId = newSeq.Description.SequenceId
+		}
+		if sequenceId != nil {
+			existingSeq := s.findSequenceByKey(existingAlt, sequenceId)
+			if existingSeq == nil || s.sequenceAddsTimeSlot(existingSeq, newSeq) {
+				return true
+			}
+			continue
+		}
+		if !s.hasSequenceContent(newSeq) {
+			continue
+		}
+		// no key: the update targets every sequence of this alternative
+		for j := range existingAlt.PowerSequence {
+			if s.sequenceAddsTimeSlot(&existingAlt.PowerSequence[j], newSeq) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// sequenceAddsTimeSlot returns true when merging newSeq into existingSeq would create a
+// time slot.
+func (s *SmartEnergyManagementPsDataType) sequenceAddsTimeSlot(existingSeq, newSeq *SmartEnergyManagementPsPowerSequenceType) bool {
+	for i := range newSeq.PowerTimeSlot {
+		schedule := newSeq.PowerTimeSlot[i].Schedule
+		if schedule == nil || schedule.SlotNumber == nil {
+			continue
+		}
+		if s.findTimeSlotByKey(existingSeq, schedule.SlotNumber) == nil {
+			return true
+		}
+	}
+	return false
 }
 
 // findSlotForValidation resolves the existing slot that corresponds to a slot entry in

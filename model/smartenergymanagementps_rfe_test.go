@@ -1510,8 +1510,8 @@ func TestRFE_KeyOnly_NoDataFields_NoChange(t *testing.T) {
 }
 
 // TC-104: remoteWrite=true, alternativesId=1 selector + sequenceId from alternatives group 2
-// → sequence not found in group 1 → no update.
-func TestRFE_CrossGroup_SequenceIdMismatch_NoUpdate(t *testing.T) {
+// → sequence not found in group 1 → write rejected.
+func TestRFE_CrossGroup_SequenceIdMismatch_Rejected(t *testing.T) {
 	existing := makeRFEBase()
 	origSeq1Start := *existing.Alternatives[0].PowerSequence[0].Schedule.StartTime
 	origSeq2Start := *existing.Alternatives[1].PowerSequence[0].Schedule.StartTime
@@ -1534,11 +1534,42 @@ func TestRFE_CrossGroup_SequenceIdMismatch_NoUpdate(t *testing.T) {
 	}
 	result, success := existing.UpdateList(true, true, update, NewFilterTypePartial(), nil, nil)
 
-	// Success=true (no error, just no match found) but no data changed
-	assert.True(t, success, "no matching sequence is a success no-op, not an error")
+	// A client may only update existing entries, an unknown key is rejected
+	assert.False(t, success, "no matching sequence must be rejected, not silently ignored")
 	resultData := result.(*SmartEnergyManagementPsDataType)
 	assert.Equal(t, origSeq1Start, *resultData.Alternatives[0].PowerSequence[0].Schedule.StartTime,
 		"group 1 sequence must be unchanged")
 	assert.Equal(t, origSeq2Start, *resultData.Alternatives[1].PowerSequence[0].Schedule.StartTime,
 		"group 2 sequence must be unchanged")
+}
+
+// TC-105: remoteWrite=true targeting a slotNumber the server never announced
+// → write rejected, no slot added.
+func TestRFE_UnknownSlotNumber_Rejected(t *testing.T) {
+	existing := makeRFEBase()
+	origSlotCount := len(existing.Alternatives[0].PowerSequence[0].PowerTimeSlot)
+
+	update := &SmartEnergyManagementPsDataType{
+		Alternatives: []SmartEnergyManagementPsAlternativesType{{
+			Relation: &SmartEnergyManagementPsAlternativesRelationType{
+				AlternativesId: util.Ptr(AlternativesIdType(1)),
+			},
+			PowerSequence: []SmartEnergyManagementPsPowerSequenceType{{
+				Description: &PowerSequenceDescriptionDataType{
+					SequenceId: util.Ptr(PowerSequenceIdType(1)),
+				},
+				PowerTimeSlot: []SmartEnergyManagementPsPowerTimeSlotType{{
+					Schedule: &PowerTimeSlotScheduleDataType{
+						SlotNumber:    util.Ptr(PowerTimeSlotNumberType(99)),
+						SlotActivated: util.Ptr(true),
+					},
+				}},
+			}},
+		}},
+	}
+	result, success := existing.UpdateList(true, true, update, NewFilterTypePartial(), nil, nil)
+
+	assert.False(t, success, "unknown slot number must be rejected, not silently ignored")
+	resultData := result.(*SmartEnergyManagementPsDataType)
+	assert.Equal(t, origSlotCount, len(resultData.Alternatives[0].PowerSequence[0].PowerTimeSlot))
 }
