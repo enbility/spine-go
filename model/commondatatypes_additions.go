@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -339,6 +340,29 @@ func (a *AbsoluteOrRelativeTimeType) GetDurationType() (*DurationType, error) {
 
 func (a *AbsoluteOrRelativeTimeType) GetTimeDuration() (time.Duration, error) {
 	return getTimeDurationFromString(string(*a))
+}
+
+// NumberType
+
+// UnmarshalJSON accepts numbers in scientific notation, which encoding/json
+// rejects for integer types, if they denote an exact integer (golang/go#5562)
+func (n *NumberType) UnmarshalJSON(data []byte) error {
+	s := strings.TrimSpace(string(data))
+
+	if value, err := strconv.ParseInt(s, 10, 64); err == nil {
+		*n = NumberType(value)
+		return nil
+	}
+
+	// big.Rat parses the decimal exponent notation exactly, unlike float64
+	value, ok := new(big.Rat).SetString(s)
+	if !ok || !value.IsInt() || !value.Num().IsInt64() {
+		return fmt.Errorf("json: cannot unmarshal %s into Go value of type model.NumberType", s)
+	}
+
+	*n = NumberType(value.Num().Int64())
+
+	return nil
 }
 
 // ScaledNumberType
