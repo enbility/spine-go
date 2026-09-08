@@ -223,6 +223,7 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
 	assert.NotNil(d.T(), err)
 }
 
+// TC_SPINE_FC_001: reject commands whose destination does not resolve to a valid local entity/feature (e.g. not Entity 0/Feature 0 NodeManagement).
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_Errors() {
 	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}), time.Second*4)
@@ -422,6 +423,7 @@ func (d *DeviceLocalTestSuite) Test_ProcessCmd() {
 	err = sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)
 
+	// TC_SPINE_BIND_002: even with write enabled on the function, a write is rejected while no binding exists (errorNumber 9, BindingIsNecessary).
 	f3.AddFunctionType(model.FunctionTypeElectricalConnectionParameterDescriptionListData, true, true)
 	err = sut.ProcessCmd(datagram, remote)
 	assert.NotNil(d.T(), err)

@@ -13,6 +13,7 @@ import (
 )
 
 // Property 1: msgCounter values are always ascending (except at overflow)
+// TC_SPINE_DATA_001: outgoing msgCounter values are assigned in strictly ascending order.
 func TestProperty_MsgCounter_AlwaysAscending(t *testing.T) {
 	config := &quick.Config{
 		MaxCount: 1000,

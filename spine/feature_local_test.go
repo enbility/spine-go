@@ -546,6 +546,7 @@ func (s *LocalFeatureTestSuite) Test_HandleMessage() {
 	assert.NotNil(s.T(), err)
 }
 
+// TC_SPINE_DATA_006, TC_SPINE_DATA_008: do not respond to an incoming resultData/result datagram, even on error.
 func (s *LocalFeatureTestSuite) Test_Result() {
 	msg := &api.Message{
 		FeatureRemote: s.remoteServerFeature,
@@ -600,6 +601,7 @@ func (s *LocalFeatureTestSuite) Test_Read() {
 	assert.NotNil(s.T(), err)
 }
 
+// TC_SPINE_COMP_004: an incoming reply is accepted without emitting an application error (errorNumber > 0) response.
 func (s *LocalFeatureTestSuite) Test_Reply() {
 	msg := &api.Message{
 		FeatureRemote: s.remoteServerFeature,

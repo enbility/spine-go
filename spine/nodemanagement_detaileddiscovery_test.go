@@ -44,6 +44,7 @@ func (s *NodeManagementSuite) BeforeTest(suiteName, testName string) {
 	s.remoteDevice = s.sut.RemoteDeviceForSki(s.remoteSki)
 }
 
+// TC_SPINE_DDISC_001: a client-capable DUT actively sends an initial nodeManagementDetailedDiscoveryData read on a new connection.
 func (s *NodeManagementSuite) TestDetailedDiscovery_SendRead() {
 	// Act (see BeforeTest)
 
@@ -52,6 +53,7 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_SendRead() {
 	checkSentData(s.T(), sendBytes, nm_detaileddiscoverydata_send_read_file_prefix)
 }
 
+// TC_SPINE_DATA_004: a reply carries msgCounterReference matching the originating request's msgCounter (fetched here via MessageWithReference).
 func (s *NodeManagementSuite) TestDetailedDiscovery_SendReply() {
 	// Act
 	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), nm_detaileddiscoverydata_recv_read_file_path))
@@ -61,6 +63,7 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_SendReply() {
 	checkSentData(s.T(), sendBytes, nm_detaileddiscoverydata_send_reply_file_prefix)
 }
 
+// TC_SPINE_ENTITY_001: dynamically discover remote server entities/features from a detailed-discovery reply regardless of their addresses.
 func (s *NodeManagementSuite) TestDetailedDiscovery_RecvReply() {
 	// Act
 	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
@@ -118,6 +121,7 @@ func (s *NodeManagementSuite) TestDetailedDiscovery_RecvReply() {
 	assert.Equal(s.T(), 0, len(evseec.Operations()))
 }
 
+// TC_SPINE_DATA_005: acknowledge a received notify datagram (ackRequest set) with a resultData message (errorNumber = 0).
 func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyAdded() {
 	_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), wallbox_detaileddiscoverydata_recv_reply_file_path))
 
