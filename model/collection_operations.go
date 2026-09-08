@@ -134,7 +134,7 @@ func updateFieldsValue(remoteWrite bool, sV reflect.Value, dV reflect.Value) {
 		// on local merge set all nil values
 		// on remote writes only set nil values if it is not a "writecheck" tagged field
 		if f.IsNil() ||
-			(remoteWrite && len(writeCheckFields) > 0 && slices.Contains(writeCheckFields, fieldName)) {
+			(remoteWrite && slices.Contains(writeCheckFields, fieldName)) {
 			f.Set(value)
 			continue
 		}
