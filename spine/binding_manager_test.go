@@ -317,3 +317,37 @@ func (s *BindingManagerSuite) Test_Bindings_RejectNodeManagement() {
 	bindings := bindingMgr.BindingsForRemoteDevice(s.remoteDevice)
 	assert.Equal(s.T(), 0, len(bindings))
 }
+
+// the server feature is still validated against serverFeatureType. The existing
+// Test_Bindings only uses matching server types, so a dropped type check would go
+// unnoticed there.
+func (s *BindingManagerSuite) Test_Bindings_ServerFeatureTypeMismatchStillRejected() {
+	entity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
+	s.localDevice.AddEntity(entity)
+	localServerFeature := entity.GetOrAddFeature(model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+
+	remoteDeviceAddress := model.AddressDeviceType("remoteDevice")
+	s.remoteDevice.UpdateDevice(
+		&model.NetworkManagementDeviceDescriptionDataType{
+			DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress},
+		},
+	)
+
+	remoteEntity := NewEntityRemote(s.remoteDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+	remoteClientFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity,
+		model.FeatureTypeTypeGeneric, model.RoleTypeClient)
+	remoteClientFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+	remoteEntity.AddFeature(remoteClientFeature)
+	s.remoteDevice.AddEntity(remoteEntity)
+
+	bindingMgr := s.localDevice.BindingManager()
+	bindingRequest := model.BindingManagementRequestCallType{
+		ClientAddress:     remoteClientFeature.Address(),
+		ServerAddress:     localServerFeature.Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeMeasurement),
+	}
+
+	err := bindingMgr.AddBinding(s.remoteDevice, bindingRequest)
+	assert.NotNil(s.T(), err)
+	assert.Equal(s.T(), 0, len(bindingMgr.BindingsForRemoteDevice(s.remoteDevice)))
+}

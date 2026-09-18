@@ -288,6 +288,13 @@ func (c *SubscriptionManager) checkRoleAndType(feature api.FeatureInterface, rol
 		return fmt.Errorf("found feature %s is not matching required role %s", feature.Type(), role)
 	}
 
+	// serverFeatureType constrains the server feature only. A client may announce any type
+	// for its own feature, including one of a future SPINE release, and that has to be
+	// tolerated (TC_SPINE_RTS_001, TC_SPINE_RTS_002).
+	if role != model.RoleTypeServer {
+		return nil
+	}
+
 	if feature.Type() != featureType && feature.Type() != model.FeatureTypeTypeGeneric {
 		return fmt.Errorf("found feature %s is not matching required type %s", feature.Type(), featureType)
 	}
