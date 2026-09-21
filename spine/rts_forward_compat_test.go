@@ -65,10 +65,8 @@ func (s *RTSSuite) TestRTS001_DiscoveryReply_ArbitraryKnownClientType() {
 
 // TC_SPINE_RTS_002: Discovery reply with completely UNKNOWN future featureType on client Feature,
 // plus higher specificationVersion ("1.999.999").
-// Current behaviour: spine-go PANICS in NewFeatureRemote → function_data_factory.go:305
 // Expected behaviour: unknown featureType silently ignored/stored, commissioning proceeds.
 func (s *RTSSuite) TestRTS002_DiscoveryReply_UnknownFutureClientType() {
-	// This test currently panics — captures the spec violation
 	assert.NotPanics(s.T(), func() {
 		_, _ = s.remoteDevice.HandleSpineMesssage(loadFileData(s.T(), rts002_discovery_reply_file))
 	}, "TC_SPINE_RTS_002: HandleSpineMesssage must not panic for unknown future featureType")
