@@ -181,6 +181,12 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 	// is this a partial request?
 	if message.FilterPartial == nil {
 		data = r.provideDetailedDiscoveryDiffForFullNotify(message, data)
+
+		// a full notify that matches what we already know leaves an empty diff. There is
+		// nothing to apply, which is not an error (TC_SPINE_DATA_005).
+		if len(data.EntityInformation) == 0 {
+			return nil
+		}
 	}
 
 	if len(data.EntityInformation) == 0 {
@@ -189,9 +195,16 @@ func (r *NodeManagement) processNotifyDetailedDiscoveryData(message *api.Message
 
 	for _, entity := range data.EntityInformation {
 		if entity.Description == nil ||
-			entity.Description.EntityAddress == nil ||
-			entity.Description.LastStateChange == nil {
+			entity.Description.EntityAddress == nil {
 			return errors.New("nodemanagement.notifyDetailedDiscoveryData: invalid EntityInformation.Description")
+		}
+
+		// lastStateChange is optional (SPINE Resource Spec: "This element can contain the
+		// last change of its network management state"). Without it there is no addition or
+		// removal to apply, so skip the entry instead of rejecting the whole notify
+		// (TC_SPINE_DATA_005).
+		if entity.Description.LastStateChange == nil {
+			continue
 		}
 
 		lastStateChange := *entity.Description.LastStateChange
