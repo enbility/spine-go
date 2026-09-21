@@ -233,3 +233,46 @@ func (s *SubscriptionManagerSuite) Test_Subscriptions_ServerFeatureTypeMismatchS
 	assert.NotNil(s.T(), err)
 	assert.Equal(s.T(), 0, len(subMgr.SubscriptionsForRemoteDevice(s.remoteDevice)))
 }
+
+// A client may announce any type for its own feature, including one introduced by a later SPINE
+// release. serverFeatureType describes the server side, so it must not be matched against the
+// client feature. Before the fix only FeatureTypeTypeGeneric was tolerated on the client side.
+func (s *SubscriptionManagerSuite) Test_Subscriptions_ArbitraryClientFeatureTypeAccepted() {
+	for _, clientType := range []model.FeatureTypeType{
+		model.FeatureTypeTypeDeviceClassification,
+		model.FeatureTypeType("SomeFutureFeatureType"),
+	} {
+		s.Run(string(clientType), func() {
+			localDevice := NewDeviceLocal("brand", "model", "serial", "code", "localDevice",
+				model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+			_ = localDevice.SetupRemoteDevice("ski", &WriteMessageHandler{})
+			remoteDevice := localDevice.RemoteDeviceForSki("ski")
+
+			entity := NewEntityLocal(localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
+			localDevice.AddEntity(entity)
+			localServerFeature := entity.GetOrAddFeature(model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+
+			remoteDeviceAddress := model.AddressDeviceType("remoteDevice")
+			remoteDevice.UpdateDevice(&model.NetworkManagementDeviceDescriptionDataType{
+				DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress},
+			})
+
+			remoteEntity := NewEntityRemote(remoteDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1})
+			remoteClientFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity,
+				clientType, model.RoleTypeClient)
+			remoteClientFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+			remoteEntity.AddFeature(remoteClientFeature)
+			remoteDevice.AddEntity(remoteEntity)
+
+			subMgr := localDevice.SubscriptionManager()
+			err := subMgr.AddSubscription(remoteDevice, model.SubscriptionManagementRequestCallType{
+				ClientAddress:     remoteClientFeature.Address(),
+				ServerAddress:     localServerFeature.Address(),
+				ServerFeatureType: util.Ptr(model.FeatureTypeTypeLoadControl),
+			})
+
+			assert.Nil(s.T(), err)
+			assert.Equal(s.T(), 1, len(subMgr.SubscriptionsForRemoteDevice(remoteDevice)))
+		})
+	}
+}
