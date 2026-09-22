@@ -53,6 +53,51 @@ func TestDeviceConfigurationKeyValueListDataType_Update(t *testing.T) {
 	assert.False(t, *item2.Value.Boolean)
 }
 
+func TestDeviceConfigurationKeyValueListDataType_RemotePartialWriteWithoutSelectorIgnoresUnchangedMissingWriteCheck(t *testing.T) {
+	sut := DeviceConfigurationKeyValueListDataType{
+		DeviceConfigurationKeyValueData: []DeviceConfigurationKeyValueDataType{
+			{
+				KeyId: util.Ptr(DeviceConfigurationKeyIdType(0)),
+				Value: &DeviceConfigurationKeyValueValueType{
+					Boolean: util.Ptr(true),
+				},
+			},
+			{
+				KeyId:             util.Ptr(DeviceConfigurationKeyIdType(1)),
+				IsValueChangeable: util.Ptr(true),
+				Value: &DeviceConfigurationKeyValueValueType{
+					Boolean: util.Ptr(true),
+				},
+			},
+		},
+	}
+
+	newData := DeviceConfigurationKeyValueListDataType{
+		DeviceConfigurationKeyValueData: []DeviceConfigurationKeyValueDataType{
+			{
+				KeyId: util.Ptr(DeviceConfigurationKeyIdType(1)),
+				Value: &DeviceConfigurationKeyValueValueType{
+					Boolean: util.Ptr(false),
+				},
+			},
+		},
+	}
+
+	_, success := sut.UpdateList(true, true, &newData, NewFilterTypePartial(), nil, util.Ptr(FunctionTypeDeviceConfigurationKeyValueListData))
+	assert.True(t, success)
+
+	data := sut.DeviceConfigurationKeyValueData
+	if assert.Equal(t, 2, len(data)) {
+		assert.Equal(t, DeviceConfigurationKeyIdType(0), *data[0].KeyId)
+		assert.Nil(t, data[0].IsValueChangeable)
+		assert.True(t, *data[0].Value.Boolean)
+
+		assert.Equal(t, DeviceConfigurationKeyIdType(1), *data[1].KeyId)
+		assert.True(t, *data[1].IsValueChangeable)
+		assert.False(t, *data[1].Value.Boolean)
+	}
+}
+
 func TestDeviceConfigurationKeyValueDescriptionListDataType_Update(t *testing.T) {
 	sut := DeviceConfigurationKeyValueDescriptionListDataType{
 		DeviceConfigurationKeyValueDescriptionData: []DeviceConfigurationKeyValueDescriptionDataType{
