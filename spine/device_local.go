@@ -181,6 +181,8 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
+	r.nodeManagement.removeDeferredRequests(ski)
+
 	remoteDevice := r.RemoteDeviceForSki(ski)
 	if remoteDevice == nil {
 		return
@@ -437,6 +439,12 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
+	}
+
+	// a request for a remote device which is not discovered yet is processed and
+	// answered once its detailed discovery reply arrives
+	if localFeature == r.NodeManagement() && r.nodeManagement.deferRequest(message) {
+		return nil
 	}
 
 	err := localFeature.HandleMessage(message)
