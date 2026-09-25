@@ -62,6 +62,7 @@ func (s *UtilsSuite) Test_isMatchingClientOrServerByDeviceAndEntity() {
 	assert.True(s.T(), result)
 }
 
+// TC_SPINE_RTS_001: tolerate/resolve client features of any known SPINE feature type via their address+role.
 func (s *UtilsSuite) Test_addressDetails() {
 	s.localDevice = NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
 

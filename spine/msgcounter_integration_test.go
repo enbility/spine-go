@@ -129,6 +129,7 @@ func (s *MsgCounterIntegrationSuite) Test_MultiDevice_Independent_Counters() {
 
 // Test device reset scenario - msgCounter drops from high to low value
 // This test demonstrates the missing implementation of SPINE spec requirement
+// TC_SPINE_DATA_003: process incoming datagrams as usual even if the msgCounter is lower than the last received (reset/overflow).
 func (s *MsgCounterIntegrationSuite) Test_DeviceReset_Detection_Gap() {
 	// Device sends messages with increasing counters
 	normalCounters := []model.MsgCounterType{100, 101, 102}

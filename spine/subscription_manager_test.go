@@ -43,6 +43,7 @@ func (s *SubscriptionManagerSuite) BeforeTest(suiteName, testName string) {
 	s.sut = NewSubscriptionManager(s.localDevice)
 }
 
+// TC_SPINE_SUBS_002: deleting a subscription is idempotent - removing an already-absent subscription still returns success.
 func (s *SubscriptionManagerSuite) Test_Subscriptions() {
 	entity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{1}, time.Second*4)
 	s.localDevice.AddEntity(entity)

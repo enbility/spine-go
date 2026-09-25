@@ -12,6 +12,7 @@ import (
 // TestFeatureLocal_UnknownFunction_ErrorCode6 verifies that spine-go returns
 // error code 6 (CommandNotSupported) for unknown functions as per SPINE specification.
 // This test confirms the fix from returning error code 1 (GeneralError) to error code 6.
+// TC_SPINE_COMP_001: reject a request for an unknown/unsupported Function with errorNumber > 0 (CommandNotSupported).
 func TestFeatureLocal_UnknownFunction_ErrorCode6(t *testing.T) {
 	// Setup
 	_, localEntity := createLocalDeviceAndEntity(1)

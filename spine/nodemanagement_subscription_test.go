@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// TC_SPINE_SUBS_001: accept a subscription request to the primary NodeManagement feature.
 func TestNodemanagement_SubscriptionCalls(t *testing.T) {
 	const subscriptionEntityId uint = 1
 	const featureType = model.FeatureTypeTypeDeviceClassification
