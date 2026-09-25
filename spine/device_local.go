@@ -437,6 +437,20 @@ func (r *DeviceLocal) ProcessCmd(datagram model.DatagramType, remoteDevice api.D
 			_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
 			return errors.New(err.String())
 		}
+
+		// If the write contains a partial or delete filter, the feature must have announced
+		// partial write support via possibleOperations. Unlike reads (where the spec allows
+		// ignoring unsupported filters and returning full data), writes have no such fallback.
+		if filterPartial != nil || filterDelete != nil {
+			operations := localFeature.Operations()[*cmdData.Function]
+			if !operations.WritePartial() {
+				err := model.NewErrorType(
+					model.ErrorNumberTypeRestrictedFunctionExchangeCombinationNotSupported,
+					"partial write not supported for this function")
+				_ = remoteFeature.Device().Sender().ResultError(message.RequestHeader, localFeature.Address(), err)
+				return errors.New(err.String())
+			}
+		}
 	}
 
 	err := localFeature.HandleMessage(message)
