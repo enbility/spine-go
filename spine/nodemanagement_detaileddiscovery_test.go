@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/enbility/spine-go/api"
@@ -262,4 +263,49 @@ func (s *NodeManagementSuite) TestDestinationList_SendReply() {
 	// Assert
 	sendBytes := s.writeHandler.MessageWithReference(msgCounter)
 	checkSentData(s.T(), sendBytes, nm_destinationListData_send_reply_file_prefix)
+}
+
+// TC_SPINE_DATA_005: a full notify that matches the known state produces an empty diff. Nothing
+// to apply is not an application error.
+func (s *NodeManagementSuite) TestDetailedDiscovery_RecvFullNotifyWithoutChange() {
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(
+		loadFileData(s.T(), "./testdata/nm_detaileddiscoverydata_recv_notify_full_unchanged.json"))
+
+	assertNotifyAcknowledged(s.T(), s.writeHandler, msgCounter)
+}
+
+// assertNotifyAcknowledged checks that the notify was answered with a resultData carrying
+// errorNumber = 0, and reports the description on failure so the rejecting check is visible.
+func assertNotifyAcknowledged(t *testing.T, writeHandler *WriteMessageHandler, msgCounter *model.MsgCounterType) {
+	t.Helper()
+
+	raw := writeHandler.ResultWithReference(msgCounter)
+	if !assert.NotNil(t, raw, "TC_SPINE_DATA_005: a resultData must be sent") {
+		return
+	}
+
+	var result model.Datagram
+	assert.Nil(t, json.Unmarshal(raw, &result))
+	resultData := result.Datagram.Payload.Cmd[0].ResultData
+	if !assert.NotNil(t, resultData) || !assert.NotNil(t, resultData.ErrorNumber) {
+		return
+	}
+
+	description := ""
+	if resultData.Description != nil {
+		description = string(*resultData.Description)
+	}
+	assert.Equal(t, uint(0), uint(*resultData.ErrorNumber),
+		"TC_SPINE_DATA_005: the notify must be acknowledged with errorNumber = 0 (description: %q)", description)
+}
+
+// TC_SPINE_DATA_005: datagram taken from EEBUS living lab certification test run. It is a partial notify whose three
+// entityInformation entries carry entityAddress and entityType but no lastStateChange, which the
+// device answered with errorNumber 1 and
+// "nodemanagement.notifyDetailedDiscoveryData: invalid EntityInformation.Description".
+func (s *NodeManagementSuite) TestDetailedDiscovery_RecvNotifyFromCertificationRun() {
+	msgCounter, _ := s.remoteDevice.HandleSpineMesssage(
+		loadFileData(s.T(), "./testdata/nm_detaileddiscoverydata_recv_notify_cert_data005.json"))
+
+	assertNotifyAcknowledged(s.T(), s.writeHandler, msgCounter)
 }

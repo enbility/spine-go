@@ -1,0 +1,45 @@
+{
+    "datagram": {
+        "header": {
+            "specificationVersion": "1.3.0",
+            "addressSource": {
+                "device": "Wallbox",
+                "entity": [
+                    0
+                ],
+                "feature": 0
+            },
+            "addressDestination": {
+                "device": "HEMS",
+                "entity": [
+                    0
+                ],
+                "feature": 0
+            },
+            "msgCounter": 4711,
+            "cmdClassifier": "notify",
+            "ackRequest": true
+        },
+        "payload": {
+            "cmd": [
+                {
+                    "function": "nodeManagementDetailedDiscoveryData",
+                    "nodeManagementDetailedDiscoveryData": {
+                        "entityInformation": [
+                            {
+                                "description": {
+                                    "entityAddress": {
+                                        "entity": [
+                                            0
+                                        ]
+                                    },
+                                    "lastStateChange": "modified"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
