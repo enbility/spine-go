@@ -305,6 +305,13 @@ func (c *BindingManager) checkRoleAndType(feature api.FeatureInterface, role mod
 		return fmt.Errorf("found feature %s is not matching required role %s", feature.Type(), role)
 	}
 
+	// serverFeatureType identifies the feature the request targets, so it constrains the
+	// server feature only. A client may announce any type for its own feature, including one
+	// introduced by a later SPINE release, and that has to be tolerated.
+	if role != model.RoleTypeServer {
+		return nil
+	}
+
 	if feature.Type() != featureType && feature.Type() != model.FeatureTypeTypeGeneric {
 		return fmt.Errorf("found feature %s is not matching required type %s", feature.Type(), featureType)
 	}
