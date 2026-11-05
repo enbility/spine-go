@@ -547,3 +547,71 @@ func Test_fixupSliceFields(t *testing.T) {
 		})
 	}
 }
+
+// a repeated detailed discovery reply for a known entity must keep unchanged features
+// and their data, and replace features whose type changed
+func (s *DeviceRemoteSuite) Test_AddEntityAndFeatures_KeepsFeatureData() {
+	feature := func(id uint, fType model.FeatureTypeType) model.NodeManagementDetailedDiscoveryFeatureInformationType {
+		return model.NodeManagementDetailedDiscoveryFeatureInformationType{
+			Description: &model.NetworkManagementFeatureDescriptionDataType{
+				FeatureAddress: &model.FeatureAddressType{
+					Device:  s.remoteDevice.Address(),
+					Entity:  []model.AddressEntityType{2},
+					Feature: util.Ptr(model.AddressFeatureType(id)),
+				},
+				FeatureType: util.Ptr(fType),
+				Role:        util.Ptr(model.RoleTypeServer),
+			},
+		}
+	}
+
+	discovery := func(features ...model.NodeManagementDetailedDiscoveryFeatureInformationType) *model.NodeManagementDetailedDiscoveryDataType {
+		return &model.NodeManagementDetailedDiscoveryDataType{
+			EntityInformation: []model.NodeManagementDetailedDiscoveryEntityInformationType{{
+				Description: &model.NetworkManagementEntityDescriptionDataType{
+					EntityAddress: &model.EntityAddressType{
+						Device: s.remoteDevice.Address(),
+						Entity: []model.AddressEntityType{2},
+					},
+					EntityType: util.Ptr(model.EntityTypeTypeHeatPumpAppliance),
+				},
+			}},
+			FeatureInformation: features,
+		}
+	}
+
+	entities, err := s.remoteDevice.AddEntityAndFeatures(true, discovery(
+		feature(1, model.FeatureTypeTypeMeasurement),
+		feature(2, model.FeatureTypeTypeLoadControl),
+	), nil)
+	assert.Nil(s.T(), err)
+	assert.Len(s.T(), entities, 1)
+
+	entity := entities[0]
+	measurement := entity.FeatureOfTypeAndRole(model.FeatureTypeTypeMeasurement, model.RoleTypeServer)
+	assert.NotNil(s.T(), measurement)
+
+	desc := &model.MeasurementDescriptionListDataType{
+		MeasurementDescriptionData: []model.MeasurementDescriptionDataType{{
+			MeasurementId: util.Ptr(model.MeasurementIdType(1)),
+		}},
+	}
+	_, errT := measurement.UpdateData(true, model.FunctionTypeMeasurementDescriptionListData, desc, nil, nil)
+	assert.Nil(s.T(), errT)
+
+	// same discovery again, feature 2 changed its type
+	entities, err = s.remoteDevice.AddEntityAndFeatures(false, discovery(
+		feature(1, model.FeatureTypeTypeMeasurement),
+		feature(2, model.FeatureTypeTypeElectricalConnection),
+	), nil)
+	assert.Nil(s.T(), err)
+	assert.Len(s.T(), entities, 0)
+	assert.Len(s.T(), entity.Features(), 2)
+
+	kept := entity.FeatureOfTypeAndRole(model.FeatureTypeTypeMeasurement, model.RoleTypeServer)
+	assert.Same(s.T(), measurement, kept)
+	assert.Equal(s.T(), desc, kept.DataCopy(model.FunctionTypeMeasurementDescriptionListData))
+
+	assert.Nil(s.T(), entity.FeatureOfTypeAndRole(model.FeatureTypeTypeLoadControl, model.RoleTypeServer))
+	assert.NotNil(s.T(), entity.FeatureOfTypeAndRole(model.FeatureTypeTypeElectricalConnection, model.RoleTypeServer))
+}
