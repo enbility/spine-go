@@ -46,6 +46,42 @@ func TestSetpointListDataType_Update(t *testing.T) {
 	assert.Equal(t, 10.0, item2.Value.GetValue())
 }
 
+func TestSetpointConstraintsListDataType_Update(t *testing.T) {
+	sut := SetpointConstraintsListDataType{
+		SetpointConstraintsData: []SetpointConstraintsDataType{
+			{
+				SetpointId:       util.Ptr(SetpointIdType(0)),
+				SetpointRangeMax: NewScaledNumberType(1),
+			},
+			{
+				SetpointId:       util.Ptr(SetpointIdType(1)),
+				SetpointRangeMax: NewScaledNumberType(1),
+			},
+		},
+	}
+
+	newData := SetpointConstraintsListDataType{
+		SetpointConstraintsData: []SetpointConstraintsDataType{
+			{
+				SetpointId:       util.Ptr(SetpointIdType(1)),
+				SetpointRangeMax: NewScaledNumberType(10),
+			},
+		},
+	}
+
+	_, success := sut.UpdateList(false, true, &newData, NewFilterTypePartial(), nil, nil)
+	assert.True(t, success)
+
+	data := sut.SetpointConstraintsData
+	assert.Equal(t, 2, len(data))
+	item1 := data[0]
+	assert.Equal(t, 0, int(*item1.SetpointId))
+	assert.Equal(t, 1.0, item1.SetpointRangeMax.GetValue())
+	item2 := data[1]
+	assert.Equal(t, 1, int(*item2.SetpointId))
+	assert.Equal(t, 10.0, item2.SetpointRangeMax.GetValue())
+}
+
 func TestSetpointDescriptionListDataType_Update(t *testing.T) {
 	sut := SetpointDescriptionListDataType{
 		SetpointDescriptionData: []SetpointDescriptionDataType{
