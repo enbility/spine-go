@@ -129,6 +129,10 @@ var _ api.DeviceLocalInterface = (*DeviceLocal)(nil)
 
 // Setup a new remote device with a given SKI and triggers SPINE requesting device details
 func (r *DeviceLocal) SetupRemoteDevice(ski string, writeI shipapi.ShipConnectionDataWriterInterface) shipapi.ShipConnectionDataReaderInterface {
+	// SHIP may replace a connection without reporting the old one as closed
+	// (double connection), so remove the state of a previous device for this SKI
+	r.RemoveRemoteDeviceConnection(ski)
+
 	sender := NewSender(writeI)
 	rDevice := NewDeviceRemote(r, ski, sender)
 

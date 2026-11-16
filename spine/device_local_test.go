@@ -5,6 +5,7 @@ import (
 	"time"
 
 	shipapi "github.com/enbility/ship-go/api"
+	"github.com/enbility/spine-go/api"
 	"github.com/enbility/spine-go/model"
 	"github.com/enbility/spine-go/util"
 	"github.com/stretchr/testify/assert"
@@ -176,6 +177,60 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	sut.RemoveRemoteDevice(ski)
 	remoteI = sut.RemoteDeviceForSki(ski)
 	assert.Nil(d.T(), remoteI)
+}
+
+// a new connection for the same SKI (SHIP double connection) must not keep
+// the bindings and subscriptions of the replaced device
+func (d *DeviceLocalTestSuite) Test_SetupRemoteDevice_ReplacesExisting() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+	localEntity := NewEntityLocal(sut, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{1}), time.Second*4)
+	sut.AddEntity(localEntity)
+	lf := NewFeatureLocal(1, localEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+	localEntity.AddFeature(lf)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+	oldRemote := sut.RemoteDeviceForSki(ski).(*DeviceRemote)
+	oldRemote.address = util.Ptr(model.AddressDeviceType("remoteDevice"))
+	re := NewEntityRemote(oldRemote, model.EntityTypeTypeGridGuard, []model.AddressEntityType{1})
+	rf := NewFeatureRemote(1, re, model.FeatureTypeTypeLoadControl, model.RoleTypeClient)
+	re.AddFeature(rf)
+	oldRemote.AddEntity(re)
+
+	subscription := model.SubscriptionManagementRequestCallType{
+		ClientAddress:     rf.Address(),
+		ServerAddress:     lf.Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeLoadControl),
+	}
+	assert.Nil(d.T(), sut.SubscriptionManager().AddSubscription(oldRemote, subscription))
+	binding := model.BindingManagementRequestCallType{
+		ClientAddress:     rf.Address(),
+		ServerAddress:     lf.Address(),
+		ServerFeatureType: util.Ptr(model.FeatureTypeTypeLoadControl),
+	}
+	assert.Nil(d.T(), sut.BindingManager().AddBinding(oldRemote, binding))
+
+	handler := newTestEventHandler("local")
+	_ = sut.events.subscribe(api.EventHandlerLevelCore, handler)
+
+	_ = sut.SetupRemoteDevice(ski, d)
+
+	newRemote := sut.RemoteDeviceForSki(ski)
+	assert.NotNil(d.T(), newRemote)
+	assert.NotSame(d.T(), oldRemote, newRemote)
+	assert.Equal(d.T(), 1, len(sut.RemoteDevices()))
+	assert.False(d.T(), sut.SubscriptionManager().HasSubscription(rf.Address(), lf.Address()))
+	assert.False(d.T(), sut.BindingManager().HasBinding(rf.Address(), lf.Address()))
+
+	removed := false
+	for _, event := range handler.receivedEvents() {
+		if event.EventType == api.EventTypeDeviceChange &&
+			event.ChangeType == api.ElementChangeRemove &&
+			event.Device == oldRemote {
+			removed = true
+		}
+	}
+	assert.True(d.T(), removed)
 }
 
 func (d *DeviceLocalTestSuite) Test_ProcessCmd_NotifyError() {
