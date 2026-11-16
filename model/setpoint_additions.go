@@ -19,6 +19,25 @@ func (r *SetpointListDataType) UpdateList(remoteWrite, persist bool, newList any
 	return data, success
 }
 
+// SetpointConstraintsListDataType
+
+var _ Updater = (*SetpointConstraintsListDataType)(nil)
+
+func (r *SetpointConstraintsListDataType) UpdateList(remoteWrite, persist bool, newList any, filterPartial, filterDelete *FilterType, cmdFunction *FunctionType) (any, bool) {
+	var newData []SetpointConstraintsDataType
+	if newList != nil {
+		newData = newList.(*SetpointConstraintsListDataType).SetpointConstraintsData
+	}
+
+	data, success := UpdateList(remoteWrite, r.SetpointConstraintsData, newData, filterPartial, filterDelete, cmdFunction)
+
+	if success && persist {
+		r.SetpointConstraintsData = data
+	}
+
+	return data, success
+}
+
 // SetpointDescriptionListDataType
 
 var _ Updater = (*SetpointDescriptionListDataType)(nil)
