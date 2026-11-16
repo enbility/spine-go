@@ -238,11 +238,21 @@ func (d *DeviceRemote) AddEntityAndFeatures(
 		}
 
 		entity.SetDescription(ei.Description.Description)
+
+		// a repeated discovery of a known entity must keep its unchanged features,
+		// otherwise their cached data is lost and no event tells the use cases to re-read it
+		existing := entity.Features()
 		entity.RemoveAllFeatures()
 
 		for _, fi := range data.FeatureInformation {
 			if reflect.DeepEqual(fi.Description.FeatureAddress.Entity, entityAddress) {
 				if f, ok := unmarshalFeature(entity, fi); ok {
+					if old := matchingFeature(existing, f); old != nil {
+						old.SetDescription(fi.Description.Description)
+						old.SetMaxResponseDelay(fi.Description.MaxResponseDelay)
+						old.SetOperations(fi.Description.SupportedFunction)
+						f = old
+					}
 					entity.AddFeature(f)
 				}
 			}
@@ -428,5 +438,15 @@ func findFieldTypeByJSONTag(structType reflect.Type, jsonName string) *reflect.T
 		}
 	}
 
+	return nil
+}
+
+// matchingFeature returns the feature from the list with the same address, type and role
+func matchingFeature(features []api.FeatureRemoteInterface, f api.FeatureRemoteInterface) api.FeatureRemoteInterface {
+	for _, old := range features {
+		if reflect.DeepEqual(old.Address(), f.Address()) && old.Type() == f.Type() && old.Role() == f.Role() {
+			return old
+		}
+	}
 	return nil
 }
