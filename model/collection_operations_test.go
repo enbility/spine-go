@@ -116,6 +116,32 @@ func TestUnion_NewAndUpdateDataRemoteWrite(t *testing.T) {
 	}
 }
 
+func TestUnion_RemoteWriteIgnoresUnchangedItemsWithoutWriteCheckValue(t *testing.T) {
+	existingData := []testStruct{
+		{Id: util.Ptr(uint(0)), Active: util.Ptr(true), Data: util.Ptr(string("data1"))},
+		{Id: util.Ptr(uint(1)), Changeable: util.Ptr(true), Active: util.Ptr(false), Data: util.Ptr(string("data2"))},
+	}
+
+	newData := []testStruct{
+		{Id: util.Ptr(uint(1)), Data: util.Ptr(string("data22"))},
+	}
+
+	result, boolV := Merge(true, existingData, newData)
+	assert.True(t, boolV)
+
+	if assert.Equal(t, 2, len(result)) {
+		assert.Equal(t, 0, int(*result[0].Id))
+		assert.Equal(t, "data1", string(*result[0].Data))
+		assert.Equal(t, true, bool(*result[0].Active))
+		assert.Nil(t, result[0].Changeable)
+
+		assert.Equal(t, 1, int(*result[1].Id))
+		assert.Equal(t, "data22", string(*result[1].Data))
+		assert.Equal(t, true, bool(*result[1].Changeable))
+		assert.Equal(t, false, bool(*result[1].Active))
+	}
+}
+
 func TestUnion_InvalidData(t *testing.T) {
 	existingData := []testInvalidStruct{
 		{Id: util.Ptr(uint(0)), Changeable: util.Ptr("true"), Data: util.Ptr(string("data1"))},
