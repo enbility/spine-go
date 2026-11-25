@@ -3,6 +3,7 @@ package spine
 import (
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
@@ -11,6 +12,8 @@ import (
 
 type SubscriptionManager struct {
 	localDevice api.DeviceLocalInterface
+
+	mux sync.Mutex // serializes read-modify-write of the subscription data
 }
 
 func NewSubscriptionManager(localDevice api.DeviceLocalInterface) *SubscriptionManager {
@@ -52,11 +55,21 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 		ServerAddress: data.ServerAddress,
 	}
 
+	c.mux.Lock()
+
+	// a concurrent call may have added the subscription in the meantime
+	if c.HasSubscription(data.ClientAddress, data.ServerAddress) {
+		c.mux.Unlock()
+		return nil
+	}
+
 	nodeMgmt := c.localDevice.NodeManagement()
 	subscriptionData := c.subscriptionData()
 	subscriptionData.SubscriptionEntry = append(subscriptionData.SubscriptionEntry, subscriptionEntry)
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementSubscriptionData, subscriptionData)
+
+	c.mux.Unlock()
 
 	payload := api.EventPayload{
 		Ski:          remoteDevice.Ski(),
@@ -77,6 +90,8 @@ func (c *SubscriptionManager) AddSubscription(remoteDevice api.DeviceRemoteInter
 //
 // Note: The device values of both addresses may not be nil
 func (c *SubscriptionManager) RemoveSubscription(remoteDevice api.DeviceRemoteInterface, data model.SubscriptionManagementDeleteCallType) error {
+	c.mux.Lock()
+
 	subscriptionData := c.subscriptionData()
 
 	newSubscriptionData := &model.NodeManagementSubscriptionDataType{
@@ -119,12 +134,15 @@ func (c *SubscriptionManager) RemoveSubscription(remoteDevice api.DeviceRemoteIn
 	// we did not find any subscription to delete, so we're already in the desired state
 	// return success to indicate that the subscription doesn't exist and simplify synchronization between local and remote device
 	if len(deletedSubscriptions) == 0 {
+		c.mux.Unlock()
 		return nil
 	}
 
 	nodeMgmt := c.localDevice.NodeManagement()
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementSubscriptionData, newSubscriptionData)
+
+	c.mux.Unlock()
 
 	// inform about every deleted subscription
 	for _, item := range deletedSubscriptions {

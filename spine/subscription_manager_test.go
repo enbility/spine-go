@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -274,5 +275,69 @@ func (s *SubscriptionManagerSuite) Test_Subscriptions_ArbitraryClientFeatureType
 			assert.Nil(s.T(), err)
 			assert.Equal(s.T(), 1, len(subMgr.SubscriptionsForRemoteDevice(remoteDevice)))
 		})
+	}
+}
+
+func (s *SubscriptionManagerSuite) Test_AddSubscription_Concurrent() {
+	remoteDeviceAddress := model.AddressDeviceType("remoteDevice")
+	s.remoteDevice.UpdateDevice(
+		&model.NetworkManagementDeviceDescriptionDataType{
+			DeviceAddress: &model.DeviceAddressType{Device: &remoteDeviceAddress},
+		},
+	)
+	remoteEntity := NewEntityRemote(s.remoteDevice, model.EntityTypeTypeEVSE, []model.AddressEntityType{1})
+	s.remoteDevice.AddEntity(remoteEntity)
+
+	remoteFeature := NewFeatureRemote(remoteEntity.NextFeatureId(), remoteEntity, model.FeatureTypeTypeLoadControl, model.RoleTypeClient)
+	remoteFeature.Address().Device = util.Ptr(remoteDeviceAddress)
+	remoteEntity.AddFeature(remoteFeature)
+
+	const count = 50
+	requests := make([]model.SubscriptionManagementRequestCallType, 0, count)
+	for i := 0; i < count; i++ {
+		// a local entity holds only one feature per type and role
+		entity := NewEntityLocal(s.localDevice, model.EntityTypeTypeCEM, []model.AddressEntityType{model.AddressEntityType(i + 1)}, time.Second*4)
+		s.localDevice.AddEntity(entity)
+		localFeature := entity.GetOrAddFeature(model.FeatureTypeTypeLoadControl, model.RoleTypeServer)
+
+		requests = append(requests, model.SubscriptionManagementRequestCallType{
+			ClientAddress: remoteFeature.Address(),
+			ServerAddress: localFeature.Address(),
+		})
+	}
+
+	// run concurrently and return once all calls have finished
+	parallel := func(fn func(model.SubscriptionManagementRequestCallType)) {
+		var start, wg sync.WaitGroup
+		start.Add(1)
+		for _, request := range requests {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				start.Wait()
+				fn(request)
+			}()
+		}
+		start.Done()
+		wg.Wait()
+	}
+
+	for i := 0; i < 10; i++ {
+		parallel(func(request model.SubscriptionManagementRequestCallType) {
+			assert.Nil(s.T(), s.sut.AddSubscription(s.remoteDevice, request))
+		})
+		if !assert.Equal(s.T(), count, len(s.sut.SubscriptionsForRemoteDevice(s.remoteDevice)), "round %d", i) {
+			return
+		}
+
+		parallel(func(request model.SubscriptionManagementRequestCallType) {
+			assert.Nil(s.T(), s.sut.RemoveSubscription(s.remoteDevice, model.SubscriptionManagementDeleteCallType{
+				ClientAddress: request.ClientAddress,
+				ServerAddress: request.ServerAddress,
+			}))
+		})
+		if !assert.Equal(s.T(), 0, len(s.sut.SubscriptionsForRemoteDevice(s.remoteDevice)), "round %d", i) {
+			return
+		}
 	}
 }

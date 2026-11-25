@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/enbility/ship-go/logging"
 	"github.com/enbility/spine-go/api"
@@ -12,6 +13,8 @@ import (
 
 type BindingManager struct {
 	localDevice api.DeviceLocalInterface
+
+	mux sync.Mutex // serializes read-modify-write of the binding data
 }
 
 func NewBindingManager(localDevice api.DeviceLocalInterface) *BindingManager {
@@ -55,11 +58,20 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 		}
 	}
 
+	c.mux.Lock()
+
+	// a concurrent call may have added the binding in the meantime
+	if c.HasBinding(data.ClientAddress, data.ServerAddress) {
+		c.mux.Unlock()
+		return nil
+	}
+
 	// a local feature can only have one remote binding for now
 	// see also https://github.com/enbility/spine-go/issues/25
 	if localRole == model.RoleTypeServer {
 		bindings := c.BindingsForFeatureAddress(*localFeature.Address())
 		if len(bindings) > 0 {
+			c.mux.Unlock()
 			return errors.New("the server feature already has a binding")
 		}
 	}
@@ -74,6 +86,8 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 	bindingData.BindingEntry = append(bindingData.BindingEntry, bindingEntry)
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementBindingData, bindingData)
+
+	c.mux.Unlock()
 
 	payload := api.EventPayload{
 		Ski:          remoteDevice.Ski(),
@@ -94,6 +108,8 @@ func (c *BindingManager) AddBinding(remoteDevice api.DeviceRemoteInterface, data
 //
 // Note: The device values of both addresses may not be nil
 func (c *BindingManager) RemoveBinding(remoteDevice api.DeviceRemoteInterface, data model.BindingManagementDeleteCallType) error {
+	c.mux.Lock()
+
 	bindingData := c.bindingData()
 
 	newBindingData := &model.NodeManagementBindingDataType{
@@ -136,12 +152,15 @@ func (c *BindingManager) RemoveBinding(remoteDevice api.DeviceRemoteInterface, d
 	// we did not find any binding to delete, so we're already in the desired state
 	// return success to indicate that the binding doesn't exist and simplify synchronization between local and remote device
 	if len(deletedBindings) == 0 {
+		c.mux.Unlock()
 		return nil
 	}
 
 	nodeMgmt := c.localDevice.NodeManagement()
 
 	nodeMgmt.SetData(model.FunctionTypeNodeManagementBindingData, newBindingData)
+
+	c.mux.Unlock()
 
 	for _, item := range deletedBindings {
 		// inform about every deleted binding
