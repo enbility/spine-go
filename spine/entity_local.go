@@ -8,6 +8,10 @@ import (
 	"github.com/enbility/spine-go/model"
 )
 
+// serializes read-modify-write of the use case data; it is device wide, shared by all
+// entities, and api.DeviceLocalInterface offers no per device lock
+var useCaseDataMux sync.Mutex
+
 type EntityLocal struct {
 	*Entity
 	device   api.DeviceLocalInterface
@@ -133,6 +137,9 @@ func (r *EntityLocal) AddUseCaseSupport(
 ) {
 	nodeMgmt := r.device.NodeManagement()
 
+	useCaseDataMux.Lock()
+	defer useCaseDataMux.Unlock()
+
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
 	if err != nil {
 		data = &model.NodeManagementUseCaseDataType{}
@@ -172,6 +179,9 @@ func (r *EntityLocal) SetUseCaseAvailability(
 	available bool) {
 	nodeMgmt := r.device.NodeManagement()
 
+	useCaseDataMux.Lock()
+	defer useCaseDataMux.Unlock()
+
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
 	if err != nil {
 		return
@@ -195,6 +205,9 @@ func (r *EntityLocal) RemoveUseCaseSupports(filters []model.UseCaseFilterType) {
 
 	nodeMgmt := r.device.NodeManagement()
 
+	useCaseDataMux.Lock()
+	defer useCaseDataMux.Unlock()
+
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
 	if err != nil {
 		return
@@ -215,6 +228,9 @@ func (r *EntityLocal) RemoveUseCaseSupports(filters []model.UseCaseFilterType) {
 // Remove all usecases
 func (r *EntityLocal) RemoveAllUseCaseSupports() {
 	nodeMgmt := r.device.NodeManagement()
+
+	useCaseDataMux.Lock()
+	defer useCaseDataMux.Unlock()
 
 	data, err := LocalFeatureDataCopyOfType[*model.NodeManagementUseCaseDataType](nodeMgmt, model.FunctionTypeNodeManagementUseCaseData)
 	if err != nil {
