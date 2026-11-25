@@ -36,20 +36,18 @@ func (cmd *CmdType) ValidateFunctionConsistencyStrict() error {
 	}
 
 	// Check all filters - in strict mode, all must be valid
-	if len(cmd.Filter) > 0 {
-		for i, filter := range cmd.Filter {
-			// Pass cmd.Function for partial filters without selectors
-			filterData, err := filter.Data(cmd.Function)
-			if err != nil {
-				return fmt.Errorf("filter[%d] has invalid data: %w", i, err)
-			}
-			if filterData.Function == nil {
-				return fmt.Errorf("filter[%d] has no function", i)
-			}
-			if *filterData.Function != baseFunction {
-				return fmt.Errorf("filter[%d] function (%s) doesn't match data function (%s)",
-					i, *filterData.Function, baseFunction)
-			}
+	for i, filter := range cmd.Filter {
+		// Pass cmd.Function for partial filters without selectors
+		filterData, err := filter.Data(cmd.Function)
+		if err != nil {
+			return fmt.Errorf("filter[%d] has invalid data: %w", i, err)
+		}
+		if filterData.Function == nil {
+			return fmt.Errorf("filter[%d] has no function", i)
+		}
+		if *filterData.Function != baseFunction {
+			return fmt.Errorf("filter[%d] function (%s) doesn't match data function (%s)",
+				i, *filterData.Function, baseFunction)
 		}
 	}
 
