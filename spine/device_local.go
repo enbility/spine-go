@@ -164,15 +164,13 @@ func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemote
 }
 
 func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
-	remoteDevice := r.RemoteDeviceForSki(ski)
+	remoteDevice := r.removeRemoteDevice(ski)
 
 	// we get the events for any disconnection, even for cases where SHIP
 	// closed a connection and therefor it never reached SPINE
 	if remoteDevice == nil {
 		return
 	}
-
-	r.RemoveRemoteDevice(ski)
 
 	// inform about the disconnection
 	payload := api.EventPayload{
@@ -185,20 +183,18 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
-	remoteDevice := r.RemoteDeviceForSki(ski)
-	if remoteDevice == nil {
-		return
-	}
+	_ = r.removeRemoteDevice(ski)
+}
 
-	// remove all subscriptions for this device
-	subscriptionMgr := r.SubscriptionManager()
-	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
-
-	// remove all bindings for this device
-	bindingMgr := r.BindingManager()
-	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
-
+// removeRemoteDevice returns the removed device, or nil if there is none or another caller removed it
+func (r *DeviceLocal) removeRemoteDevice(ski string) api.DeviceRemoteInterface {
 	r.mux.Lock()
+
+	remoteDevice := r.remoteDevices[ski]
+	if remoteDevice == nil {
+		r.mux.Unlock()
+		return nil
+	}
 
 	delete(r.remoteDevices, ski)
 
@@ -208,6 +204,17 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	}
 
 	r.mux.Unlock()
+
+	// clean up only after winning the removal, so a losing caller cannot clear
+	// the state of a new device that was set up for the same SKI meanwhile
+
+	// remove all subscriptions for this device
+	subscriptionMgr := r.SubscriptionManager()
+	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
+
+	// remove all bindings for this device
+	bindingMgr := r.BindingManager()
+	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
 
 	remoteDeviceAddress := &model.DeviceAddressType{
 		Device: remoteDevice.Address(),
@@ -219,6 +226,8 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 			feature.CleanRemoteDeviceCaches(remoteDeviceAddress)
 		}
 	}
+
+	return remoteDevice
 }
 
 func (r *DeviceLocal) RemoteDevices() []api.DeviceRemoteInterface {
