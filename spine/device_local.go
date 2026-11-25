@@ -188,22 +188,10 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 
 // removeRemoteDevice returns the removed device, or nil if there is none or another caller removed it
 func (r *DeviceLocal) removeRemoteDevice(ski string) api.DeviceRemoteInterface {
-	remoteDevice := r.RemoteDeviceForSki(ski)
-	if remoteDevice == nil {
-		return nil
-	}
-
-	// remove all subscriptions for this device
-	subscriptionMgr := r.SubscriptionManager()
-	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
-
-	// remove all bindings for this device
-	bindingMgr := r.BindingManager()
-	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
-
 	r.mux.Lock()
 
-	if r.remoteDevices[ski] != remoteDevice {
+	remoteDevice := r.remoteDevices[ski]
+	if remoteDevice == nil {
 		r.mux.Unlock()
 		return nil
 	}
@@ -216,6 +204,17 @@ func (r *DeviceLocal) removeRemoteDevice(ski string) api.DeviceRemoteInterface {
 	}
 
 	r.mux.Unlock()
+
+	// clean up only after winning the removal, so a losing caller cannot clear
+	// the state of a new device that was set up for the same SKI meanwhile
+
+	// remove all subscriptions for this device
+	subscriptionMgr := r.SubscriptionManager()
+	subscriptionMgr.RemoveSubscriptionsForRemoteDevice(remoteDevice)
+
+	// remove all bindings for this device
+	bindingMgr := r.BindingManager()
+	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
 
 	remoteDeviceAddress := &model.DeviceAddressType{
 		Device: remoteDevice.Address(),

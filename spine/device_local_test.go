@@ -218,6 +218,40 @@ func (d *DeviceLocalTestSuite) Test_RemoveRemoteDeviceConnection_Concurrent() {
 	}
 }
 
+type hookSubscriptionManager struct {
+	api.SubscriptionManagerInterface
+	hook  func()
+	calls int
+}
+
+func (h *hookSubscriptionManager) RemoveSubscriptionsForRemoteDevice(remoteDevice api.DeviceRemoteInterface) {
+	h.calls++
+	if hook := h.hook; hook != nil {
+		h.hook = nil
+		hook()
+	}
+	h.SubscriptionManagerInterface.RemoveSubscriptionsForRemoteDevice(remoteDevice)
+}
+
+// only the caller that removed the device may clean up its subscriptions and bindings,
+// a losing caller would otherwise clear those of a new device for the same SKI
+func (d *DeviceLocalTestSuite) Test_RemoveRemoteDeviceConnection_LoserDoesNotCleanUp() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	ski := "test"
+	_ = sut.SetupRemoteDevice(ski, d)
+
+	mgr := &hookSubscriptionManager{SubscriptionManagerInterface: sut.subscriptionManager}
+	sut.subscriptionManager = mgr
+
+	// a second remove runs while the first one is cleaning up
+	mgr.hook = func() { sut.RemoveRemoteDeviceConnection(ski) }
+	sut.RemoveRemoteDeviceConnection(ski)
+
+	assert.Nil(d.T(), sut.RemoteDeviceForSki(ski))
+	assert.Equal(d.T(), 1, mgr.calls)
+}
+
 // a new connection for the same SKI (SHIP double connection) must not keep
 // the bindings and subscriptions of the replaced device
 func (d *DeviceLocalTestSuite) Test_SetupRemoteDevice_ReplacesExisting() {
