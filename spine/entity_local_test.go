@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -127,4 +128,57 @@ func (suite *EntityLocalTestSuite) Test_Entity() {
 
 	hasUC = entity.HasUseCaseSupport(cemEvseUCFilter)
 	assert.Equal(suite.T(), false, hasUC)
+}
+
+func (suite *EntityLocalTestSuite) Test_UseCaseSupport_Concurrent() {
+	device := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	const count = 20
+	entities := make([]*EntityLocal, 0, count)
+	for i := 0; i < count; i++ {
+		entity := NewEntityLocal(device, model.EntityTypeTypeCEM, NewAddressEntityType([]uint{uint(i + 1)}), time.Second*4)
+		device.AddEntity(entity)
+		entities = append(entities, entity)
+	}
+
+	uc := model.UseCaseFilterType{
+		Actor:       model.UseCaseActorTypeCEM,
+		UseCaseName: model.UseCaseNameTypeEVSECommissioningAndConfiguration,
+	}
+
+	// run concurrently and return once all calls have finished
+	parallel := func(fn func(*EntityLocal)) {
+		var start, wg sync.WaitGroup
+		start.Add(1)
+		for _, entity := range entities {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				start.Wait()
+				fn(entity)
+			}()
+		}
+		start.Done()
+		wg.Wait()
+	}
+
+	for i := 0; i < 10; i++ {
+		parallel(func(entity *EntityLocal) {
+			entity.AddUseCaseSupport(uc.Actor, uc.UseCaseName, model.SpecificationVersionType("1.0.0"), "", true, []model.UseCaseScenarioSupportType{1})
+		})
+		for _, entity := range entities {
+			if !assert.True(suite.T(), entity.HasUseCaseSupport(uc), "round %d entity %v", i, entity.Address().Entity) {
+				return
+			}
+		}
+
+		parallel(func(entity *EntityLocal) {
+			entity.RemoveAllUseCaseSupports()
+		})
+		for _, entity := range entities {
+			if !assert.False(suite.T(), entity.HasUseCaseSupport(uc), "round %d entity %v", i, entity.Address().Entity) {
+				return
+			}
+		}
+	}
 }
