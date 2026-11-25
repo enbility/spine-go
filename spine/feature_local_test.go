@@ -827,6 +827,44 @@ func (s *LocalFeatureTestSuite) Test_Write_Callback_Two_Fail() {
 	time.Sleep(time.Millisecond * 200)
 }
 
+func (s *LocalFeatureTestSuite) Test_Write_Callback_Two_InterleavedWrites() {
+	newMsg := func(counter model.MsgCounterType) *api.Message {
+		return &api.Message{
+			RequestHeader: &model.HeaderType{
+				MsgCounter: util.Ptr(counter),
+				AckRequest: util.Ptr(true),
+			},
+			CmdClassifier: model.CmdClassifierTypeWrite,
+			FeatureRemote: s.remoteSubFeature,
+			DeviceRemote:  s.remoteSubFeature.Device(),
+			Cmd: model.CmdType{
+				LoadControlLimitListData: &model.LoadControlLimitListDataType{},
+			},
+		}
+	}
+	msgA, msgB := newMsg(1), newMsg(2)
+
+	tempLSFWrite := s.localServerFeatureWrite
+
+	// approvals are given manually below
+	cb := func(msg *api.Message) {}
+	tempLSFWrite.AddWriteApprovalCallback(cb)
+	tempLSFWrite.AddWriteApprovalCallback(cb)
+
+	s.senderMock.EXPECT().ResultSuccess(mock.Anything, mock.Anything).Return(nil).Twice()
+
+	assert.Nil(s.T(), tempLSFWrite.HandleMessage(msgA))
+	assert.Nil(s.T(), tempLSFWrite.HandleMessage(msgB))
+
+	result := model.ErrorType{ErrorNumber: 0}
+	tempLSFWrite.ApproveOrDenyWrite(msgA, result)
+	tempLSFWrite.ApproveOrDenyWrite(msgB, result)
+	tempLSFWrite.ApproveOrDenyWrite(msgA, result)
+	tempLSFWrite.ApproveOrDenyWrite(msgB, result)
+
+	s.senderMock.AssertNumberOfCalls(s.T(), "ResultSuccess", 2)
+}
+
 func (s *LocalFeatureTestSuite) Test_Write_Callback_Timeout() {
 	s.localServerFeatureWrite.SetWriteApprovalTimeout(time.Millisecond * 500)
 

@@ -234,13 +234,10 @@ func (r *FeatureLocal) ApproveOrDenyWrite(msg *api.Message, err model.ErrorType)
 	r.muxWriteReceived.Lock()
 	defer r.muxWriteReceived.Unlock()
 	if count > 1 && err.ErrorNumber == 0 {
-		amount, ok := r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter]
-		if ok {
-			r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] = amount + 1
-		} else {
+		if _, ok := r.writeApprovalReceived[ski]; !ok {
 			r.writeApprovalReceived[ski] = make(map[model.MsgCounterType]int)
-			r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] = 1
 		}
+		r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter]++
 		// do we have enough approve messages, if not exit
 		if r.writeApprovalReceived[ski][*msg.RequestHeader.MsgCounter] < count {
 			return
