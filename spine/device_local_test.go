@@ -1,6 +1,7 @@
 package spine
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -177,6 +178,44 @@ func (d *DeviceLocalTestSuite) Test_RemoteDevice() {
 	sut.RemoveRemoteDevice(ski)
 	remoteI = sut.RemoteDeviceForSki(ski)
 	assert.Nil(d.T(), remoteI)
+}
+
+func (d *DeviceLocalTestSuite) Test_RemoveRemoteDeviceConnection_Concurrent() {
+	sut := NewDeviceLocal("brand", "model", "serial", "code", "address", model.DeviceTypeTypeEnergyManagementSystem, model.NetworkManagementFeatureSetTypeSmart)
+
+	handler := newTestEventHandler("local")
+	_ = sut.events.subscribe(api.EventHandlerLevelCore, handler)
+
+	ski := "test"
+	for i := 0; i < 200; i++ {
+		_ = sut.SetupRemoteDevice(ski, d)
+		rDevice := sut.RemoteDeviceForSki(ski)
+
+		var start, wg sync.WaitGroup
+		start.Add(1)
+		for j := 0; j < 2; j++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				start.Wait()
+				sut.RemoveRemoteDeviceConnection(ski)
+			}()
+		}
+		start.Done()
+		wg.Wait()
+
+		removed := 0
+		for _, event := range handler.receivedEvents() {
+			if event.EventType == api.EventTypeDeviceChange &&
+				event.ChangeType == api.ElementChangeRemove &&
+				event.Device == rDevice {
+				removed++
+			}
+		}
+		if !assert.Equal(d.T(), 1, removed, "round %d", i) {
+			return
+		}
+	}
 }
 
 // a new connection for the same SKI (SHIP double connection) must not keep

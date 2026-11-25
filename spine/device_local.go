@@ -164,15 +164,13 @@ func (r *DeviceLocal) AddRemoteDeviceForSki(ski string, rDevice api.DeviceRemote
 }
 
 func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
-	remoteDevice := r.RemoteDeviceForSki(ski)
+	remoteDevice := r.removeRemoteDevice(ski)
 
 	// we get the events for any disconnection, even for cases where SHIP
 	// closed a connection and therefor it never reached SPINE
 	if remoteDevice == nil {
 		return
 	}
-
-	r.RemoveRemoteDevice(ski)
 
 	// inform about the disconnection
 	payload := api.EventPayload{
@@ -185,9 +183,14 @@ func (r *DeviceLocal) RemoveRemoteDeviceConnection(ski string) {
 }
 
 func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
+	_ = r.removeRemoteDevice(ski)
+}
+
+// removeRemoteDevice returns the removed device, or nil if there is none or another caller removed it
+func (r *DeviceLocal) removeRemoteDevice(ski string) api.DeviceRemoteInterface {
 	remoteDevice := r.RemoteDeviceForSki(ski)
 	if remoteDevice == nil {
-		return
+		return nil
 	}
 
 	// remove all subscriptions for this device
@@ -199,6 +202,11 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 	bindingMgr.RemoveBindingsForRemoteDevice(remoteDevice)
 
 	r.mux.Lock()
+
+	if r.remoteDevices[ski] != remoteDevice {
+		r.mux.Unlock()
+		return nil
+	}
 
 	delete(r.remoteDevices, ski)
 
@@ -219,6 +227,8 @@ func (r *DeviceLocal) RemoveRemoteDevice(ski string) {
 			feature.CleanRemoteDeviceCaches(remoteDeviceAddress)
 		}
 	}
+
+	return remoteDevice
 }
 
 func (r *DeviceLocal) RemoteDevices() []api.DeviceRemoteInterface {
